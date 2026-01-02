@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Sequence
-from ..exceptions.entities import DuplicateTestCaseInput, ValidationTestCaseError
+from .exceptions import DuplicateTestCaseInput, ValidationTestCaseError
 
 
 @dataclass

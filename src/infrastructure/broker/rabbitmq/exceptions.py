@@ -1,4 +1,4 @@
-from ..base import InfrastructureError
+from ...exc import InfrastructureError
 
 
 class RabbitMQClientError(InfrastructureError):

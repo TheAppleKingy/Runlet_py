@@ -1,4 +1,4 @@
-from ..base import ApplicationError
+from ..exc import ApplicationError
 
 
 class NoHandlerRegisteredError(ApplicationError):

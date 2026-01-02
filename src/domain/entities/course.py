@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from .user import User
 from .problem import Problem
-from ..exceptions.entities import RolesError
+from .exceptions import RolesError
 
 
 @dataclass

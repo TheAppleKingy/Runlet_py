@@ -1,7 +1,7 @@
 import pytest
 
 from src.domain.entities import TestCase, TestCases
-from src.domain.exceptions.entities import DuplicateTestCaseInput
+from src.domain.entities.exceptions import DuplicateTestCaseInput
 
 # TestCases tests
 

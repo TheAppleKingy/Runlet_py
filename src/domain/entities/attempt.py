@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 from .test_case import TestCases
-from ..exceptions.entities import (
+from .exceptions import (
     MismatchTestNumsError,
     MismatchTestsCountError,
     MismatchTestOutputsError,

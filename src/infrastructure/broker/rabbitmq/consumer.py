@@ -7,7 +7,7 @@ from aio_pika.abc import AbstractRobustChannel, AbstractIncomingMessage, Abstrac
 
 from application.interfaces import QueueHandlersRegistryInterface
 from .client import RabbitMQClient
-from ...exceptions.broker.rabbitmq import NoConnectionError, NoChannelError, NoTaskNameError
+from .exceptions import NoConnectionError, NoChannelError, NoTaskNameError
 
 
 class RabbitConsumer(RabbitMQClient):

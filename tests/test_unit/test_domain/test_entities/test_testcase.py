@@ -1,6 +1,6 @@
 import pytest
 from src.domain.entities import TestCase
-from src.domain.exceptions.entities import ValidationTestCaseError
+from src.domain.entities.exceptions import ValidationTestCaseError
 
 # TestCase tests
 

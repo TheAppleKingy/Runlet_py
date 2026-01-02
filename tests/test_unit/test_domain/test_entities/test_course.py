@@ -1,7 +1,7 @@
 import pytest
 
 from src.domain.entities import Course, User, Problem
-from src.domain.exceptions.entities import RolesError
+from src.domain.entities.exceptions import RolesError
 
 
 def test_course_initialization():

@@ -1,7 +1,7 @@
 import pytest
 
 from src.domain.entities import Attempt, TestCases, TestCase
-from src.domain.exceptions.entities import MismatchTestNumsError, MismatchTestOutputsError, MismatchTestsCountError
+from src.domain.entities.exceptions import MismatchTestNumsError, MismatchTestOutputsError, MismatchTestsCountError
 
 
 def test_attempt_initialization():

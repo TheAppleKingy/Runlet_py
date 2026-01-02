@@ -3,7 +3,7 @@ from functools import wraps
 
 from pydantic import BaseModel
 
-from ..exceptions.messaging import NoHandlerRegisteredError, NoDTOModelRegisteredError
+from .exceptions import NoHandlerRegisteredError, NoDTOModelRegisteredError
 
 
 class QueueHandlersRegistry:
