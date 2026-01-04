@@ -1,39 +1,31 @@
 from ..exc import DomainError
 
 
-class AttemptError(DomainError):
+class NoResultsError(DomainError):
     pass
 
 
-class NoResultsError(AttemptError):
+class MismatchTestNumsError(DomainError):
     pass
 
 
-class MismatchTestNumsError(AttemptError):
+class MismatchTestsCountError(DomainError):
     pass
 
 
-class MismatchTestsCountError(AttemptError):
+class MismatchTestOutputsError(DomainError):
     pass
 
 
-class MismatchTestOutputsError(AttemptError):
+class DuplicateTestCaseInput(DomainError):
     pass
 
 
-class DuplicateTestCaseInput(AttemptError):
+class DirectAccessError(DomainError):
     pass
 
 
-class CourseError(DomainError):
-    pass
-
-
-class DirectAccessError(CourseError):
-    pass
-
-
-class RolesError(CourseError):
+class RolesError(DomainError):
     pass
 
 
@@ -41,9 +33,9 @@ class TestCaseError(DomainError):
     pass
 
 
-class ValidationTestCaseError(TestCaseError):
+class ValidationTestCaseError(DomainError):
     pass
 
 
-class UpdateForbiddenError(TestCaseError):
+class UpdateForbiddenError(DomainError):
     pass

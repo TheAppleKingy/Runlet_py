@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
-from application.messaging.registy import QueueHandlersRegistry
+from application.messaging.registries import HandlersRegistry
 
-callback_registry = QueueHandlersRegistry("callback")
+callback_registry = HandlersRegistry()
 
 
 @callback_registry.register("register_attempt")

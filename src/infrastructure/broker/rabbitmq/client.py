@@ -11,7 +11,7 @@ class RabbitMQClient:
         self._connection: Optional[AbstractRobustConnection] = None
 
     async def connect(self) -> None:
-        if not self._connection or self._connection:
+        if not self._connection or self._connection.is_closed:
             self._connection = await connect_robust(rabbit_conf.conn_url())
 
     async def disconnect(self) -> None:
