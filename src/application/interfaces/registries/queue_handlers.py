@@ -1,0 +1,9 @@
+from typing import Awaitable, Protocol, Callable
+
+from pydantic import BaseModel
+
+
+class HandlersRegistryInterface(Protocol):
+    def register(self, key: str, model: type[BaseModel]): ...
+    def get_handler_coro(self, key: str, data: str | bytes) -> Awaitable[None]: ...
+    def as_dict(self) -> dict[str, Callable[[str | bytes], Awaitable[None]]]: ...
