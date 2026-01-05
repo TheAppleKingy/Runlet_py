@@ -13,6 +13,7 @@ class DBConfig(BaseSettings):
 
 class AppConfig(BaseSettings):
     token_expire_time: int
+    reg_confirm_url: str
     secret: str
 
 

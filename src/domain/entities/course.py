@@ -1,18 +1,24 @@
-from dataclasses import dataclass, field
-
 from .user import User
 from .problem import Problem
 from .exceptions import RolesError
 
 
-@dataclass
 class Course:
-    id: int = field(default=None)
-    name: str = field(default="")
-    description: str = field(default="")
-    _teacher_id: int = field(default=None)
-    _students: list[User] = field(default_factory=list, init=False)
-    problems: list[Problem] = field(default_factory=list, init=False)
+    def __init__(
+        self,
+        name: str,
+        teacher_id: int,
+        id: int = None,
+        description: str = "",
+        students: list[User] = None,
+        problems: list[Problem] = None
+    ):
+        self.id = id
+        self.name = name
+        self.description = description
+        self._teacher_id = teacher_id
+        self._students = students if students is not None else []
+        self.problems = problems if problems is not None else []
 
     @property
     def teacher_id(self):

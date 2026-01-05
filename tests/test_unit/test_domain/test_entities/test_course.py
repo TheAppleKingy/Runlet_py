@@ -1,6 +1,6 @@
 import pytest
 
-from src.domain.entities import Course, User, Problem
+from src.domain.entities import Course, User, Problem, Tag
 from src.domain.entities.exceptions import RolesError
 
 
@@ -9,7 +9,7 @@ def test_course_initialization():
     course = Course(
         name="Python 101",
         description="Learn Python basics",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
     assert course.name == "Python 101"
@@ -21,17 +21,14 @@ def test_course_initialization():
 
 def test_course_with_students():
     """Test Course initialization and basic student operations"""
-    teacher = User(email="teacher@example.com", password="teacher123")
-    teacher.id = 1  # Устанавливаем ID вручную
-    student1 = User(email="student1@example.com", password="student123")
-    student1.id = 2
-    student2 = User(email="student2@example.com", password="student123")
-    student2.id = 3
+    teacher = User(email="teacher@example.com", password="teacher123", id_=1)
+    student1 = User(email="student1@example.com", password="student123", id_=2)
+    student2 = User(email="student2@example.com", password="student123", id_=3)
 
     course = Course(
         name="Math",
         description="Mathematics course",
-        _teacher_id=teacher.id,
+        teacher_id=teacher.id,
     )
 
     # Test initial state
@@ -53,13 +50,11 @@ def test_course_with_problems():
     course = Course(
         name="Programming",
         description="Programming course",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
-    problem1 = Problem(name="Hello World", description="Print hello", course_id=1)
-    problem1.id = 1
-    problem2 = Problem(name="Calculator", description="Simple calculator", course_id=1)
-    problem2.id = 2
+    problem1 = Problem(name="Hello World", description="Print hello", course_id=course.id)
+    problem2 = Problem(name="Calculator", description="Simple calculator", course_id=course.id)
 
     course.problems.append(problem1)
     course.problems.append(problem2)
@@ -76,7 +71,7 @@ def test_teacher_id_getter():
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=42,
+        teacher_id=42,
     )
 
     assert course.teacher_id == 42
@@ -84,13 +79,12 @@ def test_teacher_id_getter():
 
 def test_teacher_id_setter_valid():
     """Test teacher_id setter with valid value"""
-    student = User(email="student1@example.com", password="student123")
-    student.id = 100
+    student = User(email="student1@example.com", password="student123", id_=100)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student])
 
@@ -101,13 +95,12 @@ def test_teacher_id_setter_valid():
 
 def test_teacher_id_setter_invalid_student_is_teacher():
     """Test teacher_id setter when teacher ID conflicts with student ID"""
-    student = User(email="student1@example.com", password="student123")
-    student.id = 100
+    student = User(email="student1@example.com", password="student123", id_=100)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student])
 
@@ -118,17 +111,14 @@ def test_teacher_id_setter_invalid_student_is_teacher():
 
 def test_teacher_id_setter_with_multiple_students():
     """Test teacher_id setter with multiple students"""
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 101
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 102
-    student3 = User(email="s3@example.com", password="pass")
-    student3.id = 103
+    student1 = User(email="s1@example.com", password="pass", id_=101)
+    student2 = User(email="s2@example.com", password="pass", id_=102)
+    student3 = User(email="s3@example.com", password="pass", id_=103)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student1, student2, student3])
 
@@ -148,7 +138,7 @@ def test_students_getter_empty():
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
     students = course.students
@@ -159,15 +149,13 @@ def test_students_getter_empty():
 
 def test_students_getter_with_students():
     """Test students getter with students"""
-    student1 = User(email="a@example.com", password="pass")
-    student1.id = 10
-    student2 = User(email="b@example.com", password="pass")
-    student2.id = 11
+    student1 = User(email="a@example.com", password="pass", id_=10)
+    student2 = User(email="b@example.com", password="pass", id_=11)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student1, student2])
 
@@ -180,17 +168,14 @@ def test_students_getter_with_students():
 
 def test_students_setter_valid():
     """Test students setter with valid list"""
-    teacher = User(email="teacher@example.com", password="pass")
-    teacher.id = 1
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 3
+    teacher = User(email="teacher@example.com", password="pass", id_=1)
+    student1 = User(email="s1@example.com", password="pass", id_=2)
+    student2 = User(email="s2@example.com", password="pass", id_=3)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=teacher.id,
+        teacher_id=teacher.id,
     )
 
     # Set students
@@ -203,15 +188,13 @@ def test_students_setter_valid():
 
 def test_students_setter_teacher_in_list():
     """Test students setter when teacher is in the list"""
-    teacher = User(email="teacher@example.com", password="pass")
-    teacher.id = 1
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
+    teacher = User(email="teacher@example.com", password="pass", id_=1)
+    student1 = User(email="s1@example.com", password="pass", id_=2)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=teacher.id,
+        teacher_id=teacher.id,
     )
 
     # Try to add teacher as student
@@ -221,15 +204,13 @@ def test_students_setter_teacher_in_list():
 
 def test_students_setter_duplicate_students():
     """Test students setter with duplicate students (list allows duplicates)"""
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 3
+    student1 = User(email="s1@example.com", password="pass", id_=2)
+    student2 = User(email="s2@example.com", password="pass", id_=3)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
     # List with duplicates - should be accepted (list allows duplicates)
@@ -242,13 +223,12 @@ def test_students_setter_duplicate_students():
 
 def test_students_setter_empty_list():
     """Test students setter with empty list"""
-    student = User(email="s@example.com", password="pass")
-    student.id = 2
+    student = User(email="s@example.com", password="pass", id_=2)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student])
 
@@ -266,7 +246,7 @@ def test_add_students_empty():
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
     course.add_students([])
@@ -275,13 +255,12 @@ def test_add_students_empty():
 
 def test_add_students_single():
     """Test add_students with single student"""
-    student = User(email="student@example.com", password="pass")
-    student.id = 2
+    student = User(email="student@example.com", password="pass", id_=2)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
     course.add_students([student])
@@ -291,17 +270,14 @@ def test_add_students_single():
 
 def test_add_students_multiple():
     """Test add_students with multiple students"""
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 3
-    student3 = User(email="s3@example.com", password="pass")
-    student3.id = 4
+    student1 = User(email="s1@example.com", password="pass", id_=2)
+    student2 = User(email="s2@example.com", password="pass", id_=3)
+    student3 = User(email="s3@example.com", password="pass", id_=4)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
     course.add_students([student1, student2, student3])
@@ -313,15 +289,13 @@ def test_add_students_multiple():
 
 def test_add_students_teacher_in_list():
     """Test add_students when teacher is in the list"""
-    teacher = User(email="teacher@example.com", password="pass")
-    teacher.id = 1
-    student = User(email="student@example.com", password="pass")
-    student.id = 2
+    teacher = User(email="teacher@example.com", password="pass", id_=1)
+    student = User(email="student@example.com", password="pass", id_=2)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=teacher.id,
+        teacher_id=teacher.id,
     )
 
     with pytest.raises(RolesError, match="is the teacher of this course"):
@@ -330,35 +304,32 @@ def test_add_students_teacher_in_list():
 
 def test_add_students_duplicates():
     """Test add_students with duplicate students"""
-    student = User(email="student@example.com", password="pass")
-    student.id = 2
+    student = User(email="student@example.com", password="pass", id_=2)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
     # Add same student twice
     course.add_students([student])
     course.add_students([student])  # Duplicate
 
-    # List allows duplicates, so student appears twice
-    assert len(course._students) == 1  # List has duplicates!
+    # List prevents duplicates, so student appears only once
+    assert len(course._students) == 1  # List prevents duplicates
     assert course._students.count(student) == 1
 
 
 def test_add_students_partial_duplicate():
     """Test add_students with some new and some existing students"""
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 3
+    student1 = User(email="s1@example.com", password="pass", id_=2)
+    student2 = User(email="s2@example.com", password="pass", id_=3)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
     # Add first time
@@ -368,7 +339,7 @@ def test_add_students_partial_duplicate():
     # Add both - student1 is duplicate, student2 is new
     course.add_students([student1, student2])
 
-    # student1 appears twice, student2 once
+    # student1 appears once, student2 once
     assert len(course._students) == 2
     assert course._students.count(student1) == 1
     assert course._students.count(student2) == 1
@@ -378,13 +349,12 @@ def test_add_students_partial_duplicate():
 
 def test_delete_students_empty():
     """Test delete_students with empty list"""
-    student = User(email="student@example.com", password="pass")
-    student.id = 2
+    student = User(email="student@example.com", password="pass", id_=2)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student])
 
@@ -395,15 +365,13 @@ def test_delete_students_empty():
 
 def test_delete_students_single():
     """Test delete_students with single student"""
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 3
+    student1 = User(email="s1@example.com", password="pass", id_=2)
+    student2 = User(email="s2@example.com", password="pass", id_=3)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student1, student2])
 
@@ -415,17 +383,14 @@ def test_delete_students_single():
 
 def test_delete_students_multiple():
     """Test delete_students with multiple students"""
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 3
-    student3 = User(email="s3@example.com", password="pass")
-    student3.id = 4
+    student1 = User(email="s1@example.com", password="pass", id_=2)
+    student2 = User(email="s2@example.com", password="pass", id_=3)
+    student3 = User(email="s3@example.com", password="pass", id_=4)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student1, student2, student3])
 
@@ -438,17 +403,14 @@ def test_delete_students_multiple():
 
 def test_delete_students_nonexistent():
     """Test delete_students with non-existent student"""
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 3
-    student3 = User(email="s3@example.com", password="pass")
-    student3.id = 4
+    student1 = User(email="s1@example.com", password="pass", id_=2)
+    student2 = User(email="s2@example.com", password="pass", id_=3)
+    student3 = User(email="s3@example.com", password="pass", id_=4)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student1, student3])
 
@@ -463,15 +425,13 @@ def test_delete_students_nonexistent():
 
 def test_delete_students_duplicates_in_list():
     """Test delete_students with duplicate students in input list"""
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 3
+    student1 = User(email="s1@example.com", password="pass", id_=2)
+    student2 = User(email="s2@example.com", password="pass", id_=3)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student1, student2])
 
@@ -485,15 +445,13 @@ def test_delete_students_duplicates_in_list():
 
 def test_delete_students_all():
     """Test delete_students removing all students"""
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 3
+    student1 = User(email="s1@example.com", password="pass", id_=2)
+    student2 = User(email="s2@example.com", password="pass", id_=3)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student1, student2])
 
@@ -502,42 +460,17 @@ def test_delete_students_all():
     assert course._students == []
 
 
-def test_delete_students_with_duplicates_in_course():
-    """Test delete_students when course has duplicate students (due to list)"""
-    student = User(email="student@example.com", password="pass")
-    student.id = 2
-
-    course = Course(
-        name="Test",
-        description="Test",
-        _teacher_id=1,
-    )
-    # Add same student twice (list allows this)
-    course.add_students([student])
-    course.add_students([student])  # Now has two copies
-
-    assert len(course.students) == 1
-
-    # Delete the student
-    course.delete_students([student])
-
-    # All copies should be removed
-    assert len(course.students) == 0
-
-
 # ===== VALIDATE_TEACHER_IS_STUDENT TESTS =====
 
 def test_validate_teacher_is_student_valid():
     """Test _validate_teacher_is_student with valid input"""
-    teacher = User(email="teacher@example.com", password="pass")
-    teacher.id = 1
-    student = User(email="student@example.com", password="pass")
-    student.id = 2
+    teacher = User(email="teacher@example.com", password="pass", id_=1)
+    student = User(email="student@example.com", password="pass", id_=2)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=teacher.id,
+        teacher_id=teacher.id,
     )
 
     # Should not raise exception
@@ -546,15 +479,13 @@ def test_validate_teacher_is_student_valid():
 
 def test_validate_teacher_is_student_invalid():
     """Test _validate_teacher_is_student when teacher is in students list"""
-    teacher = User(email="teacher@example.com", password="pass")
-    teacher.id = 1
-    student = User(email="student@example.com", password="pass")
-    student.id = 2
+    teacher = User(email="teacher@example.com", password="pass", id_=1)
+    student = User(email="student@example.com", password="pass", id_=2)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=teacher.id,
+        teacher_id=teacher.id,
     )
 
     with pytest.raises(RolesError, match="is the teacher of this course"):
@@ -563,16 +494,14 @@ def test_validate_teacher_is_student_invalid():
 
 def test_validate_teacher_is_student_teacher_id_match():
     """Test _validate_teacher_is_student when student has same ID as teacher"""
-    teacher = User(email="teacher@example.com", password="pass")
-    teacher.id = 1
+    teacher = User(email="teacher@example.com", password="pass", id_=1)
     # Different user object but same ID as teacher
-    student_same_id = User(email="impostor@example.com", password="pass")
-    student_same_id.id = 1
+    student_same_id = User(email="impostor@example.com", password="pass", id_=1)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=teacher.id,
+        teacher_id=teacher.id,
     )
 
     # Should raise because student has same ID as teacher
@@ -584,17 +513,14 @@ def test_validate_teacher_is_student_teacher_id_match():
 
 def test_multiple_operations_sequence():
     """Test sequence of multiple operations"""
-    student1 = User(email="s1@example.com", password="pass")
-    student1.id = 2
-    student2 = User(email="s2@example.com", password="pass")
-    student2.id = 3
-    student3 = User(email="s3@example.com", password="pass")
-    student3.id = 4
+    student1 = User(email="s1@example.com", password="pass", id_=2)
+    student2 = User(email="s2@example.com", password="pass", id_=3)
+    student3 = User(email="s3@example.com", password="pass", id_=4)
 
     course = Course(
         name="Test Course",
         description="Description",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
     # Add students
@@ -624,13 +550,11 @@ def test_problems_list_is_mutable():
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
 
-    problem1 = Problem(name="P1", description="D1", course_id=1)
-    problem1.id = 1
-    problem2 = Problem(name="P2", description="D2", course_id=1)
-    problem2.id = 2
+    problem1 = Problem(name="P1", description="D1", course_id=course.id)
+    problem2 = Problem(name="P2", description="D2", course_id=course.id)
 
     # Direct modification (no setter/getter for problems)
     course.problems.append(problem1)
@@ -647,50 +571,14 @@ def test_problems_list_is_mutable():
     assert problem2 in course.problems
 
 
-def test_course_equality():
-    """Test that Course objects with same data are equal (default dataclass behavior)"""
-    course1 = Course(
-        name="Math",
-        description="Mathematics",
-        _teacher_id=1,
-    )
-
-    course2 = Course(
-        name="Math",
-        description="Mathematics",
-        _teacher_id=1,
-    )
-
-    # Dataclasses with same field values are equal by default
-    assert course1 == course2  # Because dataclass generates __eq__
-
-    # But they are different objects
-    assert course1 is not course2
-
-
-def test_course_repr():
-    """Test string representation of Course"""
-    course = Course(
-        name="Physics",
-        description="Physics course",
-        _teacher_id=42,
-    )
-
-    repr_str = repr(course)
-    assert "Physics" in repr_str
-    assert "42" in repr_str
-    assert "Course" in repr_str
-
-
 def test_students_property_returns_copy():
     """Test that students property returns a tuple (immutable copy)"""
-    student = User(email="student@example.com", password="pass")
-    student.id = 2
+    student = User(email="student@example.com", password="pass", id_=2)
 
     course = Course(
         name="Test",
         description="Test",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.add_students([student])
 
@@ -706,22 +594,18 @@ def test_students_property_returns_copy():
 def test_concurrent_modification_scenario():
     """Test scenario that might happen in real usage"""
     # Create users
-    teacher = User(email="dr.smith@example.com", password="pass")
-    teacher.id = 100
+    teacher = User(email="dr.smith@example.com", password="pass", id_=100)
     students = [
-        User(email="alice@example.com", password="pass"),
-        User(email="bob@example.com", password="pass"),
-        User(email="charlie@example.com", password="pass"),
+        User(email="alice@example.com", password="pass", id_=101),
+        User(email="bob@example.com", password="pass", id_=102),
+        User(email="charlie@example.com", password="pass", id_=103),
     ]
-    students[0].id = 101
-    students[1].id = 102
-    students[2].id = 103
 
     # Create course
     course = Course(
         name="Advanced Programming",
         description="Learn advanced programming concepts",
-        _teacher_id=teacher.id,
+        teacher_id=teacher.id,
     )
 
     # Add all students
@@ -736,8 +620,7 @@ def test_concurrent_modification_scenario():
     assert students[2] in course.students  # Charlie
 
     # New student enrolls
-    new_student = User(email="diana@example.com", password="pass")
-    new_student.id = 104
+    new_student = User(email="diana@example.com", password="pass", id_=104)
     course.add_students([new_student])
     assert len(course.students) == 3
     assert new_student in course.students
@@ -758,15 +641,160 @@ def test_problem_course_id_relationship():
     course = Course(
         name="Math Course",
         description="Math",
-        _teacher_id=1,
+        teacher_id=1,
     )
     course.id = 100  # Устанавливаем ID курса
 
     problem = Problem(name="Algebra Problem", description="Solve equation", course_id=course.id)
-    problem.id = 1
 
     course.problems.append(problem)
 
     assert len(course.problems) == 1
     assert course.problems[0].course_id == course.id
     assert course.problems[0].name == "Algebra Problem"
+
+
+def test_course_with_tags():
+    """Test that users can have tags"""
+    user = User(
+        email="user@example.com",
+        password="password",
+        name="John",
+        tags=[Tag(name="python"), Tag(name="backend")]
+    )
+
+    course = Course(
+        name="Test Course",
+        description="Test",
+        teacher_id=1,
+    )
+
+    course.add_students([user])
+
+    assert len(user.tags) == 2
+    assert user.tags[0].name == "python"
+    assert user.tags[1].name == "backend"
+
+
+def test_course_id_property():
+    """Test course id property"""
+    course = Course(
+        name="Test",
+        description="Test",
+        teacher_id=1,
+    )
+
+    assert course.id is None  # По умолчанию None
+
+    course.id = 42
+    assert course.id == 42
+
+
+def test_teacher_without_id():
+    """Test course with teacher without id"""
+    course = Course(
+        name="Test",
+        description="Test",
+        teacher_id=None,  # Допустимо
+    )
+
+    assert course.teacher_id is None
+
+    # Можно установить teacher_id позже
+    course.teacher_id = 10
+    assert course.teacher_id == 10
+
+
+def test_add_students_without_ids():
+    """Test adding students without ids"""
+    student1 = User(email="s1@example.com", password="pass")  # Без id
+    student2 = User(email="s2@example.com", password="pass")  # Без id
+
+    course = Course(
+        name="Test",
+        description="Test",
+        teacher_id=1,
+    )
+
+    # Должно работать, даже если у студентов нет id
+    course.add_students([student1, student2])
+    assert len(course.students) == 2
+
+    # Но валидация teacher_id vs student.id все равно работает
+    with pytest.raises(RolesError):
+        course.teacher_id = None  # teacher_id станет None
+
+
+def test_teacher_id_none_with_students():
+    """Test teacher_id=None with students"""
+    student = User(email="student@example.com", password="pass", id_=100)
+
+    course = Course(
+        name="Test",
+        description="Test",
+        teacher_id=None,
+    )
+
+    course.add_students([student])
+
+    # Установка teacher_id в None должна работать
+    course.teacher_id = None
+    assert course.teacher_id is None
+
+
+def test_delete_nonexistent_student_no_error():
+    """Test deleting non-existent student doesn't cause error"""
+    student1 = User(email="s1@example.com", password="pass", id_=3)
+    student2 = User(email="s2@example.com", password="pass", id_=2)
+
+    course = Course(
+        name="Test",
+        description="Test",
+        teacher_id=1,
+    )
+
+    course.add_students([student1])
+
+    # Удаление несуществующего студента (student2) не должно вызывать ошибку
+    course.delete_students([student2])
+    assert len(course.students) == 1
+    assert student1 in course.students
+
+
+def test_students_setter_with_none():
+    """Test students setter with None (should raise TypeError)"""
+    course = Course(
+        name="Test",
+        description="Test",
+        teacher_id=1,
+    )
+
+    with pytest.raises(TypeError):
+        course.students = None  # Должно требовать list
+
+
+def test_course_with_default_values():
+    """Test Course with all default values"""
+    course = Course()
+
+    assert course.name == ""
+    assert course.description == ""
+    assert course.teacher_id is None
+    assert course.students == tuple()
+    assert course.problems == []
+    assert course.id is None
+
+
+def test_course_comparison():
+    """Test that Course objects can be compared"""
+    course1 = Course(name="Math", teacher_id=1, id=10)
+    course2 = Course(name="Math", teacher_id=1, id=10)
+    course3 = Course(name="Physics", teacher_id=2, id=20)
+
+    # Обычные классы без __eq__ сравниваются по id объекта
+    assert course1 != course2  # Разные объекты
+    assert course1 != course3  # Разные объекты
+
+    # Но можно сравнивать атрибуты
+    assert course1.name == course2.name
+    assert course1.teacher_id == course2.teacher_id
