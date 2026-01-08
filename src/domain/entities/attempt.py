@@ -1,4 +1,6 @@
-from .test_case import TestCases
+from dataclasses import dataclass, field
+
+from ..value_objects import TestCases
 from .exceptions import (
     MismatchTestNumsError,
     MismatchTestsCountError,
@@ -6,24 +8,23 @@ from .exceptions import (
 )
 
 
+@dataclass
 class Attempt:
-    def __init__(
-        self,
-        user_id: int,
-        problem_id: int,
-        amount: int = 0,
-        passed: bool = False,
-        test_cases: TestCases = None,
-    ):
-        self.user_id = user_id
-        self.problem_id = problem_id
-        self.amount = amount
-        self.passed = passed
-        self.test_cases = test_cases if test_cases is not None else TestCases()
+    user_id: int
+    problem_id: int
+    amount: int = field(default=0, init=False)
+    passed: bool = field(default=False, init=False)
+    test_cases: TestCases = field(default_factory=TestCases)
 
     def mark_as_passed(self, expected_cases: TestCases):
+        """
+        Mark attempt as passed comparing test cases got in last attempt with excpected values of cases outputs 
+
+        :param expected_cases: set of test cases that with correct outputs(problem.test_cases)
+        :type expected_cases: TestCases
+        """
         if expected_cases.count != self.test_cases.count:
-            raise MismatchTestsCountError("Count of provided results mismatch with spcified cases")
+            raise MismatchTestsCountError("Count of provided results mismatch with specified cases")
         mismatching_outputs = []
         mismatchng_nums = []
         for num, case in self.test_cases:

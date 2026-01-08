@@ -1,24 +1,18 @@
+from dataclasses import dataclass, field
+
 from .user import User
 from .problem import Problem
 from .exceptions import RolesError
 
 
+@dataclass
 class Course:
-    def __init__(
-        self,
-        name: str,
-        teacher_id: int,
-        id: int = None,
-        description: str = "",
-        students: list[User] = None,
-        problems: list[Problem] = None
-    ):
-        self.id = id
-        self.name = name
-        self.description = description
-        self._teacher_id = teacher_id
-        self._students = students if students is not None else []
-        self.problems = problems if problems is not None else []
+    name: str
+    _teacher_id: int
+    id: int = field(default=None, init=False)  # type: ignore
+    description: str = ""
+    _students: list[User] = field(default_factory=list, init=False)
+    problems: list[Problem] = field(default_factory=list, init=False)
 
     @property
     def teacher_id(self):
@@ -26,7 +20,7 @@ class Course:
 
     @teacher_id.setter
     def teacher_id(self, id_: int):
-        if id_ in {s.id for s in self._students}:
+        if id_ in [s.id for s in self._students]:
             raise RolesError("Teacher cannot be student at the same time")
         self._teacher_id = id_
 
@@ -35,7 +29,7 @@ class Course:
         return tuple(self._students)
 
     def _validate_teacher_is_student(self, students: list[User]):
-        if self._teacher_id in {s.id for s in students}:
+        if self._teacher_id in [s.id for s in students]:
             raise RolesError(f"User {self._teacher_id} is the teacher of this course")
 
     @students.setter
@@ -49,5 +43,5 @@ class Course:
             if s not in self._students:
                 self._students.append(s)
 
-    def delete_students(self, students: list[User]):
-        self._students = [s for s in self._students if s not in students]
+    def delete_students(self, ids: list[int]):
+        self._students = [s for s in self._students if s.id not in ids]

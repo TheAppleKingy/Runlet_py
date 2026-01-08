@@ -1,16 +1,20 @@
 from typing import Sequence, Optional
+from dataclasses import dataclass, field
+
 from .exceptions import DuplicateTestCaseInput, ValidationTestCaseError
 
 
+@dataclass
 class TestCase:
-    def __init__(self, input_: str = "", output: str = ""):
-        self._validate_io(input_)
-        self._validate_io(output)
-        self.input = input_
-        self.output = output
+    input: str
+    output: str = ""
+
+    def __post_init__(self):
+        self._validate_io(self.input)
+        self._validate_io(self.output)
 
     def _validate_io(self, data: str):
-        if data is None or not isinstance(data, str):
+        if not isinstance(data, str):
             raise ValidationTestCaseError("Data for test case is not valid")
 
     def to_dict(self):
@@ -19,22 +23,21 @@ class TestCase:
             "output": self.output
         }
 
-    def from_dict(self, io_dict: dict[str, str]):
-        self._validate_io(io_dict.get("input"))
-        self._validate_io(io_dict.get("output"))
-        self.input = io_dict["input"]
-        self.output = io_dict["output"]
-        return self
+    @classmethod
+    def from_dict(cls, io_dict: dict[str, str]):
+        return cls(**io_dict)
 
 
 TestCasesDataType = dict[int, TestCase]
 """Represents format of data of test cases. { test_num -> { input: input_data, output: output_data } }"""
 
 
+@dataclass
 class TestCases:
-    def __init__(self, with_update: bool = False):
-        self._data: TestCasesDataType = {}
-        self.with_update = with_update
+    _data: TestCasesDataType = field(default_factory=dict)
+
+    def __post_init__(self):
+        self._data = self._get_validated_test_cases(self._data)
 
     def __iter__(self):
         return iter(self._data.items())
@@ -57,6 +60,8 @@ class TestCases:
         return res
 
     def _get_validated_test_cases(self, cases_data: TestCasesDataType):
+        if not all((isinstance(num, int) and num > 0) for num in cases_data):
+            raise ValidationTestCaseError("Number of test should be natural int")
         deduplicated_io = self._validate_io_duplicates(cases_data)
         self._validate_input_duplicates([v for v in deduplicated_io.values()])
         return deduplicated_io
@@ -67,11 +72,11 @@ class TestCases:
     def as_dict(self):
         return {num: case.to_dict() for num, case in self._data.items()}
 
-    def from_dict(self, test_cases_data: dict[int, dict[str, str]]):
-        to_update = {num: TestCase().from_dict(case_data)
-                     for num, case_data in test_cases_data.items()}
-        self.update_test_cases(to_update)
-        return self
+    @classmethod
+    def from_dict(cls, test_cases_data: dict[int, dict[str, str]]):
+        data = {num: TestCase.from_dict(case_data)
+                for num, case_data in test_cases_data.items()}
+        return cls(_data=data)
 
     def update_test_cases(self, cases_data: TestCasesDataType):
         res = self._data.copy()

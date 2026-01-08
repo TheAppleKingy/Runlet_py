@@ -1,10 +1,12 @@
 from sqlalchemy import MetaData, Column, Integer, TypeDecorator
 from sqlalchemy.dialects.postgresql import JSONB
-from domain.entities import TestCases
+from domain.value_objects import TestCases
 
 metadata = MetaData()
 
-id_ = Column[int]('id', Integer, primary_key=True, autoincrement=True)
+
+def id_():
+    return Column('id', Integer, primary_key=True, autoincrement=True)
 
 
 class TestCaseJSONBType(TypeDecorator):
@@ -13,8 +15,6 @@ class TestCaseJSONBType(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if isinstance(value, TestCases):
             return value.as_dict()
-        elif value is None:
-            return None
         else:
             raise TypeError(f"Undefined type: {type(value)}. Should be TestCases")
 

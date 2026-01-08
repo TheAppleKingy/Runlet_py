@@ -7,6 +7,9 @@ services:
       - postgres_data:/var/lib/postgresql
     ports:
       - "5432:5432"
+    networks:
+      - runlet_external
+      - runlet_internal
 
   runlet:
     build:
@@ -16,6 +19,12 @@ services:
       - "8000:8000"
     depends_on:
       - database
+      - rabbitmq
+    networks:
+      - runlet_internal
+    env_file:
+      - .env
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   rabbitmq:
     hostname: rabbitmq
@@ -29,3 +38,15 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - runlet_external
+      - runlet_internal
+  
+networks:
+  runlet_external:
+    external: true
+  runlet_internal:
+
+volumes:
+  rabbitmq_data:
+  postgres_data:

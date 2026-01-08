@@ -17,10 +17,6 @@ class MismatchTestOutputsError(DomainError):
     pass
 
 
-class DuplicateTestCaseInput(DomainError):
-    pass
-
-
 class DirectAccessError(DomainError):
     pass
 
@@ -30,10 +26,6 @@ class RolesError(DomainError):
 
 
 class TestCaseError(DomainError):
-    pass
-
-
-class ValidationTestCaseError(DomainError):
     pass
 
 
