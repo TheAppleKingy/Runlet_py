@@ -26,6 +26,14 @@ class RabbitMQConfig(BaseSettings):
         return f"amqp://{self.rabbitmq_default_user}:{self.rabbitmq_default_pass}@{self.rabbitmq_host}"
 
 
+class EmailConfig(BaseSettings):
+    email_sender: str
+    email_sender_password: str
+    email_host: str
+    email_port: int
+
+
 db_conf = DBConfig()
 app_conf = AppConfig()
 rabbit_conf = RabbitMQConfig()
+email_conf = EmailConfig()

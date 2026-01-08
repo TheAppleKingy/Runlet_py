@@ -1,5 +1,4 @@
 from typing import Self, Protocol
-from contextlib import asynccontextmanager
 
 
 class ReadOnlyUoWInterface(Protocol):
