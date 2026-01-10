@@ -19,3 +19,7 @@ class PasswordsMismatchError(UserApplicationError):
 
 class EmailExistsError(UserApplicationError):
     pass
+
+
+class InactiveUserError(UserApplicationError):
+    pass
