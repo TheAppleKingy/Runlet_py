@@ -1,7 +1,7 @@
-from application.interfaces.uow import ReadOnlyUoWInterface, ReadWriteUoWInterface
-from application.interfaces.services import AuthenticationServiceInterface, PasswordServiceInterface, EmailServiceInterface
-from application.dtos.auth import LoginUserDTO, RegisterUserRequestDTO
-from domain.interfaces.repositories import UserRepositoryInterface
+from src.application.interfaces.uow import ReadOnlyUoWInterface, ReadWriteUoWInterface
+from src.application.interfaces.services import AuthenticationServiceInterface, PasswordServiceInterface, EmailServiceInterface
+from src.application.dtos.auth import LoginUserDTO, RegisterUserRequestDTO
+from src.domain.interfaces.repositories import UserRepositoryInterface
 from .exceptions import (
     UndefinedUserError,
     InvalidUserPasswordError,
@@ -9,6 +9,7 @@ from .exceptions import (
     EmailExistsError,
     InactiveUserError
 )
+from src.logger import logger
 
 
 class AuthenticateUser:
@@ -65,23 +66,25 @@ class RegisterUserRequest:
         user_repo: UserRepositoryInterface,
         password_service: PasswordServiceInterface,
         auth_service: AuthenticationServiceInterface,
-        email_service: EmailServiceInterface
+        email_service: EmailServiceInterface,
+        reg_confirm_url: str
     ):
         self._uow = uow
         self._user_repo = user_repo
         self._password_service = password_service
         self._auth_service = auth_service
         self._email_service = email_service
+        self._reg_confirm_url = reg_confirm_url
 
-    async def execute(self, dto: RegisterUserRequestDTO) -> str:
+    async def execute(self, dto: RegisterUserRequestDTO):
         if dto.first_password != dto.second_password:
             raise PasswordsMismatchError("Passwords do not match")
         async with self._uow:
             if await self._user_repo.count_by_email(dto.email):
                 raise EmailExistsError(f"User with email {dto.email} already exists")
-            created = await self._user_repo.create(dto.name, dto.email, dto.first_password)
-            token = self._auth_service.generate_token(created.id)
-            message = f"Hello! Confirm your registration on Runlet following by link:\n{self._auth_service.reg_confirm_url}/{token}"
+            created = await self._user_repo.create(dto.name, dto.email, self._password_service.hash_password(dto.first_password))
+            token = self._auth_service.generate_token(created.id, 300)
+            message = f"Hello! Confirm your registration on Runlet following by link:\n{self._reg_confirm_url}/{token}"
             await self._email_service.send_mail(created.email, "Registration confirm", message)
 
 

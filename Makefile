@@ -65,8 +65,7 @@ runlet.test_db.start:
 	@docker compose -f ${TESTS_COMPOSE} up -d test_db
 	@until docker compose -f ${TESTS_COMPOSE} exec test_db pg_isready -U ${POSTGRES_USER}; do sleep 1; done
 
-
-runlet.test.integration: runlet.test.build runlet.start.test_db
+runlet.test.integration: runlet.test.build runlet.test_db.start
 	@docker compose -f ${TESTS_COMPOSE} run --rm test_app pytest -v ${INTEGRATION_TESTS_PATH}; docker compose -f ${TESTS_COMPOSE} down
 
 runlet.test.unit: runlet.test.build

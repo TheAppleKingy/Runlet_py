@@ -1,4 +1,4 @@
-from infrastructure.exc import InfrastructureError
+from src.infrastructure.exc import InfrastructureError
 
 
 class JWTUnauthorizedError(InfrastructureError):

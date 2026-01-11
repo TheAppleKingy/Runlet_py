@@ -1,6 +1,6 @@
 from sqlalchemy import MetaData, Column, Integer, TypeDecorator
 from sqlalchemy.dialects.postgresql import JSONB
-from domain.value_objects import TestCases
+from src.domain.value_objects import TestCases
 
 metadata = MetaData()
 

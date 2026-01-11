@@ -2,7 +2,7 @@ import aiosmtplib
 import asyncio
 
 from email.message import EmailMessage
-from logger import logger
+from src.logger import logger
 from ..configs import email_conf
 
 

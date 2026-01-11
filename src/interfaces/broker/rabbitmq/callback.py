@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
-from application.messaging.registries import HandlersRegistry
-from application.dtos.callback import CodeRunCallbackDTO
+from src.application.messaging.registries import HandlersRegistry
+from src.application.dtos.callback import CodeRunCallbackDTO
 
 callback_registry = HandlersRegistry()
 

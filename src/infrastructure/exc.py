@@ -1,4 +1,4 @@
-from domain.exc import HandlingError
+from src.domain.exc import HandlingError
 
 
 class InfrastructureError(HandlingError):

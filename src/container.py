@@ -3,24 +3,24 @@ from collections.abc import AsyncGenerator
 from fastapi import Depends, Cookie
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-from application.messaging.registries import MessageConsumerRegistry
-from application.use_cases.user import *
+from src.application.messaging.registries import MessageConsumerRegistry
+from src.application.use_cases.user import *
 
-from infrastructure.services.user import *
-from infrastructure.services import *
-from infrastructure.configs import (
+from src.infrastructure.services.user import *
+from src.infrastructure.services import *
+from src.infrastructure.configs import (
     db_conf,
     email_conf,
     rabbit_conf,
     app_conf
 )
-from infrastructure.repositories import *
-from infrastructure.broker.factories import RabbitMQConsumerFactory
-from infrastructure.uow import AlchemyReadUow, AlchemyReadWriteUow
+from src.infrastructure.repositories import *
+from src.infrastructure.broker.factories import RabbitMQConsumerFactory
+from src.infrastructure.uow import AlchemyReadUow, AlchemyReadWriteUow
 
-from interfaces.broker.rabbitmq.callback import callback_registry
+from src.interfaces.broker.rabbitmq.callback import callback_registry
 
-from domain.interfaces.repositories import *
+from src.domain.interfaces.repositories import *
 
 _engine = create_async_engine(db_conf.conn_url())
 _session_factory = async_sessionmaker(_engine, expire_on_commit=True, autoflush=False)
@@ -47,7 +47,7 @@ def get_user_repository(session: AsyncSession):
 
 
 def get_jwt_auth_service():
-    return JWTAuthenticationService(app_conf.reg_confirm_url, app_conf.secret, app_conf.token_expire_time)
+    return JWTAuthenticationService(app_conf.token_expire_time, app_conf.secret)
 
 
 def get_password_service():
@@ -72,7 +72,8 @@ def get_register_request_usecase(session: AsyncSession = Depends(get_db_session)
         get_user_repository(session),
         get_password_service(),
         get_jwt_auth_service(),
-        get_email_service()
+        get_email_service(),
+        app_conf.reg_confirm_url
     )
 
 

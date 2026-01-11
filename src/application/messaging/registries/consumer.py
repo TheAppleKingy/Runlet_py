@@ -1,5 +1,5 @@
-from application.interfaces.broker import MessageConsumerInterface, MessageConsumerFactoryInterface
-from application.interfaces.registries import HandlersRegistryInterface
+from src.application.interfaces.broker import MessageConsumerInterface, MessageConsumerFactoryInterface
+from src.application.interfaces.registries import HandlersRegistryInterface
 
 
 class MessageConsumerRegistry:

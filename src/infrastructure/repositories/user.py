@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import select, func, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from domain.entities import User
+from src.domain.entities import User
 
 
 class AlchemyUserRepository:

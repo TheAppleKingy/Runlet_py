@@ -1,4 +1,4 @@
-from application.exc import ApplicationError
+from src.application.exc import ApplicationError
 
 
 class UserApplicationError(ApplicationError):

@@ -1,17 +1,15 @@
 from contextlib import asynccontextmanager
-from datetime import datetime
 
-from fastapi import FastAPI, APIRouter, Request, HTTPException, status
+from fastapi import FastAPI, APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import registry, relationship
 
-from application.use_cases.user import *
-from infrastructure.db.tables import *
-from domain.exc import HandlingError
-from interfaces.http import *
-from domain.entities import *
-from container import get_register_confirm_usecase, get_register_request_usecase
-from logger import logger
+from src.application.use_cases.user import *
+from src.infrastructure.db.tables import *
+from src.domain.exc import HandlingError
+from src.interfaces.http import *
+from src.domain.entities import *
+from src.logger import logger
 
 
 mapper_registry = registry()
@@ -61,4 +59,5 @@ async def handle_auth(r: Request, call_next):
 def setup_routers(app: FastAPI):
     api_router = APIRouter(prefix="/api/v1")
     api_router.include_router(auth_router)
+    api_router.include_router(user_router)
     app.include_router(api_router)
