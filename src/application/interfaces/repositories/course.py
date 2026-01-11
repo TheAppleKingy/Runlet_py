@@ -1,0 +1,9 @@
+from typing import Protocol, Optional, Any
+
+from src.domain.entities import Course
+
+
+class CourseRepositoryInterface(Protocol):
+    async def get_by_id(self, course_id: int) -> Optional[Course]: ...
+    async def get_user_courses(self, user_id: int) -> list[Course]: ...
+    async def get_by_id_with_rels(self, course_id: int, *rel_models: Any) -> Optional[Course]: ...

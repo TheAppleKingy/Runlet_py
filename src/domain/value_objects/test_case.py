@@ -1,17 +1,20 @@
+from typing import Sequence, Optional
 from dataclasses import dataclass, field
-from typing import Sequence
+
 from .exceptions import DuplicateTestCaseInput, ValidationTestCaseError
 
 
 @dataclass
 class TestCase:
-    input: str = field(default="")
-    output: str = field(default="")
+    input: str
+    output: str = ""
 
     def __post_init__(self):
-        if self.input is None or not isinstance(self.input, str):
-            raise ValidationTestCaseError("Data for test case is not valid")
-        if self.output is None or not isinstance(self.output, str):
+        self._validate_io(self.input)
+        self._validate_io(self.output)
+
+    def _validate_io(self, data: str):
+        if not isinstance(data, str):
             raise ValidationTestCaseError("Data for test case is not valid")
 
     def to_dict(self):
@@ -20,13 +23,9 @@ class TestCase:
             "output": self.output
         }
 
-    def from_dict(self, io_dict: dict[str, str]):
-        i = io_dict.get("input")
-        o = io_dict.get("output")
-        if i is None or o is None or not (isinstance(i, str) and isinstance(o, str)):
-            raise ValidationTestCaseError("Data for test case is not valid")
-        self.input = io_dict["input"]
-        self.output = io_dict["output"]
+    @classmethod
+    def from_dict(cls, io_dict: dict[str, str]):
+        return cls(**io_dict)
 
 
 TestCasesDataType = dict[int, TestCase]
@@ -35,23 +34,13 @@ TestCasesDataType = dict[int, TestCase]
 
 @dataclass
 class TestCases:
-    _data: TestCasesDataType = field(default_factory=dict[int, TestCase])
-    with_update: bool = field(default=False)
+    _data: TestCasesDataType = field(default_factory=dict)
 
     def __post_init__(self):
-        if self._data:
-            self._data = self._get_validated_test_cases(self._data)
+        self._data = self._get_validated_test_cases(self._data)
 
     def __iter__(self):
         return iter(self._data.items())
-
-    @property
-    def data(self):
-        return self._data
-
-    @data.setter
-    def data(self, cases_data: TestCasesDataType):
-        self._data = self._get_validated_test_cases(cases_data)
 
     def _validate_input_duplicates(self, cases: Sequence[TestCase]):
         """
@@ -71,20 +60,29 @@ class TestCases:
         return res
 
     def _get_validated_test_cases(self, cases_data: TestCasesDataType):
+        if not all((isinstance(num, int) and num > 0) for num in cases_data):
+            raise ValidationTestCaseError("Number of test should be natural int")
         deduplicated_io = self._validate_io_duplicates(cases_data)
         self._validate_input_duplicates([v for v in deduplicated_io.values()])
         return deduplicated_io
 
-    def get_case(self, num: int) -> TestCase:
+    def get_case(self, num: int) -> Optional[TestCase]:
         return self._data.get(num)
 
     def as_dict(self):
         return {num: case.to_dict() for num, case in self._data.items()}
 
+    @classmethod
+    def from_dict(cls, test_cases_data: dict[int, dict[str, str]]):
+        data = {num: TestCase.from_dict(case_data)
+                for num, case_data in test_cases_data.items()}
+        return cls(_data=data)
+
     def update_test_cases(self, cases_data: TestCasesDataType):
-        if set(case.input for case in self._data.values()) & set(case.input for case in cases_data.values()):
-            raise DuplicateTestCaseInput("Inputs cannot match")
-        self._data.update(cases_data)
+        res = self._data.copy()
+        res.update(cases_data)
+        deduplicated_io = self._get_validated_test_cases(res)
+        self._data = deduplicated_io
 
     def delete_test_cases(self, nums: Sequence[int]):
         for num in nums:

@@ -1,4 +1,4 @@
-from application.interfaces.broker import MessageConsumerInterface
+from src.application.interfaces.broker import MessageConsumerInterface
 from .rabbitmq.consumer import RabbitConsumer
 
 

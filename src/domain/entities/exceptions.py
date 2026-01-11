@@ -17,10 +17,6 @@ class MismatchTestOutputsError(DomainError):
     pass
 
 
-class DuplicateTestCaseInput(DomainError):
-    pass
-
-
 class DirectAccessError(DomainError):
     pass
 
@@ -33,9 +29,5 @@ class TestCaseError(DomainError):
     pass
 
 
-class ValidationTestCaseError(DomainError):
-    pass
-
-
-class UpdateForbiddenError(DomainError):
+class UndefinedTagError(DomainError):
     pass

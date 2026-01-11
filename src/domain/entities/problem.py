@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 
-from .test_case import TestCase
+from ..value_objects import TestCases
 
 
 @dataclass
 class Problem:
-    id: int = field(default=None)
-    name: str = field(default="")
-    description: str = field(default="")
-    course_id: int = field(default=None)
-    test_cases: list[TestCase] = field(default_factory=list, init=False)
+    name: str
+    description: str
+    course_id: int
+    test_cases: TestCases = field(default_factory=TestCases)
+    id: int = field(default=None, init=False)  # type: ignore
