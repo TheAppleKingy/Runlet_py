@@ -29,5 +29,5 @@ class TestCaseError(DomainError):
     pass
 
 
-class UpdateForbiddenError(DomainError):
+class UndefinedTagError(DomainError):
     pass

@@ -1,15 +1,12 @@
 from typing import Optional
 
 from sqlalchemy import select, func, insert
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.entities import User
+from .base import BaseAlchemyRepository
 
 
-class AlchemyUserRepository:
-    def __init__(self, session: AsyncSession):
-        self._session = session
-
+class AlchemyUserRepository(BaseAlchemyRepository):
     async def get_by_id(self, user_id: int) -> Optional[User]:
         return await self._session.scalar(select(User).where(User.id == user_id))
 

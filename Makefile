@@ -46,7 +46,7 @@ runlet.migrations.build:
 
 
 runlet.migrations.new: runlet.migrations.build
-	@docker compose -f ${MIGRATION_COMPOSE} run --rm migrations alembic revision --autogenerate -m ${msg}
+	@docker compose -f ${MIGRATION_COMPOSE} run --rm migrations alembic revision --autogenerate -m "${msg}"
 
 
 runlet.migrations.up: runlet.migrations.build

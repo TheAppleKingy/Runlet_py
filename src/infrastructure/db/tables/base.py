@@ -21,8 +21,7 @@ class TestCaseJSONBType(TypeDecorator):
     def process_result_value(self, value, dialect):
         if value is None:
             return TestCases()
-        test_cases = TestCases()
-        return test_cases.from_dict(value)
+        return TestCases.from_dict(value)
 
     def copy(self, **kw):
         return self.__class__()

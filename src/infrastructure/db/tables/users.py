@@ -19,7 +19,8 @@ users = Table(
 tags = Table(
     "tags", metadata,
     id_(),
-    Column('name', String(100), nullable=False, unique=False)
+    Column('name', String(100), nullable=False, unique=False),
+    Column("course_id", ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
 )
 
 users_tags = Table(

@@ -1,6 +1,6 @@
 from sqlalchemy import (
     Table, Column, String,
-    ForeignKey
+    ForeignKey, Boolean
 )
 
 from .base import metadata, id_
@@ -12,4 +12,5 @@ courses = Table(
     Column("name", String(100), nullable=False),
     Column('description', String(512), nullable=True),
     Column('teacher_id', ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+    Column("is_private", Boolean, nullable=False)
 )

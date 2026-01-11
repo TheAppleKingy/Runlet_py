@@ -1,0 +1,50 @@
+services:
+  database:
+    image: postgres:18
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - runlet_external
+      - runlet_internal
+
+  runlet:
+    build:
+      context: ../../
+      dockerfile: build/prod/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - database
+      - rabbitmq
+    networks:
+      - runlet_internal
+    env_file:
+      - .env
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  rabbitmq:
+    hostname: rabbitmq
+    build:
+      context: .
+      dockerfile: Dockerfile.rabbitmq
+    env_file:
+      - .env
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - runlet_external
+      - runlet_internal
+  
+networks:
+  runlet_external:
+    external: true
+  runlet_internal:
+
+volumes:
+  rabbitmq_data:
+  postgres_data:

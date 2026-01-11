@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Cookie
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from src.application.dtos.auth import RegisterUserRequestDTO, LoginUserDTO
-from src.application.use_cases.user import *
+from src.application.use_cases import *
 
 from src.container import (
     auth_user,

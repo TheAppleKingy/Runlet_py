@@ -4,7 +4,8 @@ from fastapi import Depends, Cookie
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from src.application.messaging.registries import MessageConsumerRegistry
-from src.application.use_cases.user import *
+from src.application.use_cases import *
+from src.application.interfaces.repositories import *
 
 from src.infrastructure.services.user import *
 from src.infrastructure.services import *
@@ -20,7 +21,8 @@ from src.infrastructure.uow import AlchemyReadUow, AlchemyReadWriteUow
 
 from src.interfaces.broker.rabbitmq.callback import callback_registry
 
-from src.domain.interfaces.repositories import *
+from src.logger import logger
+
 
 _engine = create_async_engine(db_conf.conn_url())
 _session_factory = async_sessionmaker(_engine, expire_on_commit=True, autoflush=False)
@@ -44,6 +46,10 @@ def get_rw_uow(session: AsyncSession):
 
 def get_user_repository(session: AsyncSession):
     return AlchemyUserRepository(session)
+
+
+def get_course_repository(session: AsyncSession):
+    return AlchemyCourseRepository(session)
 
 
 def get_jwt_auth_service():
@@ -94,6 +100,12 @@ def get_login_usecase(session: AsyncSession = Depends(get_db_session)):
     )
 
 
-async def auth_user(token: str = Cookie(default=None, include_in_schema=False)):
-    use_case = get_auth_usecase()
+def get_show_student_courses_use_case(session: AsyncSession = Depends(get_db_session)):
+    return ShowStudentCourses(
+        get_read_uow(session),
+        get_course_repository(session)
+    )
+
+
+async def auth_user(use_case: AuthenticateUser = Depends(get_auth_usecase), token: str = Cookie(default=None, include_in_schema=False)):
     return await use_case.execute(token)

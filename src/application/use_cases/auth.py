@@ -1,7 +1,7 @@
 from src.application.interfaces.uow import ReadOnlyUoWInterface, ReadWriteUoWInterface
 from src.application.interfaces.services import AuthenticationServiceInterface, PasswordServiceInterface, EmailServiceInterface
 from src.application.dtos.auth import LoginUserDTO, RegisterUserRequestDTO
-from src.domain.interfaces.repositories import UserRepositoryInterface
+from src.application.interfaces.repositories import UserRepositoryInterface
 from .exceptions import (
     UndefinedUserError,
     InvalidUserPasswordError,
@@ -10,6 +10,13 @@ from .exceptions import (
     InactiveUserError
 )
 from src.logger import logger
+
+__all__ = [
+    "AuthenticateUser",
+    "LoginUser",
+    "RegisterUserRequest",
+    "RegisterUserConfirm",
+]
 
 
 class AuthenticateUser:

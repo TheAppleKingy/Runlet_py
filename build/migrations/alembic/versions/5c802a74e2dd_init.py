@@ -8,9 +8,9 @@ Create Date: 2026-01-08 17:27:52.718631
 from typing import Sequence, Union
 
 from alembic import op
+from src.infrastructure.db.tables.base import TestCaseJSONBType
 import sqlalchemy as sa
 import sqlalchemy_utils
-import tables
 
 # revision identifiers, used by Alembic.
 revision: str = '5c802a74e2dd'
@@ -57,7 +57,7 @@ def upgrade() -> None:
                     sa.Column('name', sa.String(length=100), nullable=True),
                     sa.Column('description', sa.String(length=1024), nullable=False),
                     sa.Column('course_id', sa.Integer(), nullable=False),
-                    sa.Column('test_cases', tables.base.TestCaseJSONBType(
+                    sa.Column('test_cases', TestCaseJSONBType(
                         astext_type=sa.Text()), nullable=True),
                     sa.ForeignKeyConstraint(['course_id'], ['courses.id'], ondelete='CASCADE'),
                     sa.PrimaryKeyConstraint('id')
@@ -74,7 +74,7 @@ def upgrade() -> None:
                     sa.Column('problem_id', sa.Integer(), nullable=False),
                     sa.Column('amount', sa.Integer(), nullable=False),
                     sa.Column('passed', sa.Boolean(), nullable=False),
-                    sa.Column('test_cases', tables.base.TestCaseJSONBType(
+                    sa.Column('test_cases', TestCaseJSONBType(
                         astext_type=sa.Text()), nullable=True),
                     sa.CheckConstraint('amount >= 0', name='ck_attempts_amount_non_negative'),
                     sa.ForeignKeyConstraint(['problem_id'], ['problems.id'], ondelete='CASCADE'),

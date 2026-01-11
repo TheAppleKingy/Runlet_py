@@ -4,7 +4,7 @@ from fastapi import FastAPI, APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import registry, relationship
 
-from src.application.use_cases.user import *
+from src.application.use_cases.student import *
 from src.infrastructure.db.tables import *
 from src.domain.exc import HandlingError
 from src.interfaces.http import *
@@ -19,13 +19,13 @@ def map_tables():
     mapper_registry.map_imperatively(Problem, problems)
     mapper_registry.map_imperatively(Attempt, attempts)
     mapper_registry.map_imperatively(User, users, properties={
-        "tags": relationship(Tag, back_populates="users", secondary=users_tags, lazy='selectin'),
         "courses": relationship(Course, back_populates="_students", secondary=users_courses, lazy='selectin'),
     })
     mapper_registry.map_imperatively(Tag, tags, properties={
-        "users": relationship(User, back_populates="tags", secondary=users_tags, lazy='selectin')
+        "students": relationship(User, secondary=users_tags, lazy='selectin')
     })
     mapper_registry.map_imperatively(Course, courses, properties={
+        "tags": relationship(Tag, lazy='selectin'),
         "_students": relationship(User, secondary=users_courses, back_populates="courses", lazy='selectin'),
         "problems": relationship(Problem, lazy='selectin')
     })
@@ -59,5 +59,7 @@ async def handle_auth(r: Request, call_next):
 def setup_routers(app: FastAPI):
     api_router = APIRouter(prefix="/api/v1")
     api_router.include_router(auth_router)
+    user_router.include_router(student_router)
+    user_router.include_router(teacher_router)
     api_router.include_router(user_router)
     app.include_router(api_router)
