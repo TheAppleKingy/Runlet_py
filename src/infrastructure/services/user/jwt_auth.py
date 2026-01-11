@@ -31,8 +31,11 @@ class JWTAuthenticationService:
         )
 
     def get_user_id_from_token(self, token: str) -> Optional[int]:
+        payload = self.decode(token)
+        return payload.get("user_id")
+
+    def decode(self, token: str) -> dict:
         try:
-            payload = jwt.decode(token, self._secret, ["HS256"])
-            return payload.get("user_id")
+            return jwt.decode(token, self._secret, ["HS256"])
         except jwt.InvalidTokenError:
             raise JWTUnauthorizedError("Token invlaid", status=401)

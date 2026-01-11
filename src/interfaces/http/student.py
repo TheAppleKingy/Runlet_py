@@ -28,3 +28,8 @@ async def get_problem(problem_id: int, user_id: int = Depends(auth_user)):
 @student_router.post("/problem/{problem_id}/send_solution")
 async def send_problem_solution(dto: SendProblemSolutionDTO, user_id: int = Depends(auth_user)):
     pass
+
+
+@student_router.get("/course/subscribe/{token}")
+async def subscribe_by_link(token: str, user_id: int = Depends(auth_user)):
+    pass

@@ -23,3 +23,7 @@ class InactiveUserError(ApplicationError):
 
 class SubscribeUnexsistantCourseError(ApplicationError):
     pass
+
+
+class InvalidInvitingLingError(ApplicationError):
+    pass
