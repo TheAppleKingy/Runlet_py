@@ -1,6 +1,6 @@
 from collections.abc import AsyncGenerator
 
-from fastapi import Depends, Cookie
+from fastapi import Depends, Cookie, Path
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from src.application.messaging.registries import MessageConsumerRegistry
@@ -107,5 +107,18 @@ def get_show_student_courses_use_case(session: AsyncSession = Depends(get_db_ses
     )
 
 
+def get_auth_user_as_teacher_use_case(session: AsyncSession = Depends(get_db_session)):
+    return AuthenticateUserAsTeacher(
+        get_read_uow(session),
+        get_user_repository(session),
+        get_jwt_auth_service(),
+        get_course_repository(session)
+    )
+
+
 async def auth_user(use_case: AuthenticateUser = Depends(get_auth_usecase), token: str = Cookie(default=None, include_in_schema=False)):
     return await use_case.execute(token)
+
+
+async def auth_teacher(course_id: int = Path(...), use_case: AuthenticateUserAsTeacher = Depends(get_auth_user_as_teacher_use_case), user_id: int = Depends(auth_user)):
+    return await use_case.execute(user_id, course_id)

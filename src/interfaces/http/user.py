@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from src.container import auth_user
 
 
-user_router = APIRouter(prefix="/me", tags=["User endpoints"])
+user_router = APIRouter(prefix="/me")
 
 
 @user_router.get("/main")

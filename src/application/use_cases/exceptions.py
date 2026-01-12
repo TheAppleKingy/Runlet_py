@@ -27,3 +27,11 @@ class SubscribeUnexsistantCourseError(ApplicationError):
 
 class InvalidInvitingLingError(ApplicationError):
     pass
+
+
+class UndefinedCourseError(ApplicationError):
+    pass
+
+
+class HasNoAccessError(ApplicationError):
+    pass

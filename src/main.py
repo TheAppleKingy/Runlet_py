@@ -18,16 +18,17 @@ mapper_registry = registry()
 def map_tables():
     mapper_registry.map_imperatively(Problem, problems)
     mapper_registry.map_imperatively(Attempt, attempts)
-    mapper_registry.map_imperatively(User, users, properties={
-        "courses": relationship(Course, back_populates="_students", secondary=users_courses, lazy='selectin'),
+    mapper_registry.map_imperatively(Module, modules, properties={
+        "problems": relationship(Problem, lazy="selectin")
     })
+    mapper_registry.map_imperatively(User, users)
     mapper_registry.map_imperatively(Tag, tags, properties={
         "students": relationship(User, secondary=users_tags, lazy='selectin')
     })
     mapper_registry.map_imperatively(Course, courses, properties={
-        "tags": relationship(Tag, lazy='selectin'),
+        "_tags": relationship(Tag, lazy='selectin'),
         "_students": relationship(User, secondary=users_courses, back_populates="courses", lazy='selectin'),
-        "problems": relationship(Problem, lazy='selectin')
+        "_modules": relationship(Module, )
     })
     mapper_registry.configure()
 

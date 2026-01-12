@@ -1,13 +1,15 @@
 from src.application.interfaces.uow import ReadOnlyUoWInterface, ReadWriteUoWInterface
 from src.application.interfaces.services import AuthenticationServiceInterface, PasswordServiceInterface, EmailServiceInterface
 from src.application.dtos.auth import LoginUserDTO, RegisterUserRequestDTO
-from src.application.interfaces.repositories import UserRepositoryInterface
+from src.application.interfaces.repositories import UserRepositoryInterface, CourseRepositoryInterface
 from .exceptions import (
     UndefinedUserError,
     InvalidUserPasswordError,
     PasswordsMismatchError,
     EmailExistsError,
-    InactiveUserError
+    InactiveUserError,
+    UndefinedCourseError,
+    HasNoAccessError
 )
 from src.logger import logger
 
@@ -16,6 +18,7 @@ __all__ = [
     "LoginUser",
     "RegisterUserRequest",
     "RegisterUserConfirm",
+    "AuthenticateUserAsTeacher"
 ]
 
 
@@ -40,6 +43,25 @@ class AuthenticateUser:
                 raise UndefinedUserError("User was not identify by token", status=403)
             if not user.is_active:
                 raise InactiveUserError("Current user is inactive", 403)
+        return user_id
+
+
+class AuthenticateUserAsTeacher:
+    def __init__(
+        self,
+        uow: ReadOnlyUoWInterface,
+        course_repo: CourseRepositoryInterface
+    ):
+        self._course_repo = course_repo
+        self._uow = uow
+
+    async def execute(self, user_id: int, course_id: int) -> int:
+        async with self._uow:
+            course = await self._course_repo.get_by_id(course_id)
+        if not course:
+            raise UndefinedCourseError(f"Course {course_id} does not exist")
+        if course.teacher_id != user_id:
+            raise HasNoAccessError(f"User {user_id} cannot manage course {course.id}", 403)
         return user_id
 
 

@@ -1,20 +1,20 @@
 from dataclasses import dataclass, field
 
 from .user import User
-from .problem import Problem
+from .problem import Module
 from .tag import Tag
-from .exceptions import RolesError, UndefinedTagError
+from .exceptions import RolesError, HasNoDirectAccessError
 
 
 @dataclass
 class Course:
     name: str
     _teacher_id: int
-    tags: list[Tag] = field(default_factory=list, init=False)
+    _tags: list[Tag] = field(default_factory=list, init=False)
     id: int = field(default=None, init=False)  # type: ignore
     description: str = ""
     _students: list[User] = field(default_factory=list, init=False)
-    problems: list[Problem] = field(default_factory=list, init=False)
+    _modules: list[Module] = field(default_factory=list, init=False)
     is_private: bool = False
 
     @property
@@ -29,43 +29,37 @@ class Course:
 
     @property
     def students(self):
-        return tuple(self._students)
-
-    def _validate_teacher_is_student(self, students: list[User]):
-        if self._teacher_id in [s.id for s in students]:
-            raise RolesError(f"User {self._teacher_id} is the teacher of this course")
+        return self._students
 
     @students.setter
-    def students(self, students: list[User]):
-        self._validate_teacher_is_student(students)
-        self._students = students
+    def students(self, _):
+        raise HasNoDirectAccessError(
+            "Unable to set list of students for course directly")
 
-    def add_students(self, students: list[User]):
-        self._validate_teacher_is_student(students)
-        for s in students:
-            if s not in self._students:
-                self._students.append(s)
+    @property
+    def modules(self):
+        return self._modules
 
-    def add_students_by_tag(self, tag_id: int, students: list[User]):  # to test
-        self.add_students(students)
-        target_tag = None
-        for tag in self.tags:
-            if tag.id == tag_id:
-                target_tag = tag
-                break
-        if not target_tag:
-            raise UndefinedTagError(
-                f"Unable to bind students to tag {tag_id}: tag not related with course {self.name}")
-        for s in students:
-            if s not in target_tag.students:
-                target_tag.students.append(s)
+    @modules.setter
+    def modules(self, _):
+        raise HasNoDirectAccessError("Unable to set list of modules for course directly")
 
-    def _delete_students_common(self, ids: list[int]) -> list[int]:
-        to_delete = [s.id for s in self._students if s.id in ids]
-        self._students = [s for s in self._students if s.id not in to_delete]
-        return to_delete
+    @property
+    def tags(self):
+        return self._tags
 
-    def delete_students(self, ids: list[int]):
-        deleted = self.delete_students(ids)
-        for tag in self.tags:
-            tag.students = [s for s in tag.students if s.id not in deleted]
+    @tags.setter
+    def tags(self, _):
+        raise HasNoDirectAccessError("Unable to set list of tags for course directly")
+
+    def get_modules_names(self):
+        return [module.name for module in self.modules]
+
+    def get_tags_names(self):
+        return [tag.name for tag in self.tags]
+
+    def get_module(self, module_name: str):
+        for module in self.modules:
+            if module.name == module_name:
+                return module
+        return None

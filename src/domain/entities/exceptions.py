@@ -31,3 +31,19 @@ class TestCaseError(DomainError):
 
 class UndefinedTagError(DomainError):
     pass
+
+
+class UndefinedModuleError(DomainError):
+    pass
+
+
+class RepeatableNamesError(DomainError):
+    pass
+
+
+class HasNoDirectAccessError(DomainError):
+    pass
+
+
+class NamesAlreadyExistError(DomainError):
+    pass
