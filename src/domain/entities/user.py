@@ -12,4 +12,4 @@ class User:
     name: str = ""
     is_active: bool = field(default=False, init=False)
     id: int = field(default=None, init=False)  # type: ignore
-    courses: list[Course] = field(default_factory=list, init=False)
+    tags: list[Course] = field(default_factory=list, init=False)

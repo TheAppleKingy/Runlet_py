@@ -16,6 +16,7 @@ class Course:
     _students: list[User] = field(default_factory=list, init=False)
     _modules: list[Module] = field(default_factory=list, init=False)
     is_private: bool = False
+    notify_request_sub: bool = False
 
     @property
     def teacher_id(self):
@@ -62,4 +63,10 @@ class Course:
         for module in self.modules:
             if module.name == module_name:
                 return module
+        return None
+
+    def get_tag(self, name: str):
+        for tag in self.tags:
+            if tag.name == name:
+                return tag
         return None

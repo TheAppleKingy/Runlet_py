@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
 from .problem import Problem
 
@@ -17,6 +18,7 @@ class Attempt:
     problem: Problem = field(default=None, init=False)
     amount: int = field(default=0, init=False)
     passed: bool = field(default=False, init=False)
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), init=False)
     test_cases: TestCases = field(default_factory=TestCases)
 
     def mark_as_passed(self):

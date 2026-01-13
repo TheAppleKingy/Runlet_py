@@ -3,11 +3,12 @@ import asyncio
 
 from email.message import EmailMessage
 from src.logger import logger
+from src.application.interfaces.services import EmailServiceInterface
 from ..configs import email_conf
 
 
-class AsyncEmailService:
-    async def send_mail(self, to: str, topic: str, text: str) -> str:
+class AsyncEmailService(EmailServiceInterface):
+    async def send_mail(self, to: str, topic: str, text: str):
         message = EmailMessage()
         message['From'] = email_conf.email_sender
         message['To'] = to

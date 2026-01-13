@@ -1,5 +1,11 @@
 from dataclasses import dataclass, field
+from enum import Enum
+
 from .user import User
+
+
+class DefautTagType(Enum):
+    WAITING_FOR_SUBSCRIBE = "Ожидают зачисления"
 
 
 @dataclass

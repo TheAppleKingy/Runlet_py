@@ -47,3 +47,7 @@ class HasNoDirectAccessError(DomainError):
 
 class NamesAlreadyExistError(DomainError):
     pass
+
+
+class NoDefaultCourseTagsError(DomainError):
+    pass

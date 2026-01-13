@@ -1,4 +1,4 @@
-from src.application.interfaces.uow import ReadOnlyUoWInterface, ReadWriteUoWInterface
+from src.application.interfaces.uow import UoWInterface
 from src.application.interfaces.services import AuthenticationServiceInterface, PasswordServiceInterface, EmailServiceInterface
 from src.application.dtos.auth import LoginUserDTO, RegisterUserRequestDTO
 from src.application.interfaces.repositories import UserRepositoryInterface, CourseRepositoryInterface
@@ -18,14 +18,15 @@ __all__ = [
     "LoginUser",
     "RegisterUserRequest",
     "RegisterUserConfirm",
-    "AuthenticateUserAsTeacher"
+    "AuthenticateUserAsTeacher",
+    "AuthenticateUserAsStudent"
 ]
 
 
 class AuthenticateUser:
     def __init__(
         self,
-        uow: ReadOnlyUoWInterface,
+        uow: UoWInterface,
         user_repo: UserRepositoryInterface,
         auth_service: AuthenticationServiceInterface,
     ):
@@ -46,10 +47,27 @@ class AuthenticateUser:
         return user_id
 
 
+class AuthenticateUserAsStudent:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface
+    ):
+        self._course_repo = course_repo
+        self._uow = uow
+
+    async def execute(self, user_id: int, course_id: int) -> int:
+        async with self._uow:
+            subscribed = await self._course_repo.check_user_in_course(user_id, course_id)
+        if not subscribed:
+            raise PermissionError("User not subscribed on course")
+        return user_id
+
+
 class AuthenticateUserAsTeacher:
     def __init__(
         self,
-        uow: ReadOnlyUoWInterface,
+        uow: UoWInterface,
         course_repo: CourseRepositoryInterface
     ):
         self._course_repo = course_repo
@@ -59,7 +77,7 @@ class AuthenticateUserAsTeacher:
         async with self._uow:
             course = await self._course_repo.get_by_id(course_id)
         if not course:
-            raise UndefinedCourseError(f"Course {course_id} does not exist")
+            return user_id
         if course.teacher_id != user_id:
             raise HasNoAccessError(f"User {user_id} cannot manage course {course.id}", 403)
         return user_id
@@ -68,7 +86,7 @@ class AuthenticateUserAsTeacher:
 class LoginUser:
     def __init__(
         self,
-        uow: ReadOnlyUoWInterface,
+        uow: UoWInterface,
         user_repo: UserRepositoryInterface,
         password_service: PasswordServiceInterface,
         auth_service: AuthenticationServiceInterface
@@ -91,7 +109,7 @@ class LoginUser:
 class RegisterUserRequest:
     def __init__(
         self,
-        uow: ReadWriteUoWInterface,
+        uow: UoWInterface,
         user_repo: UserRepositoryInterface,
         password_service: PasswordServiceInterface,
         auth_service: AuthenticationServiceInterface,
@@ -120,7 +138,7 @@ class RegisterUserRequest:
 class RegisterUserConfirm:
     def __init__(
         self,
-        uow: ReadWriteUoWInterface,
+        uow: UoWInterface,
         user_repo: UserRepositoryInterface,
         auth_service: AuthenticationServiceInterface,
     ):

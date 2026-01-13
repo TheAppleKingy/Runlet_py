@@ -90,7 +90,7 @@ def test_add_students_by_tag_happy_path(base_course, user_factory, tag_factory):
     base_course._tags.append(tag)
     mgr = CourseStudentsManagerService(base_course)
 
-    mgr.add_students_by_tag(tag_id=10, students=[s1, s2])
+    mgr.add_students_by_tag(tag_name="group A", students=[s1, s2])
 
     assert base_course.students == [s1, s2]
     assert tag.students == [s1, s2]
@@ -101,7 +101,7 @@ def test_add_students_by_tag_undefined_tag(base_course, user_factory):
     mgr = CourseStudentsManagerService(base_course)
 
     with pytest.raises(UndefinedTagError):
-        mgr.add_students_by_tag(tag_id=999, students=[s1])
+        mgr.add_students_by_tag(tag_name="999", students=[s1])
 
 
 def test_delete_students_removes_from_course_and_tags(

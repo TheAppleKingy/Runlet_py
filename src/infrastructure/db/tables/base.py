@@ -15,6 +15,8 @@ class TestCaseJSONBType(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if isinstance(value, TestCases):
             return value.as_dict()
+        elif not value:
+            return {}
         else:
             raise TypeError(f"Undefined type: {type(value)}. Should be TestCases")
 

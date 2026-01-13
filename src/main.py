@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import registry, relationship
+from sqlalchemy.orm import registry, relationship, column_property, synonym
 
 from src.application.use_cases.student import *
 from src.infrastructure.db.tables import *
@@ -17,18 +17,23 @@ mapper_registry = registry()
 
 def map_tables():
     mapper_registry.map_imperatively(Problem, problems)
-    mapper_registry.map_imperatively(Attempt, attempts)
-    mapper_registry.map_imperatively(Module, modules, properties={
-        "problems": relationship(Problem, lazy="selectin")
+    mapper_registry.map_imperatively(Attempt, attempts, properties={
+        "problem": relationship(Problem, lazy='joined', uselist=False)
     })
-    mapper_registry.map_imperatively(User, users)
+    mapper_registry.map_imperatively(Module, modules, properties={
+        "_problems": relationship(Problem, lazy="selectin")
+    })
+    mapper_registry.map_imperatively(User, users, properties={
+        "courses": relationship(Course, secondary=users_courses, back_populates="_students", lazy='selectin')
+    })
     mapper_registry.map_imperatively(Tag, tags, properties={
         "students": relationship(User, secondary=users_tags, lazy='selectin')
     })
     mapper_registry.map_imperatively(Course, courses, properties={
+        "_teacher_id": column_property(courses.c.teacher_id),
         "_tags": relationship(Tag, lazy='selectin'),
         "_students": relationship(User, secondary=users_courses, back_populates="courses", lazy='selectin'),
-        "_modules": relationship(Module, )
+        "_modules": relationship(Module, lazy='selectin')
     })
     mapper_registry.configure()
 

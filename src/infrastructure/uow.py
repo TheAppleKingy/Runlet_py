@@ -1,28 +1,20 @@
 from typing import Self
 
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncSessionTransaction
+from src.application.interfaces.uow import UoWInterface, T
+from src.logger import logger
 
 
-class AlchemyReadUow:
+class AlchemyUoW(UoWInterface):
     def __init__(self, session: AsyncSession):
         self._session = session
-
-    async def __aenter__(self) -> Self:
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
-        return False
-
-
-class AlchemyReadWriteUow(AlchemyReadUow):
-    def __init__(self, session: AsyncSession):
-        super().__init__(session)
         self._auto: bool = True
         self._t: AsyncSessionTransaction = None
 
     async def __aenter__(self) -> Self:
+        # logger.critical(f"{self._session.in_transaction()}, {self._session.get_transaction()}")
         self._t = await self._session.begin()
-        return await super().__aenter__()
+        return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
         async def handle_transaction():
@@ -53,3 +45,12 @@ class AlchemyReadWriteUow(AlchemyReadUow):
     async def rollback(self) -> None:
         if self._t:
             await self._t.rollback()
+
+    async def flush(self) -> None:
+        return await self._session.flush()
+
+    def save(self, *ents: T):
+        return self._session.add_all(ents)
+
+    def in_transaction(self) -> bool:
+        return self._session.in_transaction()

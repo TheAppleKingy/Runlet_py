@@ -21,7 +21,7 @@ class InactiveUserError(ApplicationError):
     pass
 
 
-class SubscribeUnexsistantCourseError(ApplicationError):
+class UndefinedTagError(ApplicationError):
     pass
 
 

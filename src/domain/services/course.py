@@ -8,6 +8,7 @@ from src.domain.entities.exceptions import (
     RepeatableNamesError,
     NamesAlreadyExistError
 )
+from src.logger import logger
 
 
 class HasNameType:
@@ -45,17 +46,17 @@ class CourseStudentsManagerService(BaseCourseManagerService):
             if s not in self._course._students:
                 self._course._students.append(s)
 
-    def _find_tag_to_add_students(self, target_id: int):
+    def _find_tag_to_add_students(self, target_name: str):
         for tag in self._course.tags:
-            if tag.id == target_id:
+            if tag.name == target_name:
                 return tag
         return None
 
-    def add_students_by_tag(self, tag_id: int, students: list[User]):
-        target_tag = self._find_tag_to_add_students(tag_id)
+    def add_students_by_tag(self, tag_name: str, students: list[User]):
+        target_tag = self._find_tag_to_add_students(tag_name)
         if not target_tag:
             raise UndefinedTagError(
-                f"Unable to bind students to tag {tag_id}: tag not related with course {self._course.name}")
+                f"Unable to bind students to tag {tag_name}: tag not related with course {self._course.name}")
         self.add_students(students)
         for s in students:
             if s not in target_tag.students:

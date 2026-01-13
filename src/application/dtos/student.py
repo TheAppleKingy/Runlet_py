@@ -16,7 +16,3 @@ class ModuleForStudenteDTO(BaseModel):
     id: int
     name: str
     problems: list[ProblemForStudentDTO] = []
-
-
-class GetCourseProblemsForStudentDTO(BaseModel):
-    modules: list[ModuleForStudenteDTO] = []
