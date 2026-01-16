@@ -2,11 +2,11 @@ from collections.abc import AsyncGenerator
 
 from fastapi import Depends, Cookie, Path
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from ploomby.rabbit import RabbitConsumerFactory
+from ploomby.registry import MessageConsumerRegistry
 
-from src.application.messaging.registries import MessageConsumerRegistry
 from src.application.use_cases import *
 from src.application.interfaces.repositories import *
-
 from src.infrastructure.services.user import *
 from src.infrastructure.services import *
 from src.infrastructure.configs import (
@@ -16,20 +16,16 @@ from src.infrastructure.configs import (
     app_conf
 )
 from src.infrastructure.repositories import *
-from src.infrastructure.broker.factories import RabbitMQConsumerFactory
 from src.infrastructure.uow import AlchemyUoW
-
-from src.interfaces.broker.rabbitmq.callback import callback_registry
-
 from src.logger import logger
+from src.interfaces.broker.rabbitmq import callback_registry
 
+_consumer_factory = RabbitConsumerFactory(rabbit_conf.conn_url())
+consumer_registry = MessageConsumerRegistry(callback_registry, _consumer_factory)
 
 _engine = create_async_engine(db_conf.conn_url())
 _session_factory = async_sessionmaker(
     _engine, expire_on_commit=False, autoflush=False, autobegin=False)
-rabbit_consumer_factory = RabbitMQConsumerFactory()
-consumers_registry = MessageConsumerRegistry(rabbit_consumer_factory)
-consumers_registry.register("callback", callback_registry)
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
@@ -107,8 +103,15 @@ def get_update_course_data_use_case(session: AsyncSession = Depends(get_db_sessi
     )
 
 
-def get_show_teacher_course_use_case(session: AsyncSession = Depends(get_db_session)):
-    return ShowTeacherCourse(
+def get_show_teacher_course_to_manage_students_use_case(session: AsyncSession = Depends(get_db_session)):
+    return ShowTeacherCourseToManageStudents(
+        get_uow(session),
+        get_course_repository(session)
+    )
+
+
+def get_show_teacher_course_to_manage_problems_use_case(session: AsyncSession = Depends(get_db_session)):
+    return ShowTeacherCourseToManageProblems(
         get_uow(session),
         get_course_repository(session)
     )
@@ -145,6 +148,20 @@ def get_show_student_course_use_case(session: AsyncSession = Depends(get_db_sess
     )
 
 
+def get_show_course_use_case(session: AsyncSession = Depends(get_db_session)):
+    return ShowCourse(
+        get_uow(session),
+        get_course_repository(session)
+    )
+
+
+def get_show_main_use_case(session: AsyncSession = Depends(get_db_session)):
+    return ShowMain(
+        get_uow(session),
+        get_course_repository(session)
+    )
+
+
 def get_auth_user_as_teacher_use_case(session: AsyncSession = Depends(get_db_session)):
     return AuthenticateUserAsTeacher(
         get_uow(session),
@@ -159,7 +176,51 @@ def get_auth_user_as_student_use_case(session: AsyncSession = Depends(get_db_ses
     )
 
 
+def get_generate_invite_link_use_case(session: AsyncSession = Depends(get_db_session)):
+    return GenerateInviteLink(
+        get_uow(session),
+        get_course_repository(session),
+        app_conf.invite_confirm_url,
+        app_conf.invite_expire_time,
+        get_jwt_auth_service()
+    )
+
+
+def get_request_sub_use_case(session: AsyncSession = Depends(get_db_session)):
+    return RequestSubscribeOnCourse(
+        get_uow(session),
+        get_course_repository(session),
+        get_user_repository(session),
+        get_email_service()
+    )
+
+
+def get_sub_by_link_use_case(session: AsyncSession = Depends(get_db_session)):
+    return SubscribeOnCourseByLink(
+        get_uow(session),
+        get_course_repository(session),
+        get_user_repository(session),
+        get_jwt_auth_service(),
+        get_email_service()
+    )
+
+
+def get_sub_course_use_case(session: AsyncSession = Depends(get_db_session)):
+    return SubscribeOnCourse(
+        get_uow(session),
+        get_course_repository(session),
+        get_user_repository(session),
+        get_email_service()
+    )
+
+
 async def auth_user(use_case: AuthenticateUser = Depends(get_auth_usecase), token: str = Cookie(default=None, include_in_schema=False)):
+    return await use_case.execute(token)
+
+
+async def auth_user_no_raise(use_case: AuthenticateUser = Depends(get_auth_usecase), token: str = Cookie(default=None, include_in_schema=False)):
+    if not token:
+        return None
     return await use_case.execute(token)
 
 

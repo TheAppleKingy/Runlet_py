@@ -2,15 +2,18 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import registry, relationship, column_property, synonym
+from sqlalchemy.orm import registry, relationship, column_property
+from ploomby.registry import MessageConsumerRegistry
+from ploomby.rabbit import RabbitConsumerFactory
 
 from src.application.use_cases.student import *
 from src.infrastructure.db.tables import *
+from src.infrastructure.configs import rabbit_conf
 from src.domain.exc import HandlingError
 from src.interfaces.http import *
 from src.domain.entities import *
 from src.logger import logger
-
+from src.container import consumer_registry
 
 mapper_registry = registry()
 
@@ -46,6 +49,7 @@ def handle_errs(r: Request, e: HandlingError):
 async def lifespan_handler(app: FastAPI):
     map_tables()
     setup_routers(app)
+    await consumer_registry.register("callback", "task_name")
     logger.info("App is ready. Starting...")
     yield
     logger.info("App shutdown")

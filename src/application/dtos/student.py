@@ -15,4 +15,11 @@ class ProblemForStudentDTO(BaseModel):
 class ModuleForStudenteDTO(BaseModel):
     id: int
     name: str
-    problems: list[ProblemForStudentDTO] = []
+    problems: list[ProblemForStudentDTO]
+
+
+class CourseForStudentDTO(BaseModel):
+    id: int
+    name: str
+    description: str
+    modules: list[ModuleForStudenteDTO]

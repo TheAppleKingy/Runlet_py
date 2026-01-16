@@ -43,7 +43,7 @@ class AuthenticateUser:
             if not user:
                 raise UndefinedUserError("User was not identify by token", status=403)
             if not user.is_active:
-                raise InactiveUserError("Current user is inactive", 403)
+                raise InactiveUserError("Current user is inactive", status=403)
         return user_id
 
 
@@ -60,7 +60,7 @@ class AuthenticateUserAsStudent:
         async with self._uow:
             subscribed = await self._course_repo.check_user_in_course(user_id, course_id)
         if not subscribed:
-            raise PermissionError("User not subscribed on course")
+            raise HasNoAccessError("User not subscribed on course", status=403)
         return user_id
 
 
@@ -79,7 +79,7 @@ class AuthenticateUserAsTeacher:
         if not course:
             return user_id
         if course.teacher_id != user_id:
-            raise HasNoAccessError(f"User {user_id} cannot manage course {course.id}", 403)
+            raise HasNoAccessError(f"User cannot manage course", status=403)
         return user_id
 
 

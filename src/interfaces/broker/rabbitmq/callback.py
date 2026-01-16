@@ -1,11 +1,8 @@
 from pydantic import BaseModel
+from fastapi import Depends
 
-from src.application.messaging.registries import HandlersRegistry
-from src.application.dtos.callback import CodeRunCallbackDTO
+from ploomby.registry import HandlersRegistry
+
+from src.logger import logger
 
 callback_registry = HandlersRegistry()
-
-
-@callback_registry.register("register_attempt", CodeRunCallbackDTO)
-async def register_attempt(dto: BaseModel, use_case):
-    pass

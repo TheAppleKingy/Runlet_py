@@ -35,3 +35,7 @@ class UndefinedCourseError(ApplicationError):
 
 class HasNoAccessError(ApplicationError):
     pass
+
+
+class CoursePrivacyError(ApplicationError):
+    pass

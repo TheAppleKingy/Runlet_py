@@ -15,7 +15,7 @@ from .exceptions import (
 class Attempt:
     user_id: int
     problem_id: int
-    problem: Problem = field(default=None, init=False)
+    problem: Problem = field(default=None, init=False)  # type: ignore
     amount: int = field(default=0, init=False)
     passed: bool = field(default=False, init=False)
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), init=False)

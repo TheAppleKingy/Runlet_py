@@ -1,3 +1,4 @@
+# mypy: disable-error-code=call-arg
 from pydantic_settings import BaseSettings
 
 
@@ -15,6 +16,8 @@ class AppConfig(BaseSettings):
     token_expire_time: int
     reg_confirm_url: str
     secret: str
+    invite_expire_time: int
+    invite_confirm_url: str
 
 
 class RabbitMQConfig(BaseSettings):

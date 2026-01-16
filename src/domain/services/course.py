@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import TypeVar, Protocol
 
 from src.domain.entities import Course, User, Problem, Module, Tag
 from src.domain.entities.exceptions import (
@@ -11,11 +11,11 @@ from src.domain.entities.exceptions import (
 from src.logger import logger
 
 
-class HasNameType:
+class HasNameType(Protocol):
     name: str
 
 
-T = TypeVar("HasNameType", bound=HasNameType)
+Named = TypeVar("Named", bound=HasNameType)
 
 
 class BaseCourseManagerService:
@@ -24,11 +24,11 @@ class BaseCourseManagerService:
 
 
 class BaseCourseNamedAttrsManagerService(BaseCourseManagerService):
-    def _validate_repeatable_names(self, entities: list[T]):
+    def _validate_repeatable_names(self, entities: list[Named]):
         if len(set(ent.name for ent in entities)) != len(entities):
             raise RepeatableNamesError(f"Names cannot match")
 
-    def _validate_already_exists(self, current: list[T], incoming: list[T]):
+    def _validate_already_exists(self, current: list[Named], incoming: list[Named]):
         intersec = set(ent.name for ent in current) & set(ent.name for ent in incoming)
         if intersec:
             raise NamesAlreadyExistError(
@@ -38,7 +38,7 @@ class BaseCourseNamedAttrsManagerService(BaseCourseManagerService):
 class CourseStudentsManagerService(BaseCourseManagerService):
     def _validate_teacher_is_student(self, students: list[User]):
         if self._course._teacher_id in [s.id for s in students]:
-            raise RolesError(f"User {self._course._teacher_id} is the teacher of this course")
+            raise RolesError("User is the teacher of this course")
 
     def add_students(self, students: list[User]):
         self._validate_teacher_is_student(students)
@@ -56,7 +56,7 @@ class CourseStudentsManagerService(BaseCourseManagerService):
         target_tag = self._find_tag_to_add_students(tag_name)
         if not target_tag:
             raise UndefinedTagError(
-                f"Unable to bind students to tag {tag_name}: tag not related with course {self._course.name}")
+                f"Unable to bind students to tag {tag_name}: tag not related with course")
         self.add_students(students)
         for s in students:
             if s not in target_tag.students:
@@ -95,7 +95,7 @@ class CourseTagManagerService(BaseCourseNamedAttrsManagerService):
         self._validate_incoming_tags(tags)
         self._course._tags += tags
 
-    def delete_tags(self, ids: int):
+    def delete_tags(self, ids: list[int]):
         self._course._tags = [tag for tag in self._course.tags if tag.id not in ids]
 
 
@@ -108,7 +108,7 @@ class CourseProblemManagerService(BaseCourseNamedAttrsManagerService):
         module = self._course.get_module(module_name)
         if not module:
             raise UndefinedModuleError(
-                f"Module with name {module_name} does not exist in course {self._course.name}")
+                f"Module with name {module_name} does not exist in course")
         self._validate_incoming_problems(module, problems)
         module.add_problems(problems)
 
@@ -116,5 +116,5 @@ class CourseProblemManagerService(BaseCourseNamedAttrsManagerService):
         module = self._course.get_module(module_name)
         if not module:
             raise UndefinedModuleError(
-                f"Module with name {module_name} does not exist in course {self._course.name}")
+                f"Module with name {module_name} does not exist in course")
         module.delete_problems(problems_ids)

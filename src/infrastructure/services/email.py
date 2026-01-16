@@ -21,6 +21,7 @@ class AsyncEmailService(EmailServiceInterface):
             await cli.login(email_conf.email_sender, email_conf.email_sender_password)
             try:
                 await cli.send_message(msg)
-                logger.info(f"Email with registration confirm link was sent to {msg["To"]}")
+                logger.info(f"Email with topic '{msg['Subject']}' sent to '{msg['To']}'")
             except Exception as e:
-                logger.error(f"Unable to send email for {msg["To"]}: {e}")
+                logger.error(
+                    f"Unable to send email with topic '{msg['Subject']}' to '{msg["To"]}': {e}")

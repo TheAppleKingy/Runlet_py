@@ -1,11 +1,11 @@
 from typing import Self, Protocol, TypeVar
 
 
-class HasId:
+class HasId(Protocol):
     id: int
 
 
-T = TypeVar("DomainEnt", bound=HasId)
+DomainEnt = TypeVar("DomainEnt", bound=HasId)
 
 
 class UoWInterface(Protocol):
@@ -17,7 +17,7 @@ class UoWInterface(Protocol):
 
     async def __aenter__(self) -> Self: ...
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None: ...
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> bool: ...
 
     def __call__(self, *_) -> Self:
         """
@@ -26,7 +26,7 @@ class UoWInterface(Protocol):
         :rtype: Self
         """
 
-    def save(self, *ents: T) -> None: ...
+    def save(self, *ents: DomainEnt) -> None: ...
     async def commit(self) -> None: ...
     async def rollback(self) -> None: ...
     async def flush(self) -> None: ...

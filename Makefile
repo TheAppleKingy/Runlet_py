@@ -12,15 +12,6 @@ INTEGRATION_TESTS_PATH=${TESTS_PATH}/test_integration
 UNIT_TESTS_PATH=${TESTS_PATH}/test_unit
 
 
-poetry.add:
-	@poetry add ${dep}
-
-
-poetry.rm:
-	@poetry remove ${dep}
-
-#-------------------------------------------------------------------------------------------------
-
 runlet.dev.build:
 	@docker compose -f ${DEV_COMPOSE} build
 

@@ -3,7 +3,7 @@ from sqlalchemy import (
     String, Boolean,
     ForeignKey
 )
-from sqlalchemy_utils import EmailType
+from sqlalchemy_utils import EmailType  # type: ignore
 
 from .base import metadata, id_
 
@@ -11,7 +11,7 @@ users = Table(
     "users", metadata,
     id_(),
     Column('email', EmailType(100), unique=True, nullable=False),
-    Column('password', String('255'), nullable=False),
+    Column('password', String(255), nullable=False),
     Column('name', String(100), nullable=True),
     Column('is_active', Boolean, default=False, nullable=False),
 )

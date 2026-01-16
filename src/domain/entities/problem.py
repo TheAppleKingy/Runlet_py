@@ -10,6 +10,7 @@ class Problem:
     description: str
     module_id: int
     auto_pass: bool = False
+    show_test_cases: bool = False
     test_cases: TestCases = field(default_factory=TestCases)
     id: int = field(default=None, init=False)  # type: ignore
 

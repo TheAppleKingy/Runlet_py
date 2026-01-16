@@ -1,9 +1,0 @@
-from typing import Protocol, Callable, Awaitable
-
-
-class MessageConsumerInterface(Protocol):
-    async def start_consuming(self, *args, **kwargs) -> None: ...
-    async def stop_consuming(self) -> None: ...
-
-    def set_handlers_map(self, handlers_map: dict[str, Callable[[
-                         str | bytes], Awaitable[None]]]) -> None: ...

@@ -2,6 +2,9 @@ from typing import Protocol
 
 
 class EmailMessageTextTemplate:
+    """
+    Class returns templates of topic and message text to send mails
+    """
     @classmethod
     def notify_student_subscribed(cls, course_name: str):
         return "Subscribed on course!", f"You have successfully subscribed on course '{course_name}'. Start learning right now on Runlet\n"

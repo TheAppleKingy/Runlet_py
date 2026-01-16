@@ -4,7 +4,7 @@ RUN apk add --no-cache curl netcat-openbsd
 
 WORKDIR /migrations
 
-COPY poetry.lock pyproject.toml ./
+COPY build/migrations/poetry.lock build/migrations/pyproject.toml ./
 
 RUN pip install poetry
 ENV PATH="/root/.local/bin:$PATH"

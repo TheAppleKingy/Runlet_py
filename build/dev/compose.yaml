@@ -18,16 +18,18 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - database
-      - rabbitmq
+      database:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     networks:
       - runlet_internal
     env_file:
       - .env
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
+
   rabbitmq:
-    hostname: rabbitmq
     build:
       context: .
       dockerfile: Dockerfile.rabbitmq
@@ -41,6 +43,12 @@ services:
     networks:
       - runlet_external
       - runlet_internal
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
   
 networks:
   runlet_external:

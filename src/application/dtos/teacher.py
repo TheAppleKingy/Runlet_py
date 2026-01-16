@@ -39,13 +39,6 @@ class CourseToUpdateDTO(BaseModel):
     modules: list[ModuleForTeacherDTO] = []
 
 
-class CreateCourseDTO(BaseModel):
-    name: str = Field(max_length=100)
-    description: str = Field(max_length=512, default="")
-    is_private: bool = False
-    notify_request_sub: bool = False
-
-
 class UpdateCourseDTO(BaseModel):
     name: Optional[str] = Field(max_length=100)
     description: Optional[str] = Field(max_length=512)
@@ -58,6 +51,7 @@ class CreateProblemDTO(BaseModel):
     description: str = Field(max_length=1024)
     auto_pass: bool = False
     test_cases: dict[int, TestCaseDTO] = {}
+    show_test_cases: bool = False
 
 
 class CreateModuleDTO(BaseModel):
@@ -81,6 +75,13 @@ class CourseForTeacherDTO(BaseModel):
     tags: list[TagForTeacherDTO]
     is_private: bool
     notify_request_sub: bool
+
+
+class TeacherCourseToManageDTO(BaseModel):
+    id: int
+    name: str
+    modules: list[ModuleForTeacherDTO]
+    tags: list[TagForTeacherDTO]
 
 
 class DeleteStudentsFromCourseDTO(BaseModel):

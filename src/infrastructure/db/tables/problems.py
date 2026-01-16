@@ -10,7 +10,8 @@ problems = Table(
     Column('description', String(1024), nullable=False),
     Column('module_id', ForeignKey("modules.id", ondelete="CASCADE"), nullable=False),
     Column("auto_pass", Boolean, default=False, nullable=False),
-    Column('test_cases', TestCaseJSONBType(), nullable=True)
+    Column('test_cases', TestCaseJSONBType(), nullable=True),
+    Column("show_test_cases", Boolean, default=False, nullable=False)
 )
 
 
