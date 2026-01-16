@@ -1,0 +1,16 @@
+services:
+  migrations:
+    build:
+      context: ../../
+      dockerfile: build/migrations/Dockerfile
+    networks:
+      - runlet_external
+    env_file:
+      - .env
+    volumes:
+      - ./alembic:/migrations/alembic
+      - ./alembic.ini:/migrations/alembic.ini
+
+networks:
+  runlet_external:
+    external: true

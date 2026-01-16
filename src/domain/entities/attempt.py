@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
-from .test_case import TestCases
+from .problem import Problem
+
+from ..value_objects import TestCases
 from .exceptions import (
     MismatchTestNumsError,
     MismatchTestsCountError,
@@ -10,47 +13,27 @@ from .exceptions import (
 
 @dataclass
 class Attempt:
-    student_id: int
+    user_id: int
     problem_id: int
+    problem: Problem = field(default=None, init=False)  # type: ignore
     amount: int = field(default=0, init=False)
     passed: bool = field(default=False, init=False)
-    _test_cases_data: dict[int, dict[str, str]] = field(default_factory=dict, init=False)
-    _test_cases: TestCases = field(default_factory=TestCases, init=False)
-    _result_cases_data: dict[int, dict[str, str]] = field(default_factory=dict, init=False)
-    _result_cases: TestCases = field(default_factory=TestCases, init=False)
-
-    @property
-    def test_cases(self):
-        return self._test_cases
-
-    @test_cases.setter
-    def test_cases(self, test_cases: TestCases):
-        self._test_cases = test_cases
-        self._test_cases_data = test_cases.as_dict()
-
-    @property
-    def result_cases(self):
-        return self._result_cases
-
-    @result_cases.setter
-    def result_cases(self, result_cases: TestCases):
-        if result_cases.count != self._test_cases.count:
-            raise MismatchTestsCountError("Count of provided results mismatch with spcified cases")
-        for num, _ in result_cases:
-            matching_case = self.test_cases.get_case(num)
-            if not matching_case:
-                raise MismatchTestNumsError(
-                    f"Provided result test num {num} does not exist in defined set of test cases")
-        self._result_cases = result_cases
-        self._result_cases_data = result_cases.as_dict()
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), init=False)
+    test_cases: TestCases = field(default_factory=TestCases)
 
     def mark_as_passed(self):
-        if self._result_cases.count != self._test_cases.count:
-            raise MismatchTestsCountError("Count of provided results mismatch with spcified cases")
+        """
+        Mark attempt as passed comparing test cases got in last attempt with excpected values of cases outputs 
+
+        :param expected_cases: set of test cases that with correct outputs(problem.test_cases)
+        :type expected_cases: TestCases
+        """
+        if self.problem.test_cases.count != self.test_cases.count:
+            raise MismatchTestsCountError("Count of provided results mismatch with specified cases")
         mismatching_outputs = []
         mismatchng_nums = []
-        for num, case in self._test_cases:
-            matching_result = self._result_cases.get_case(num)
+        for num, case in self.test_cases:
+            matching_result = self.problem.test_cases.get_case(num)
             if not matching_result:
                 mismatchng_nums.append(num)
                 continue

@@ -1,12 +1,15 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from dataclasses import dataclass, field
-from typing import Optional
-
-from .tag import Tag
+if TYPE_CHECKING:
+    from .course import Course
 
 
 @dataclass
 class User:
-    id: Optional[int] = None
-    email: str = field(default="")
-    password: str = field(default="")
-    tags: list[Tag] = field(default_factory=list, init=False)
+    email: str
+    password: str
+    name: str = ""
+    is_active: bool = field(default=False, init=False)
+    id: int = field(default=None, init=False)  # type: ignore
+    tags: list[Course] = field(default_factory=list, init=False)
