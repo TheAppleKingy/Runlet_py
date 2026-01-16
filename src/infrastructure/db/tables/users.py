@@ -1,16 +1,32 @@
 from sqlalchemy import (
-    create_engine, MetaData, Table, Column,
-    Integer, String, Boolean, DateTime, Text,
-    ForeignKey, Enum, Float,
+    Table, Column,
+    String, Boolean,
+    ForeignKey
 )
-from sqlalchemy_utils import EmailType
-from sqlalchemy.orm import relationship
+from sqlalchemy_utils import EmailType  # type: ignore
 
-metadata = MetaData()
+from .base import metadata, id_
 
 users = Table(
     "users", metadata,
-    Column[int]('id', Integer, primary_key=True, autoincrement=True),
-    Column[str]('name', String(100), nullable=False),
-    Column[str]('email', EmailType(100), unique=True, nullable=False),
+    id_(),
+    Column('email', EmailType(100), unique=True, nullable=False),
+    Column('password', String(255), nullable=False),
+    Column('name', String(100), nullable=True),
+    Column('is_active', Boolean, default=False, nullable=False),
+)
+
+tags = Table(
+    "tags", metadata,
+    id_(),
+    Column('name', String(100), nullable=False, unique=False),
+    Column("course_id", ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+)
+
+users_tags = Table(
+    "users_tags", metadata,
+    Column('user_id', ForeignKey('users.id', ondelete="CASCADE"),
+           nullable=False, primary_key=True),
+    Column('tag_id', ForeignKey("tags.id", ondelete="CASCADE"),
+           nullable=False, primary_key=True)
 )

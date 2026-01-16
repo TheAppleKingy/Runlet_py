@@ -1,4 +1,4 @@
-from application.dtos.callback import CodeRunCallbackDTO
+from src.application.dtos.callback import CodeRunCallbackDTO
 
 
 class CodeRunCallbackUseCase:

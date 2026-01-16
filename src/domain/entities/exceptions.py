@@ -17,10 +17,6 @@ class MismatchTestOutputsError(DomainError):
     pass
 
 
-class DuplicateTestCaseInput(DomainError):
-    pass
-
-
 class DirectAccessError(DomainError):
     pass
 
@@ -33,9 +29,25 @@ class TestCaseError(DomainError):
     pass
 
 
-class ValidationTestCaseError(DomainError):
+class UndefinedTagError(DomainError):
     pass
 
 
-class UpdateForbiddenError(DomainError):
+class UndefinedModuleError(DomainError):
+    pass
+
+
+class RepeatableNamesError(DomainError):
+    pass
+
+
+class HasNoDirectAccessError(DomainError):
+    pass
+
+
+class NamesAlreadyExistError(DomainError):
+    pass
+
+
+class NoDefaultCourseTagsError(DomainError):
     pass
