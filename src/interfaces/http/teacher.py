@@ -1,13 +1,15 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
+from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from src.application.dtos.teacher import (
     CourseForTeacherDTO,
     CreateCourseTagsDTO,
     TeacherCourseToManageDTO,
     UpdateCourseDTO,
-    GenerateInviteLinkDTO
+    GenerateInviteLinkDTO,
+    GenInviteLinkDTO
 )
 from src.application.use_cases.teacher import (
     AddCourseTags,
@@ -16,24 +18,15 @@ from src.application.use_cases.teacher import (
     UpdateCourseData,
     GenerateInviteLink
 )
-from src.container import (
-    auth_teacher,
-    get_show_teacher_course_to_manage_students_use_case,
-    get_show_teacher_course_to_manage_problems_use_case,
-    get_add_course_tags_use_case,
-    get_update_course_data_use_case,
-    get_generate_invite_link_use_case
-)
-
-teacher_router = APIRouter(prefix="/teaching", tags=["Manage teaching"])
+from src.domain.value_objects import AuthenticatedTeacherId
+teacher_router = APIRouter(prefix="/teaching", tags=["Manage teaching"], route_class=DishkaRoute)
 
 
 @teacher_router.get("/course/{course_id}/students")
 async def get_teacher_course_to_manage_students(
     course_id: int,
-    user_id: int = Depends(auth_teacher),
-    use_case: ShowTeacherCourseToManageStudents = Depends(
-        get_show_teacher_course_to_manage_students_use_case)
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[ShowTeacherCourseToManageStudents]
 ) -> Optional[TeacherCourseToManageDTO]:
     return await use_case.execute(course_id)
 
@@ -41,9 +34,8 @@ async def get_teacher_course_to_manage_students(
 @teacher_router.get("/course/{course_id}/problems")
 async def get_teacher_course_to_manage_problems(
     course_id: int,
-    user_id: int = Depends(auth_teacher),
-    use_case: ShowTeacherCourseToManageProblems = Depends(
-        get_show_teacher_course_to_manage_problems_use_case)
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[ShowTeacherCourseToManageProblems]
 ) -> Optional[TeacherCourseToManageDTO]:
     return await use_case.execute(course_id)
 
@@ -52,8 +44,8 @@ async def get_teacher_course_to_manage_problems(
 async def update_course_data(
     course_id: int,
     dto: UpdateCourseDTO,
-    user_id: int = Depends(auth_teacher),
-    use_case: UpdateCourseData = Depends(get_update_course_data_use_case)
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[UpdateCourseData]
 ):
     await use_case.execute(course_id, dto)
 
@@ -62,12 +54,17 @@ async def update_course_data(
 async def create_invite_link(
     course_id: int,
     dto: GenerateInviteLinkDTO,
-    user_id: int = Depends(auth_teacher),
-    use_case: GenerateInviteLink = Depends(get_generate_invite_link_use_case)
-):
-    return await use_case.execute(course_id, dto)
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[GenerateInviteLink]
+) -> GenInviteLinkDTO:
+    return {"link": await use_case.execute(course_id, dto)}  # type: ignore
 
 
 @teacher_router.patch("/course/{course_id}/tags")
-async def add_tags(course_id: int, dto: CreateCourseTagsDTO, user_id: int = Depends(auth_teacher), use_case: AddCourseTags = Depends(get_add_course_tags_use_case)):
+async def add_tags(
+    course_id: int,
+    dto: CreateCourseTagsDTO,
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[AddCourseTags]
+):
     return await use_case.execute(course_id, dto)

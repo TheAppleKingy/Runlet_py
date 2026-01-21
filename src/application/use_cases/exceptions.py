@@ -25,7 +25,7 @@ class UndefinedTagError(ApplicationError):
     pass
 
 
-class InvalidInvitingLingError(ApplicationError):
+class InvalidInvitingLinkError(ApplicationError):
     pass
 
 

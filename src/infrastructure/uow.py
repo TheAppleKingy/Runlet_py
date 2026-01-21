@@ -8,7 +8,6 @@ from src.logger import logger
 class AlchemyUoW(UoWInterface):
     def __init__(self, session: AsyncSession):
         self._session = session
-        self._auto: bool = True
         self._t: AsyncSessionTransaction = None  # type: ignore
 
     async def __aenter__(self) -> Self:
@@ -17,26 +16,13 @@ class AlchemyUoW(UoWInterface):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> bool:
-        async def handle_transaction():
-            if self._t:
-                if exc_type is not None:
-                    await self._t.rollback()
-                else:
-                    await self._t.commit()
-
-        if self._auto:
-            await handle_transaction()
+        if self._t:
+            if exc_type is not None:
+                await self._t.rollback()
+            else:
+                await self._t.commit()
         self._t = None  # type: ignore
-        self._auto = True
         return False
-
-    def __call__(self, *_):
-        """
-        Calling __call__ sets attribute _auto to False an that means that
-        you start manage transaction manually(commit, rollback)
-        """
-        self._auto = False
-        return self
 
     async def commit(self) -> None:
         if self._t:

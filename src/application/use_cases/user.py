@@ -15,7 +15,7 @@ from src.application.interfaces.services import (
 )
 from src.application.use_cases.exceptions import (
     UndefinedCourseError,
-    InvalidInvitingLingError,
+    InvalidInvitingLinkError,
     CoursePrivacyError,
 )
 from src.application.dtos.course import CreateCourseDTO
@@ -159,17 +159,20 @@ class SubscribeOnCourseByLink:
         self._email_service = email_service
 
     async def execute(self, token: str, user_id: int):
-        payload = self._token_service.decode(token)
+        try:
+            payload = self._token_service.decode(token)
+        except Exception:
+            raise InvalidInvitingLinkError("Inviting URL is invalid", 404)
         tag_name = payload.get("tag_name")
         course_id = payload.get("course_id")
         if not course_id:
-            raise InvalidInvitingLingError("Inviting URL is invalid", 404)
+            raise InvalidInvitingLinkError("Inviting URL is invalid", 404)
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students])
             if not course:
-                raise InvalidInvitingLingError("Inviting URL is invalid", 404)
+                raise InvalidInvitingLinkError("Inviting URL is invalid", 404)
             if await self._course_repo.check_user_in_course(user_id, course.id):
-                raise InvalidInvitingLingError("Already subscribed on course")
+                raise InvalidInvitingLinkError("Already subscribed on course")
             student = await self._user_repo.get_by_id(user_id)
             manager = CourseStudentsManagerService(course)
             if tag_name:

@@ -91,3 +91,7 @@ class DeleteStudentsFromCourseDTO(BaseModel):
 
 class GenerateInviteLinkDTO(BaseModel):
     tag_name: Optional[str] = None
+
+
+class GenInviteLinkDTO(BaseModel):
+    link: str

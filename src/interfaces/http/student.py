@@ -1,32 +1,42 @@
 from typing import Optional
 
-from fastapi import Depends, APIRouter
+from fastapi import APIRouter
+from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from src.application.use_cases import ShowStudentCourses, ShowStudentCourse
 from src.application.dtos.student import SendProblemSolutionDTO, ModuleForStudenteDTO, CourseForStudentDTO
-from src.container import (
-    auth_student,
-    get_show_student_courses_use_case,
-    get_show_student_course_use_case
-)
+from src.domain.value_objects import AuthenticatedStudentId
 
-student_router = APIRouter(prefix="/study", tags=["Manage studiyng"])
+student_router = APIRouter(prefix="/study", tags=["Manage studiyng"], route_class=DishkaRoute)
 
 
 @student_router.get("/course/{course_id}")
 async def get_student_course(
     course_id: int,
-    user_id: int = Depends(auth_student),
-    use_case: ShowStudentCourse = Depends(get_show_student_course_use_case)
+    user_id: FromDishka[AuthenticatedStudentId],
+    use_case: FromDishka[ShowStudentCourse]
 ) -> Optional[CourseForStudentDTO]:
     return await use_case.execute(course_id)
 
 
-@student_router.get("/problem/{problem_id}")
-async def get_problem(problem_id: int, user_id: int = Depends(auth_student)):
+@student_router.get("/course/{course_id}/problem/{problem_id}")
+async def get_problem_to_solve(
+    course_id: int,
+    problem_id: int,
+    user_id: FromDishka[AuthenticatedStudentId]
+):
+    """
+    This controller should return data of problem, list of possible programming languages and test info if administrator passed.
+    Especially data of this controller's response need to show client before sending solve.
+    """
     pass
 
 
-@student_router.post("/problem/{problem_id}/send_solution")
-async def send_problem_solution(dto: SendProblemSolutionDTO, user_id: int = Depends(auth_student)):
+@student_router.post("/course/{course_id}/problem/{problem_id}")
+async def send_problem_solution(
+    course_id: int,
+    problem_id: int,
+    dto: SendProblemSolutionDTO,
+    user_id: FromDishka[AuthenticatedStudentId]
+):
     pass

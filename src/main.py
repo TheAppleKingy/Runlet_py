@@ -2,23 +2,26 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
+from dishka.integrations.fastapi import setup_dishka
 from sqlalchemy.orm import registry, relationship, column_property
 from ploomby.registry import MessageConsumerRegistry
 from ploomby.rabbit import RabbitConsumerFactory
 
 from src.application.use_cases.student import *
+from src.application.use_cases.user import *
+from src.application.use_cases.teacher import *
 from src.infrastructure.db.tables import *
-from src.infrastructure.configs import rabbit_conf
 from src.domain.exc import HandlingError
 from src.interfaces.http import *
 from src.domain.entities import *
 from src.logger import logger
-from src.container import consumer_registry
-
-mapper_registry = registry()
+from src.container import (
+    container
+)
 
 
 def map_tables():
+    mapper_registry = registry()
     mapper_registry.map_imperatively(Problem, problems)
     mapper_registry.map_imperatively(Attempt, attempts, properties={
         "problem": relationship(Problem, lazy='joined', uselist=False)
@@ -49,13 +52,15 @@ def handle_errs(r: Request, e: HandlingError):
 async def lifespan_handler(app: FastAPI):
     map_tables()
     setup_routers(app)
-    await consumer_registry.register("callback", "task_name")
+    # await consumer_registry.register("callback", "task_name")
     logger.info("App is ready. Starting...")
     yield
+    await container.close()
     logger.info("App shutdown")
 
 
 app = FastAPI(lifespan=lifespan_handler)
+setup_dishka(container, app)
 
 
 @app.middleware("http")

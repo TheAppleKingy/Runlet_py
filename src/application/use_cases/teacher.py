@@ -154,7 +154,8 @@ class GenerateInviteLink:
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags])
         payload = {"course_id": course.id}  # type: ignore
-        tag = course.get_tag(dto.tag_name)  # type: ignore
-        if tag:
-            payload.update({"tag_name": tag.name})
+        if dto.tag_name:
+            tag = course.get_tag(dto.tag_name)  # type: ignore
+            if tag:
+                payload.update({"tag_name": tag.name})
         return self._confirm_subscription_url + f"/{self._token_service.encode(payload, self._exp_time)}"
