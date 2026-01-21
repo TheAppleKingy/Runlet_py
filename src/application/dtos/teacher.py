@@ -80,7 +80,13 @@ class CourseForTeacherDTO(BaseModel):
 class TeacherCourseToManageDTO(BaseModel):
     id: int
     name: str
+
+
+class TeacherCourseToManageProblemsDTO(TeacherCourseToManageDTO):
     modules: list[ModuleForTeacherDTO]
+
+
+class TeacherCourseToManageStudentsDTO(TeacherCourseToManageDTO):
     tags: list[TagForTeacherDTO]
 
 
@@ -90,7 +96,7 @@ class DeleteStudentsFromCourseDTO(BaseModel):
 
 
 class GenerateInviteLinkDTO(BaseModel):
-    tag_name: Optional[str] = None
+    tags_names: list[str] = []
 
 
 class GenInviteLinkDTO(BaseModel):

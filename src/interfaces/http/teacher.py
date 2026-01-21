@@ -6,7 +6,8 @@ from dishka.integrations.fastapi import FromDishka, DishkaRoute
 from src.application.dtos.teacher import (
     CourseForTeacherDTO,
     CreateCourseTagsDTO,
-    TeacherCourseToManageDTO,
+    TeacherCourseToManageProblemsDTO,
+    TeacherCourseToManageStudentsDTO,
     UpdateCourseDTO,
     GenerateInviteLinkDTO,
     GenInviteLinkDTO
@@ -27,7 +28,10 @@ async def get_teacher_course_to_manage_students(
     course_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
     use_case: FromDishka[ShowTeacherCourseToManageStudents]
-) -> Optional[TeacherCourseToManageDTO]:
+) -> Optional[TeacherCourseToManageStudentsDTO]:
+    """
+    Endpoint returns data of course with all needed tags and tags students data
+    """
     return await use_case.execute(course_id)
 
 
@@ -36,7 +40,10 @@ async def get_teacher_course_to_manage_problems(
     course_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
     use_case: FromDishka[ShowTeacherCourseToManageProblems]
-) -> Optional[TeacherCourseToManageDTO]:
+) -> Optional[TeacherCourseToManageProblemsDTO]:
+    """
+    Endpoint returns data of course with all needed modules and modules problems data
+    """
     return await use_case.execute(course_id)
 
 
@@ -67,4 +74,8 @@ async def add_tags(
     user_id: FromDishka[AuthenticatedTeacherId],
     use_case: FromDishka[AddCourseTags]
 ):
+    """
+    Endpoint adds only new tags(if tags with existing names will be provided returns 400)
+    and automatically add students to tags if provided
+    """
     return await use_case.execute(course_id, dto)

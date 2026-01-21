@@ -163,7 +163,7 @@ class SubscribeOnCourseByLink:
             payload = self._token_service.decode(token)
         except Exception:
             raise InvalidInvitingLinkError("Inviting URL is invalid", 404)
-        tag_name = payload.get("tag_name")
+        tags_names = payload.get("tags_names", [])
         course_id = payload.get("course_id")
         if not course_id:
             raise InvalidInvitingLinkError("Inviting URL is invalid", 404)
@@ -175,8 +175,9 @@ class SubscribeOnCourseByLink:
                 raise InvalidInvitingLinkError("Already subscribed on course")
             student = await self._user_repo.get_by_id(user_id)
             manager = CourseStudentsManagerService(course)
-            if tag_name:
-                manager.add_students_by_tag(tag_name, [student])  # type: ignore
+            if tags_names:
+                for tag_name in tags_names:
+                    manager.add_students_by_tag(tag_name, [student])  # type: ignore
             else:
                 manager.add_students([student])  # type: ignore
         topic, msg = EmailMessageTextTemplate.notify_student_subscribed(course.name)  # type: ignore

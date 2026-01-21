@@ -107,13 +107,11 @@ class AddCourseTags:
     async def execute(self, course_id: int, dto: CreateCourseTagsDTO):
         async with self._uow as uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students])
-            if not course:
-                raise UndefinedCourseError("Course does not exist")
-            tag_manager = CourseTagManagerService(course)
+            tag_manager = CourseTagManagerService(course)  # type: ignore
             tags = [Tag(data.name, course_id) for data in dto.tags_data]
             tag_manager.add_tags(tags)
             uow.save(*tags)
-            student_manager = CourseStudentsManagerService(course)
+            student_manager = CourseStudentsManagerService(course)  # type: ignore
             for data in dto.tags_data:
                 students = await self._user_repo.get_by_ids(data.students_ids)
                 if students:
@@ -154,8 +152,10 @@ class GenerateInviteLink:
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags])
         payload = {"course_id": course.id}  # type: ignore
-        if dto.tag_name:
-            tag = course.get_tag(dto.tag_name)  # type: ignore
-            if tag:
-                payload.update({"tag_name": tag.name})
+        target_tags = []
+        for tag_name in dto.tags_names:
+            tag = course.get_tag(tag_name)  # type: ignore
+            if tag and (tag_name not in target_tags):
+                target_tags.append(tag.name)
+        payload.update({"tags_names": target_tags})
         return self._confirm_subscription_url + f"/{self._token_service.encode(payload, self._exp_time)}"
