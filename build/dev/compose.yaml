@@ -17,6 +17,8 @@ services:
       dockerfile: build/dev/Dockerfile
     ports:
       - "8000:8000"
+    volumes:
+      - ../../src:/app/src
     depends_on:
       database:
         condition: service_started

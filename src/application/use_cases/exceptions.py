@@ -33,7 +33,15 @@ class UndefinedCourseError(ApplicationError):
     pass
 
 
+class undefinedStudentError(ApplicationError):
+    pass
+
+
 class HasNoAccessError(ApplicationError):
+    pass
+
+
+class ImpossibleOperationError(ApplicationError):
     pass
 
 

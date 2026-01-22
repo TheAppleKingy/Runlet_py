@@ -4,7 +4,10 @@ from fastapi import APIRouter
 from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from src.application.use_cases import ShowStudentCourses, ShowStudentCourse
-from src.application.dtos.student import SendProblemSolutionDTO, ModuleForStudenteDTO, CourseForStudentDTO
+from src.application.dtos.student import SendProblemSolutionDTO
+from src.application.dtos.course import (
+    CourseG7
+)
 from src.domain.value_objects import AuthenticatedStudentId
 
 student_router = APIRouter(prefix="/study", tags=["Manage studiyng"], route_class=DishkaRoute)
@@ -15,7 +18,7 @@ async def get_student_course(
     course_id: int,
     user_id: FromDishka[AuthenticatedStudentId],
     use_case: FromDishka[ShowStudentCourse]
-) -> Optional[CourseForStudentDTO]:
+) -> Optional[CourseG7]:
     return await use_case.execute(course_id)
 
 

@@ -12,11 +12,11 @@ from src.application.use_cases.user import (
     SubscribeOnCourse
 )
 from src.domain.value_objects import AuthenticatedUserId, AuthenticatedNotStrictlyUserId
-from src.application.dtos.user import MainDTO
+from src.application.dtos.main import MainDTO
 from src.application.dtos.course import (
-    PaginatedCoursesDTO,
-    CourseForUnauthorizedDTO,
-    CreateCourseDTO
+    CourseG2,
+    CourseG5,
+    CourseC1
 )
 from src.logger import logger
 
@@ -29,9 +29,9 @@ async def get_main(
     use_case: FromDishka[ShowMain],
     page: int = Query(default=1, ge=1),
     size: int = Query(default=10, ge=10)
-):
+) -> MainDTO:
     data = await use_case.execute(user_id, page=page, size=size)
-    return {
+    return {  # type: ignore
         "as_teacher": data[0],
         "as_student": data[1],
         "paginated": {
@@ -48,13 +48,13 @@ async def get_course(
     course_id: int,
     user_id: FromDishka[AuthenticatedNotStrictlyUserId],
     use_case: FromDishka[ShowCourse]
-) -> Optional[CourseForUnauthorizedDTO]:
+) -> Optional[CourseG2]:
     return await use_case.execute(course_id)
 
 
 @user_router.post("/course")
 async def create_course(
-    dto: CreateCourseDTO,
+    dto: CourseC1,
     user_id: FromDishka[AuthenticatedUserId],
     use_case: FromDishka[CreateCourse]
 ):

@@ -144,11 +144,16 @@ use_case_provider.provide_all(
     AuthenticateUser,
     RegisterUserConfirm,
     CreateCourse,
-    AddProblemsModules,
     UpdateCourseData,
     ShowTeacherCourseToManageStudents,
     ShowTeacherCourseToManageProblems,
-    AddCourseTags,
+    AddProblem,
+    DeleteProblems,
+    AddStudents,
+    DeleteStudents,
+    AddTags,
+    DeleteTags,
+    DeleteModules,
     LoginUser,
     ShowStudentCourses,
     ShowStudentCourse,
@@ -183,7 +188,9 @@ class AuthProvider(Provider):
         use_case: AuthenticateUserAsStudent,
         user_id: AuthenticatedUserId
     ) -> AuthenticatedStudentId:
-        return AuthenticatedStudentId(await use_case.execute(user_id, int(r.path_params.get("course_id")))) # type: ignore 
+        return AuthenticatedStudentId(await use_case.execute(user_id, int(
+            r.path_params.get("course_id")  # type: ignore
+        )))
 
     @provide
     async def auth_teacher(
@@ -192,7 +199,9 @@ class AuthProvider(Provider):
         use_case: AuthenticateUserAsTeacher,
         user_id: AuthenticatedUserId
     ) -> AuthenticatedTeacherId:
-        return AuthenticatedTeacherId(await use_case.execute(user_id, int(r.path_params.get("course_id")))) # type: ignore
+        return AuthenticatedTeacherId(await use_case.execute(user_id, int(
+            r.path_params.get("course_id")  # type: ignore
+        )))
 
 
 container = make_async_container(
