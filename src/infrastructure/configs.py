@@ -34,9 +34,3 @@ class EmailConfig(BaseSettings):
     email_sender_password: str
     email_host: str
     email_port: int
-
-
-db_conf = DBConfig()
-app_conf = AppConfig()
-rabbit_conf = RabbitMQConfig()
-email_conf = EmailConfig()

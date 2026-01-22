@@ -51,3 +51,7 @@ class NamesAlreadyExistError(DomainError):
 
 class NoDefaultCourseTagsError(DomainError):
     pass
+
+
+class ImpossibleOperationError(DomainError):
+    pass

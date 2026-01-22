@@ -1,12 +1,13 @@
 from typing import TypeVar, Protocol
 
-from src.domain.entities import Course, User, Problem, Module, Tag
+from src.domain.entities import Course, User, Problem, Module, Tag, DefautTagType
 from src.domain.entities.exceptions import (
     RolesError,
     UndefinedModuleError,
     UndefinedTagError,
     RepeatableNamesError,
-    NamesAlreadyExistError
+    NamesAlreadyExistError,
+    ImpossibleOperationError
 )
 from src.logger import logger
 
@@ -96,6 +97,10 @@ class CourseTagManagerService(BaseCourseNamedAttrsManagerService):
         self._course._tags += tags
 
     def delete_tags(self, ids: list[int]):
+        for type_ in DefautTagType:
+            default_tag = self._course.get_tag(type_.value)
+            if default_tag.id in ids:
+                raise ImpossibleOperationError("Unable to delete default tag")
         self._course._tags = [tag for tag in self._course.tags if tag.id not in ids]
 
 
