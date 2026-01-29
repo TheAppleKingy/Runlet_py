@@ -11,6 +11,7 @@ from .exceptions import (
     UndefinedCourseError,
     HasNoAccessError
 )
+from src.domain.entities import User
 from src.logger import logger
 
 __all__ = [
@@ -34,14 +35,16 @@ class AuthenticateUser:
         self._auth_service = auth_service
         self._user_repo = user_repo
 
-    async def execute(self, token: str) -> int:
+    async def execute(self, token: str | None) -> int:
+        if not token:
+            raise UndefinedUserError("Unauthorized", status=401)
         user_id = self._auth_service.get_user_id_from_token(token)
         if not user_id:
-            raise UndefinedUserError("User was not identify by token", status=403)
+            raise UndefinedUserError("User was not identify", status=401)
         async with self._uow:
             user = await self._user_repo.get_by_id(user_id)
             if not user:
-                raise UndefinedUserError("User was not identify by token", status=403)
+                raise UndefinedUserError("User was not identify", status=401)
             if not user.is_active:
                 raise InactiveUserError("Current user is inactive", status=403)
         return user_id
@@ -58,9 +61,12 @@ class AuthenticateUserAsStudent:
 
     async def execute(self, user_id: int, course_id: int) -> int:
         async with self._uow:
+            course = await self._course_repo.get_by_id(course_id)
+            if not course:
+                raise UndefinedCourseError("Course does not exist")
             subscribed = await self._course_repo.check_user_in_course(user_id, course_id)
-        if not subscribed:
-            raise HasNoAccessError("User not subscribed on course", status=403)
+            if not subscribed:
+                raise HasNoAccessError("User not subscribed on course", status=403)
         return user_id
 
 
@@ -77,9 +83,9 @@ class AuthenticateUserAsTeacher:
         async with self._uow:
             course = await self._course_repo.get_by_id(course_id)
         if not course:
-            return user_id
+            raise UndefinedCourseError("Course does not exist")
         if course.teacher_id != user_id:
-            raise HasNoAccessError(f"User cannot manage course", status=403)
+            raise HasNoAccessError("User cannot manage course", status=403)
         return user_id
 
 
@@ -100,7 +106,7 @@ class LoginUser:
         async with self._uow:
             user = await self._user_repo.get_by_email(dto.email)
         if not user:
-            raise UndefinedUserError(f"User with email {dto.email} not found")
+            raise UndefinedUserError("User not found")
         if not self._password_service.check_password(user.password, dto.password):
             raise InvalidUserPasswordError("Incorrect password")
         return self._auth_service.generate_token(user.id)
@@ -126,13 +132,16 @@ class RegisterUserRequest:
     async def execute(self, dto: RegisterUserRequestDTO):
         if dto.first_password != dto.second_password:
             raise PasswordsMismatchError("Passwords do not match")
-        async with self._uow:
+        async with self._uow as uow:
             if await self._user_repo.count_by_email(dto.email):
                 raise EmailExistsError(f"User with email {dto.email} already exists")
-            created = await self._user_repo.create(dto.name, dto.email, self._password_service.hash_password(dto.first_password))
-            token = self._auth_service.generate_token(created.id, 300)
+            registered = User(dto.email, self._password_service.hash_password(
+                dto.first_password), dto.name)
+            uow.save(registered)
+            await uow.flush()
+            token = self._auth_service.generate_token(registered.id, 300)
             message = f"Hello! Confirm your registration on Runlet following by link:\n{self._reg_confirm_url}/{token}"
-            await self._email_service.send_mail(created.email, "Registration confirm", message)
+            await self._email_service.send_mail(registered.email, "Registration confirm", message)
 
 
 class RegisterUserConfirm:

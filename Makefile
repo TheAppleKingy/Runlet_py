@@ -12,7 +12,13 @@ INTEGRATION_TESTS_PATH=${TESTS_PATH}/test_integration
 UNIT_TESTS_PATH=${TESTS_PATH}/test_unit
 
 
-runlet.dev.build:
+runlet.network.setup:
+	@docker network create runlet_migrations_network >/dev/null 2>&1 || true; \
+	docker network create runlet_external >/dev/null 2>&1 || true
+
+#-------------------------------------------------------------------------------------------------
+
+runlet.dev.build: runlet.network.setup
 	@docker compose -f ${DEV_COMPOSE} build
 
 
@@ -20,8 +26,8 @@ runlet.dev.start:
 	@docker compose -f ${DEV_COMPOSE} up
 
 
-runlet.dev.build.start:
-	@docker compose -f ${DEV_COMPOSE} up --build
+runlet.dev.build.start: runlet.dev.build
+	@docker compose -f ${DEV_COMPOSE} up
 
 runlet.dev.down:
 	@docker compose -f ${DEV_COMPOSE} down
@@ -62,5 +68,5 @@ runlet.test.integration: runlet.test.build runlet.test_db.start
 runlet.test.unit: runlet.test.build
 	@docker compose -f ${TESTS_COMPOSE} run --rm test_app pytest -v ${UNIT_TESTS_PATH}
 
-runlet.test.full: runlet.test.build runlet.start.test_db
+runlet.test.full: runlet.test.build runlet.test_db.start
 	@docker compose -f ${TESTS_COMPOSE} run --rm test_app pytest -v ${TESTS_PATH}; docker compose -f ${TESTS_COMPOSE} down

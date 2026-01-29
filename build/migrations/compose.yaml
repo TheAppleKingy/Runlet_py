@@ -4,7 +4,7 @@ services:
       context: ../../
       dockerfile: build/migrations/Dockerfile
     networks:
-      - runlet_external
+      - runlet_migrations_network
     env_file:
       - .env
     volumes:
@@ -12,5 +12,5 @@ services:
       - ./alembic.ini:/migrations/alembic.ini
 
 networks:
-  runlet_external:
+  runlet_migrations_network:
     external: true

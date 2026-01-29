@@ -20,8 +20,5 @@ class AlchemyUserRepository(BaseAlchemyRepository, UserRepositoryInterface):
         return await self._session.scalar(select(User).where(User.email == email))  # type: ignore
 
     async def count_by_email(self, email: str) -> int:
-        return await self._session.scalar(select(func.count(User.id)).where(User.email == email)) or 0 # type: ignore
-
-    async def create(self, name: str, email: str, password: str) -> User:
-        res = await self._session.execute(insert(User).values(name=name, email=email, password=password).returning(User))
-        return res.scalar()  # type: ignore
+        # type: ignore
+        return await self._session.scalar(select(func.count(User.id)).where(User.email == email)) or 0

@@ -25,7 +25,7 @@ class UndefinedTagError(ApplicationError):
     pass
 
 
-class InvalidInvitingLingError(ApplicationError):
+class InvalidInvitingLinkError(ApplicationError):
     pass
 
 
@@ -33,7 +33,15 @@ class UndefinedCourseError(ApplicationError):
     pass
 
 
+class undefinedStudentError(ApplicationError):
+    pass
+
+
 class HasNoAccessError(ApplicationError):
+    pass
+
+
+class ImpossibleOperationError(ApplicationError):
     pass
 
 
