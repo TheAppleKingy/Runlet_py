@@ -21,8 +21,8 @@ services:
     depends_on:
       runlet_database:
         condition: service_started
-      runlet_rabbitmq:
-        condition: service_healthy
+      # runlet_rabbitmq:
+      #   condition: service_healthy
     networks:
       - runlet_internal
     env_file:
@@ -60,5 +60,5 @@ networks:
   runlet_internal:
 
 volumes:
-  runlet_rabbitmq_data:
+  # runlet_rabbitmq_data:
   runlet_postgres_data:
