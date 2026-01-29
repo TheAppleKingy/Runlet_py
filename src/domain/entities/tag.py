@@ -7,6 +7,10 @@ from .user import User
 class DefautTagType(Enum):
     WAITING_FOR_SUBSCRIBE = "Ожидают зачисления"
 
+    @classmethod
+    def names(cls):
+        return [type_.value for type_ in cls]
+
 
 @dataclass
 class Tag:

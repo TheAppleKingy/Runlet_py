@@ -1,13 +1,14 @@
 services:
-  database:
-    image: postgres:18
+  runlet_database:
+    hostname: database
+    image: postgres:18-alpine
     env_file:
       - .env
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - runlet_postgres_data:/var/lib/postgresql
     networks:
-      - runlet_external
       - runlet_internal
+      - runlet_migrations_network
 
   runlet:
     build:
@@ -15,36 +16,49 @@ services:
       dockerfile: build/prod/Dockerfile
     ports:
       - "8000:8000"
+    volumes:
+      - ../../src:/app/src
     depends_on:
-      - database
-      - rabbitmq
+      runlet_database:
+        condition: service_started
+      runlet_rabbitmq:
+        condition: service_healthy
     networks:
       - runlet_internal
     env_file:
       - .env
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
-  rabbitmq:
-    hostname: rabbitmq
-    build:
-      context: .
-      dockerfile: Dockerfile.rabbitmq
-    env_file:
-      - .env
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - runlet_external
-      - runlet_internal
+
+  # runlet_rabbitmq:
+  #   hostname: rabbitmq
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.rabbitmq
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   volumes:
+  #     - runlet_rabbitmq_data:/var/lib/rabbitmq
+  #   networks:
+  #     - runlet_external
+  #     - runlet_internal
+  #   healthcheck:
+  #     test: ["CMD", "rabbitmq-diagnostics", "status"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 40s
   
 networks:
   runlet_external:
     external: true
+  runlet_migrations_network:
+    external: true
   runlet_internal:
 
 volumes:
-  rabbitmq_data:
-  postgres_data:
+  runlet_rabbitmq_data:
+  runlet_postgres_data:

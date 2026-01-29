@@ -9,5 +9,5 @@ class LoginUserDTO(BaseModel):
 class RegisterUserRequestDTO(BaseModel):
     name: str = Field(max_length=100, min_length=1)
     email: EmailStr
-    first_password: str
-    second_password: str
+    first_password: str = Field(min_length=8)
+    second_password: str = Field(min_length=8)
