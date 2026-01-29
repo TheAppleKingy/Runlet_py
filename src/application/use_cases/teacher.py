@@ -266,7 +266,7 @@ class GenerateInviteLink:
         payload = {"course_id": course.id}  # type: ignore
         target_tags = []
         for tag_name in dto.tags_names:
-            if tag_name in [type_.value for type_ in DefautTagType]:
+            if tag_name in DefautTagType.names():
                 raise ImpossibleOperationError("Unable to create link for default tag")
             tag = course.get_tag(tag_name)  # type: ignore
             if tag and (tag_name not in target_tags):

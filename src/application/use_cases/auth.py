@@ -37,14 +37,14 @@ class AuthenticateUser:
 
     async def execute(self, token: str | None) -> int:
         if not token:
-            raise UndefinedUserError("Unauthorized", status=403)
+            raise UndefinedUserError("Unauthorized", status=401)
         user_id = self._auth_service.get_user_id_from_token(token)
         if not user_id:
-            raise UndefinedUserError("User was not identify", status=403)
+            raise UndefinedUserError("User was not identify", status=401)
         async with self._uow:
             user = await self._user_repo.get_by_id(user_id)
             if not user:
-                raise UndefinedUserError("User was not identify", status=403)
+                raise UndefinedUserError("User was not identify", status=401)
             if not user.is_active:
                 raise InactiveUserError("Current user is inactive", status=403)
         return user_id

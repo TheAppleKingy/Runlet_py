@@ -64,7 +64,7 @@ async def test_authenticate_user_no_token(
     with pytest.raises(UndefinedUserError) as exc_info:
         await authenticate_user.execute(token)
 
-    assert exc_info.value.status == 403
+    assert exc_info.value.status == 401
     assert str(exc_info.value) == "Unauthorized"
 
 
@@ -84,7 +84,7 @@ async def test_authenticate_user_no_user_id(
     with pytest.raises(UndefinedUserError) as exc_info:
         await authenticate_user.execute(token)
 
-    assert exc_info.value.status == 403
+    assert exc_info.value.status == 401
     assert str(exc_info.value) == "User was not identify"
     mock_auth_service.get_user_id_from_token.assert_called_once_with(token)
 
@@ -126,7 +126,7 @@ async def test_authenticate_user_not_found(
     with pytest.raises(UndefinedUserError) as exc_info:
         await authenticate_user.execute(token)
 
-    assert exc_info.value.status == 403
+    assert exc_info.value.status == 401
     assert str(exc_info.value) == "User was not identify"
     mock_user_repo.get_by_id.assert_called_once_with(user_id)
 

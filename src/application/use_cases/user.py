@@ -74,7 +74,7 @@ class CreateCourse:
                             dto.is_private, dto.notify_request_sub)
             uow.save(course)
             await uow.flush()
-            default_tags = [Tag(DefautTagType.WAITING_FOR_SUBSCRIBE.value, course.id)]
+            default_tags = [Tag(type_.value, course.id) for type_ in DefautTagType]
             uow.save(*default_tags)
             manager = CourseTagManagerService(course)
             manager.add_tags(default_tags)

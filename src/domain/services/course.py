@@ -100,7 +100,7 @@ class CourseTagManagerService(BaseCourseNamedAttrsManagerService):
         for type_ in DefautTagType:
             default_tag = self._course.get_tag(type_.value)
             if default_tag.id in ids:
-                raise ImpossibleOperationError("Unable to delete default tag")
+                raise ImpossibleOperationError(f"Unable to delete default tag '{type_.value}'")
         self._course._tags = [tag for tag in self._course.tags if tag.id not in ids]
 
 

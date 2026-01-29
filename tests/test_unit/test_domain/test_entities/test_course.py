@@ -1,6 +1,6 @@
 import pytest
 
-from src.domain.entities import Course, User, Problem, Tag, Module
+from src.domain.entities import Course, User, Problem, Tag, Module, DefautTagType
 from src.domain.services import CourseTagManagerService, CourseModulesManagerService, CourseProblemManagerService, CourseStudentsManagerService
 from src.domain.entities.exceptions import RolesError, UndefinedTagError, RepeatableNamesError, NamesAlreadyExistError, UndefinedModuleError
 
@@ -203,12 +203,13 @@ def test_delete_tags_by_ids(base_course, tag_factory):
     t1.id = 1
     t2 = tag_factory("B", base_course.id)
     t2.id = 2
-    base_course._tags = [t1, t2]
+    default = tag_factory(DefautTagType.WAITING_FOR_SUBSCRIBE.value, base_course.id, 3)
+    base_course._tags = [t1, t2, default]
     mgr = CourseTagManagerService(base_course)
 
     mgr.delete_tags([1])
 
-    assert base_course.tags == [t2]
+    assert base_course.tags == [t2, default]
 
 
 # ----- CourseProblemManagerService + Module -----

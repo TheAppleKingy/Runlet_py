@@ -1,15 +1,16 @@
 services:
-  database:
-    image: postgres:18
+  runlet_database:
+    hostname: database
+    image: postgres:18-alpine
     env_file:
       - .env
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - runlet_postgres_data:/var/lib/postgresql
     ports:
       - "5432:5432"
     networks:
-      - runlet_external
       - runlet_internal
+      - runlet_migrations_network
 
   runlet:
     build:
@@ -20,9 +21,9 @@ services:
     volumes:
       - ../../src:/app/src
     depends_on:
-      database:
+      runlet_database:
         condition: service_started
-      rabbitmq:
+      runlet_rabbitmq:
         condition: service_healthy
     networks:
       - runlet_internal
@@ -31,7 +32,8 @@ services:
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
 
-  rabbitmq:
+  runlet_rabbitmq:
+    hostname: rabbitmq
     build:
       context: .
       dockerfile: Dockerfile.rabbitmq
@@ -41,7 +43,7 @@ services:
       - "5672:5672"
       - "15672:15672"
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - runlet_rabbitmq_data:/var/lib/rabbitmq
     networks:
       - runlet_external
       - runlet_internal
@@ -55,8 +57,10 @@ services:
 networks:
   runlet_external:
     external: true
+  runlet_migrations_network:
+    external: true
   runlet_internal:
 
 volumes:
-  rabbitmq_data:
-  postgres_data:
+  runlet_rabbitmq_data:
+  runlet_postgres_data:

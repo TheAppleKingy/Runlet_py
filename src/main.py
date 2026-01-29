@@ -44,10 +44,6 @@ def map_tables():
     mapper_registry.configure()
 
 
-def handle_errs(r: Request, e: HandlingError):
-    raise HTTPException(e.status, detail=str(e))
-
-
 @asynccontextmanager
 async def lifespan_handler(app: FastAPI):
     map_tables()
@@ -63,12 +59,9 @@ app = FastAPI(lifespan=lifespan_handler)
 setup_dishka(container, app)
 
 
-@app.middleware("http")
-async def handle_auth(r: Request, call_next):
-    try:
-        return await call_next(r)
-    except HandlingError as e:
-        return JSONResponse({"detail": str(e)}, e.status)
+@app.exception_handler(HandlingError)
+async def handle_auth(r: Request, e: HandlingError):
+    return JSONResponse({"detail": str(e)}, e.status)
 
 
 def setup_routers(app: FastAPI):
