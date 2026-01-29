@@ -34,6 +34,22 @@ runlet.dev.down:
 
 #-------------------------------------------------------------------------------------------------
 
+runlet.prod.build: runlet.network.setup
+	@docker compose -f ${PROD_COMPOSE} build
+
+
+runlet.prod.start:
+	@docker compose -f ${PROD_COMPOSE} up
+
+
+runlet.prod.build.start: runlet.prod.build
+	@docker compose -f ${PROD_COMPOSE} up
+
+runlet.prod.down:
+	@docker compose -f ${PROD_COMPOSE} down
+
+#-------------------------------------------------------------------------------------------------
+
 runlet.migrations.init:
 	@cd build/migrations && alembic init -t async alembic
 
