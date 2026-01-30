@@ -35,10 +35,10 @@ async def get_main(
         "as_teacher": data[0],
         "as_student": data[1],
         "paginated": {
-            "courses": data[2][0],
-            "page": data[2][1],
-            "size": data[2][2],
-            "total": data[2][3]
+            "courses": data[2][0] if data[2] else [],
+            "page": data[2][1] if data[2] else 0,
+            "size": data[2][2] if data[2] else 0,
+            "total": data[2][3] if data[2] else 0
         }
     }
 
