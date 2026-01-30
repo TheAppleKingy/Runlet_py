@@ -142,6 +142,7 @@ class UseCaseProvider(Provider):
 use_case_provider = UseCaseProvider()
 use_case_provider.provide_all(
     AuthenticateUser,
+    OptionalAuthenticateUser,
     RegisterUserConfirm,
     CreateCourse,
     UpdateCourseData,
@@ -175,11 +176,8 @@ class AuthProvider(Provider):
         return AuthenticatedUserId(await use_case.execute(r.cookies.get("token")))
 
     @provide
-    async def auth_user_no_raise(self, r: Request, use_case: AuthenticateUser) -> AuthenticatedNotStrictlyUserId:
-        token = r.cookies.get("token")
-        if not token:
-            return None
-        return AuthenticatedUserId(await use_case.execute(token))
+    async def optional_auth_user(self, r: Request, use_case: OptionalAuthenticateUser) -> AuthenticatedNotStrictlyUserId:
+        return AuthenticatedUserId(await use_case.execute(r.cookies.get("token")))
 
     @provide
     async def auth_student(
