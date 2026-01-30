@@ -6,6 +6,8 @@ services:
       - .env
     volumes:
       - runlet_postgres_data:/var/lib/postgresql
+    ports:
+      - "5432:5432"
     networks:
       - runlet_internal
       - runlet_migrations_network
