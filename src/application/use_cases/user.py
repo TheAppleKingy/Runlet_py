@@ -35,7 +35,12 @@ class ShowMain:
         self._uow = uow
         self._course_repo = course_repo
 
-    async def execute(self, user_id: Optional[int], page: int = 1, size: int = 10):
+    async def execute(
+        self,
+        user_id: Optional[int] = None,
+        page: int = 1,
+        size: int = 10
+    ) -> tuple[list, list, tuple[list[Course], int, int, int]]:
         as_student = []
         as_teacher = []
         async with self._uow:
