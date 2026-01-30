@@ -23,11 +23,8 @@ async def registration_request(
 async def registration_confirm(
     token: str,
     use_case: FromDishka[RegisterUserConfirm]
-):
-    await use_case.execute(token)
-    resp = RedirectResponse(url="http://localhost:8000/api/v1/auth/login", status_code=302)
-    resp.delete_cookie("token")
-    return resp
+) -> None:
+    return await use_case.execute(token)
 
 
 @auth_router.post("/login")
@@ -36,8 +33,6 @@ async def login(
     use_case: FromDishka[LoginUser],
     token: str = Cookie(default=None, include_in_schema=False)
 ):
-    if token:
-        return {"detail": "Alreeady logged in"}
     token = await use_case.execute(dto)
     resp = JSONResponse({"detail": "Logged in"})
     resp.set_cookie("token", token)
