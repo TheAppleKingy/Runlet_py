@@ -138,6 +138,25 @@ class UseCaseProvider(Provider):
             token_service
         )
 
+    @provide
+    def login(
+        self,
+        conf: AppConfig,
+        uow: UoWInterface,
+        user_repo: UserRepositoryInterface,
+        password_service: PasswordServiceInterface,
+        auth_service: AuthenticationServiceInterface,
+        email_service: EmailServiceInterface,
+    ) -> LoginUser:
+        return LoginUser(
+            uow,
+            user_repo,
+            password_service,
+            auth_service,
+            email_service,
+            conf.reg_confirm_url
+        )
+
 
 use_case_provider = UseCaseProvider()
 use_case_provider.provide_all(
@@ -155,7 +174,6 @@ use_case_provider.provide_all(
     AddTags,
     DeleteTags,
     DeleteModules,
-    LoginUser,
     ShowStudentCourses,
     ShowStudentCourse,
     ShowCourse,

@@ -1,7 +1,12 @@
 from typing import Optional
 
 from src.application.interfaces.uow import UoWInterface
-from src.application.interfaces.services import AuthenticationServiceInterface, PasswordServiceInterface, EmailServiceInterface
+from src.application.interfaces.services import (
+    AuthenticationServiceInterface,
+    PasswordServiceInterface,
+    EmailServiceInterface,
+    EmailMessageTextTemplate
+)
 from src.application.dtos.auth import LoginUserDTO, RegisterUserRequestDTO
 from src.application.interfaces.repositories import UserRepositoryInterface, CourseRepositoryInterface
 from .exceptions import (
@@ -123,18 +128,27 @@ class LoginUser:
         uow: UoWInterface,
         user_repo: UserRepositoryInterface,
         password_service: PasswordServiceInterface,
-        auth_service: AuthenticationServiceInterface
+        auth_service: AuthenticationServiceInterface,
+        email_service: EmailServiceInterface,
+        reg_confirm_url: str
     ):
         self._uow = uow
         self._user_repo = user_repo
         self._password_service = password_service
         self._auth_service = auth_service
+        self._email_service = email_service
+        self._reg_confirm_url = reg_confirm_url
 
     async def execute(self, dto: LoginUserDTO) -> str:
         async with self._uow:
             user = await self._user_repo.get_by_email(dto.email)
         if not user:
             raise UndefinedUserError("User not found")
+        if not user.is_active:
+            token = self._auth_service.generate_token(user.id, 300)
+            topic, message = EmailMessageTextTemplate.registration(f"{self._reg_confirm_url}/{token}")
+            await self._email_service.send_mail(user.email, topic, message)
+            raise InactiveUserError("Now user is inactive. Email with instructions sent", status=403)
         if not self._password_service.check_password(user.password, dto.password):
             raise InvalidUserPasswordError("Incorrect password")
         return self._auth_service.generate_token(user.id)
@@ -168,8 +182,8 @@ class RegisterUserRequest:
             uow.save(registered)
             await uow.flush()
             token = self._auth_service.generate_token(registered.id, 300)
-            message = f"Hello! Confirm your registration on Runlet following by link:\n{self._reg_confirm_url}/{token}"
-            await self._email_service.send_mail(registered.email, "Registration confirm", message)
+            topic, message = EmailMessageTextTemplate.registration(f"{self._reg_confirm_url}/{token}")
+            await self._email_service.send_mail(registered.email, topic, message)
 
 
 class RegisterUserConfirm:
