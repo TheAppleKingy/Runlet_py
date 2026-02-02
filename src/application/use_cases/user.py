@@ -173,7 +173,7 @@ class SubscribeOnCourseByLink:
         if not course_id:
             raise InvalidInvitingLinkError("Inviting URL is invalid", 404)
         async with self._uow:
-            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students])
+            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students], [Course._students])
             if not course:
                 raise InvalidInvitingLinkError("Inviting URL is invalid", 404)
             if await self._course_repo.check_user_in_course(user_id, course.id):
