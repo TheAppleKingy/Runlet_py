@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Cookie
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse
 from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from src.domain.value_objects import AuthenticatedUserId
