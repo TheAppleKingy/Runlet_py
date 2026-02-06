@@ -11,3 +11,12 @@ class RegisterUserRequestDTO(BaseModel):
     email: EmailStr
     first_password: str = Field(min_length=8)
     second_password: str = Field(min_length=8)
+
+
+class ChangePasswordRequestDTO(BaseModel):
+    email: EmailStr
+
+
+class ChangePasswordConfirmDTO(BaseModel):
+    first_password: str = Field(min_length=8)
+    second_password: str = Field(min_length=8)

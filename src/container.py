@@ -157,6 +157,23 @@ class UseCaseProvider(Provider):
             conf.reg_confirm_url
         )
 
+    @provide
+    def change_password_request(
+        self,
+        conf: AppConfig,
+        uow: UoWInterface,
+        user_repo: UserRepositoryInterface,
+        token_service: AuthenticationServiceInterface,
+        email_service: EmailServiceInterface
+    ) -> ChangePasswordRequest:
+        return ChangePasswordRequest(
+            uow,
+            user_repo,
+            token_service,
+            email_service,
+            conf.password_change_confirm_url
+        )
+
 
 use_case_provider = UseCaseProvider()
 use_case_provider.provide_all(
@@ -183,6 +200,8 @@ use_case_provider.provide_all(
     RequestSubscribeOnCourse,
     SubscribeOnCourseByLink,
     SubscribeOnCourse,
+    ShowTeacherCourseData,
+    ChangePasswordConfirm
 )
 
 
