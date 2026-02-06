@@ -39,7 +39,8 @@ __all__ = [
     "DeleteTags",
     "AddStudents",
     "DeleteStudents",
-    "GenerateInviteLink"
+    "GenerateInviteLink",
+    "ShowTeacherCourseData"
 ]
 
 
@@ -63,6 +64,16 @@ class ShowTeacherCourseToManageProblems:
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
         return course
+
+
+class ShowTeacherCourseData:
+    def __init__(self, uow: UoWInterface, course_repo: CourseRepositoryInterface):
+        self._uow = uow
+        self._course_repo = course_repo
+
+    async def execute(self, course_id: int):
+        async with self._uow:
+            return await self._course_repo.get_by_id(course_id)
 
 
 class UpdateCourseData:
@@ -229,10 +240,10 @@ class AddStudents:
 
 class DeleteStudents:
     def __init__(
-            self,
-            uow: UoWInterface,
-            course_repo: CourseRepositoryInterface,
-            user_repo: UserRepositoryInterface
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        user_repo: UserRepositoryInterface
     ):
         self._uow = uow
         self._course_repo = course_repo

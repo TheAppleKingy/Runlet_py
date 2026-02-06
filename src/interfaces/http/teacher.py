@@ -7,7 +7,8 @@ from src.application.dtos.course import (
     CourseG3,
     CourseG4,
     CourseC1,
-    CourseG6
+    CourseG6,
+    CourseG8
 )
 from src.application.dtos.teacher import (
     GenLinkDTO,
@@ -32,6 +33,7 @@ from src.application.use_cases import (
     DeleteStudents,
     AddTags,
     DeleteTags,
+    ShowTeacherCourseData
 )
 from src.domain.value_objects import AuthenticatedTeacherId
 teacher_router = APIRouter(prefix="/teaching", tags=["Manage teaching"], route_class=DishkaRoute)
@@ -164,3 +166,12 @@ async def delete_students(
     use_case: FromDishka[DeleteStudents],
 ):
     return await use_case.execute(course_id, dto)
+
+
+@teacher_router.get("/courses/{course_id}/data")
+async def get_course_data_to_update(
+    course_id: int,
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[ShowTeacherCourseData]
+) -> CourseG8:
+    return await use_case.execute(course_id)

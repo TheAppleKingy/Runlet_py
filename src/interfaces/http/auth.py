@@ -3,7 +3,12 @@ from fastapi.responses import JSONResponse
 from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from src.domain.value_objects import AuthenticatedUserId
-from src.application.dtos.auth import RegisterUserRequestDTO, LoginUserDTO
+from src.application.dtos.auth import (
+    RegisterUserRequestDTO,
+    LoginUserDTO,
+    ChangePasswordRequestDTO,
+    ChangePasswordConfirmDTO
+)
 from src.application.use_cases import *
 
 
@@ -44,3 +49,22 @@ async def logout(user_id: FromDishka[AuthenticatedUserId]):
     resp = JSONResponse({"detail": "Logged out"})
     resp.delete_cookie("token")
     return resp
+
+
+@auth_router.post("/change_password/request")
+async def request_change_password(
+    dto: ChangePasswordRequestDTO,
+    use_case: FromDishka[ChangePasswordRequest]
+):
+    await use_case.execute(dto.email)
+    return {"detail": "Email with instructions sent"}
+
+
+@auth_router.post("/change_password/confirm/{token}")
+async def confirm_change_password(
+    token: str,
+    dto: ChangePasswordConfirmDTO,
+    use_case: FromDishka[ChangePasswordConfirm]
+):
+    await use_case.execute(token, dto)
+    return {"detail": "Password changed successfuly"}

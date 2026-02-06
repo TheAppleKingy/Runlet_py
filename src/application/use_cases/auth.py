@@ -7,7 +7,12 @@ from src.application.interfaces.services import (
     EmailServiceInterface,
     EmailMessageTextTemplate
 )
-from src.application.dtos.auth import LoginUserDTO, RegisterUserRequestDTO
+from src.application.dtos.auth import (
+    LoginUserDTO,
+    RegisterUserRequestDTO,
+    ChangePasswordConfirmDTO,
+    ChangePasswordRequestDTO
+)
 from src.application.interfaces.repositories import UserRepositoryInterface, CourseRepositoryInterface
 from .exceptions import (
     UndefinedUserError,
@@ -28,7 +33,9 @@ __all__ = [
     "RegisterUserConfirm",
     "AuthenticateUserAsTeacher",
     "AuthenticateUserAsStudent",
-    "OptionalAuthenticateUser"
+    "OptionalAuthenticateUser",
+    "ChangePasswordRequest",
+    "ChangePasswordConfirm"
 ]
 
 
@@ -206,3 +213,54 @@ class RegisterUserConfirm:
             if not confirmed:
                 raise UndefinedUserError("Try to confirm registration of user that does not exist")
             confirmed.is_active = True
+
+
+class ChangePasswordRequest:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        user_repo: UserRepositoryInterface,
+        token_service: AuthenticationServiceInterface,
+        email_service: EmailServiceInterface,
+        password_change_confirm_url: str
+    ):
+        self._uow = uow
+        self._user_repo = user_repo
+        self._token_service = token_service
+        self._email_service = email_service
+        self._password_change_confirm_url = password_change_confirm_url
+
+    async def execute(self, email: str):
+        async with self._uow:
+            user = await self._user_repo.get_by_email(email)
+            if not user:
+                raise UndefinedUserError("Email not found")
+            token = self._token_service.generate_token(user.id, 300)
+            topic, msg = EmailMessageTextTemplate.change_password(f"{self._password_change_confirm_url}/{token}")
+            await self._email_service.send_mail(user.email, topic, msg)
+
+
+class ChangePasswordConfirm:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        user_repo: UserRepositoryInterface,
+        token_service: AuthenticationServiceInterface,
+        password_service: PasswordServiceInterface
+    ):
+        self._uow = uow
+        self._user_repo = user_repo
+        self._token_service = token_service
+        self._password_service = password_service
+
+    async def execute(self, token: str, dto: ChangePasswordConfirmDTO):
+        async with self._uow:
+            user_id = self._token_service.get_user_id_from_token(token)
+            if not user_id:
+                raise UndefinedUserError("User was not identify")
+            if dto.first_password != dto.second_password:
+                raise PasswordsMismatchError("Passwords do not match")
+            user = await self._user_repo.get_by_id(user_id)
+            if not user:
+                raise UndefinedUserError("User not found")
+            user.password = self._password_service.hash_password(dto.first_password)

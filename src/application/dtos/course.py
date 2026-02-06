@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 from .module import ModuleG1, ModuleG2
@@ -47,6 +49,14 @@ class CourseG7(BaseModel):
     name: str
     description: str
     modules: list[ModuleG1]
+
+
+class CourseG8(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    is_private: bool
+    notify_request_sub: bool
 
 
 class CourseC1(BaseModel):

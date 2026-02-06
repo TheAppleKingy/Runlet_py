@@ -21,6 +21,10 @@ class EmailMessageTextTemplate:
     def registration(self, confirm_url: str):
         return "Registration confirm", f"Hello! Confirm your registration on Runlet following by link:\n{confirm_url}"
 
+    @classmethod
+    def change_password(self, confirm_url: str):
+        return "Change password", f"You requested changing of the password on Runlet. Follow the link\n{confirm_url}"
+
 
 class EmailServiceInterface(Protocol):
     async def send_mail(self, to: str, topic: str, text: str): ...
