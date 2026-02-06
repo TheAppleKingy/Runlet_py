@@ -19,6 +19,7 @@ class AppConfig(BaseSettings):
     secret: str
     invite_expire_time: int
     invite_confirm_url: str
+    password_change_confirm_url: str
 
 
 class RabbitMQConfig(BaseSettings):
