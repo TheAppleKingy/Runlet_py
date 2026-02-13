@@ -123,7 +123,7 @@ class AuthenticateUserAsTeacher:
         async with self._uow:
             course = await self._course_repo.get_by_id(course_id)
         if not course:
-            raise UndefinedCourseError("Course does not exist")
+            raise UndefinedCourseError("Course does not exist", status=404)
         if course.teacher_id != user_id:
             raise HasNoAccessError("User cannot manage course", status=403)
         return user_id

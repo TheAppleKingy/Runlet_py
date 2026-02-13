@@ -1,4 +1,4 @@
-from typing import TypeVar, Protocol
+from typing import TypeVar, Protocol, Optional
 
 from src.domain.entities import Course, User, Problem, Module, Tag, DefautTagType
 from src.domain.entities.exceptions import (
@@ -7,9 +7,12 @@ from src.domain.entities.exceptions import (
     UndefinedTagError,
     RepeatableNamesError,
     NamesAlreadyExistError,
-    ImpossibleOperationError
+    ImpossibleOperationError,
+    UndefinedProblemError,
+    UndefinedModuleOrderError
 )
 from src.logger import logger
+from src.domain.interfaces.data import ModuleData
 
 
 class HasNameType(Protocol):
@@ -27,13 +30,13 @@ class BaseCourseManagerService:
 class BaseCourseNamedAttrsManagerService(BaseCourseManagerService):
     def _validate_repeatable_names(self, entities: list[Named]):
         if len(set(ent.name for ent in entities)) != len(entities):
-            raise RepeatableNamesError(f"Names cannot match")
+            raise RepeatableNamesError(f"Names of {entities[0].__class__.__name__.lower()} cannot match")
 
     def _validate_already_exists(self, current: list[Named], incoming: list[Named]):
         intersec = set(ent.name for ent in current) & set(ent.name for ent in incoming)
         if intersec:
             raise NamesAlreadyExistError(
-                f"Names of {intersec} already exists in course {self._course.name}")
+                f"Names of {incoming[0].__class__.__name__.lower()} already exists in course {self._course.name}")
 
 
 class CourseStudentsManagerService(BaseCourseManagerService):
@@ -109,11 +112,7 @@ class CourseProblemManagerService(BaseCourseNamedAttrsManagerService):
         self._validate_repeatable_names(problems)
         self._validate_already_exists(module.problems, problems)
 
-    def add_problems(self, module_name: str, problems: list[Problem]):
-        module = self._course.get_module(module_name)
-        if not module:
-            raise UndefinedModuleError(
-                f"Module with name {module_name} does not exist in course")
+    def add_problems(self, module: Module, problems: list[Problem]):
         self._validate_incoming_problems(module, problems)
         module.add_problems(problems)
 

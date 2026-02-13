@@ -18,7 +18,7 @@ from src.application.use_cases.exceptions import (
     InvalidInvitingLinkError,
     CoursePrivacyError,
 )
-from src.application.dtos.course import CourseC1
+from src.application.dtos.course import CourseCreateDTO
 
 __all__ = [
     "ShowCourse",
@@ -63,6 +63,8 @@ class ShowCourse:
     async def execute(self, course_id: int):
         async with self._uow:
             course = await self._course_repo.get_by_id(course_id)
+            if not course:
+                raise UndefinedCourseError("Course does not exist", status=404)
         return course
 
 
@@ -73,7 +75,7 @@ class CreateCourse:
     ):
         self._uow = uow
 
-    async def execute(self, user_id: int, dto: CourseC1):
+    async def execute(self, user_id: int, dto: CourseCreateDTO):
         async with self._uow as uow:
             course = Course(dto.name, user_id, dto.description,
                             dto.is_private, dto.notify_request_sub)

@@ -16,7 +16,7 @@ from src.application.dtos.main import MainDTO
 from src.application.dtos.course import (
     CourseG2,
     CourseG5,
-    CourseC1
+    CourseCreateDTO
 )
 from src.logger import logger
 
@@ -48,13 +48,13 @@ async def get_course(
     course_id: int,
     user_id: FromDishka[AuthenticatedNotStrictlyUserId],
     use_case: FromDishka[ShowCourse]
-) -> Optional[CourseG2]:
+) -> CourseG2:
     return await use_case.execute(course_id)
 
 
 @user_router.post("/course")
 async def create_course(
-    dto: CourseC1,
+    dto: CourseCreateDTO,
     user_id: FromDishka[AuthenticatedUserId],
     use_case: FromDishka[CreateCourse]
 ):
