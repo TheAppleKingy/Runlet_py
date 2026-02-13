@@ -1,3 +1,4 @@
+from typing import Optional
 from dataclasses import dataclass, field
 
 from .user import User
@@ -12,7 +13,7 @@ class Course:
     _teacher_id: int
     _tags: list[Tag] = field(default_factory=list, init=False)
     id: int = field(default=None, init=False)  # type: ignore
-    description: str = ""
+    description: Optional[str] = None
     _students: list[User] = field(default_factory=list, init=False)
     _modules: list[Module] = field(default_factory=list, init=False)
     is_private: bool = False
@@ -63,6 +64,18 @@ class Course:
         for module in self.modules:
             if module.name == module_name:
                 return module
+        return None
+
+    def get_module_by_id(self, module_id: int) -> Optional[Module]:
+        for module in self.modules:
+            if module.id == module_id:
+                return module
+        return None
+
+    def get_tag_by_id(self, tag_id: int) -> Optional[Tag]:
+        for tag in self.tags:
+            if tag.id == tag_id:
+                return tag
         return None
 
     def get_tag(self, name: str):

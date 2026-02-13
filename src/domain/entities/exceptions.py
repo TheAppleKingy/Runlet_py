@@ -37,6 +37,14 @@ class UndefinedModuleError(DomainError):
     pass
 
 
+class UndefinedModuleOrderError(DomainError):
+    pass
+
+
+class UndefinedProblemError(DomainError):
+    pass
+
+
 class RepeatableNamesError(DomainError):
     pass
 

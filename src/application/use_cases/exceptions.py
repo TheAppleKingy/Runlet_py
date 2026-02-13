@@ -33,6 +33,18 @@ class UndefinedCourseError(ApplicationError):
     pass
 
 
+class UndefinedTagError(ApplicationError):
+    pass
+
+
+class UndefinedProblemError(ApplicationError):
+    pass
+
+
+class UndefinedModuleError(ApplicationError):
+    pass
+
+
 class undefinedStudentError(ApplicationError):
     pass
 
