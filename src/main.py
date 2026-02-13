@@ -29,16 +29,14 @@ def map_tables():
     mapper_registry.map_imperatively(Module, modules, properties={
         "_problems": relationship(Problem, lazy="raise", cascade="all, delete-orphan", passive_deletes=True)
     })
-    mapper_registry.map_imperatively(User, users, properties={
-        "courses": relationship(Course, secondary=users_courses, back_populates="_students", lazy='raise')
-    })
+    mapper_registry.map_imperatively(User, users)
     mapper_registry.map_imperatively(Tag, tags, properties={
         "students": relationship(User, secondary=users_tags, lazy='raise')
     })
     mapper_registry.map_imperatively(Course, courses, properties={
         "_teacher_id": column_property(courses.c.teacher_id),
         "_tags": relationship(Tag, lazy='raise', cascade="all, delete-orphan", passive_deletes=True),
-        "_students": relationship(User, secondary=users_courses, back_populates="courses", lazy='raise'),
+        "_students": relationship(User, secondary=users_courses, lazy='raise'),
         "_modules": relationship(Module, lazy='raise', cascade="all, delete-orphan", passive_deletes=True)
     })
     mapper_registry.configure()
