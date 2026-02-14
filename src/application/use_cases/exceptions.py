@@ -33,10 +33,6 @@ class UndefinedCourseError(ApplicationError):
     pass
 
 
-class UndefinedTagError(ApplicationError):
-    pass
-
-
 class UndefinedProblemError(ApplicationError):
     pass
 

@@ -52,7 +52,7 @@ def test_mark_as_passed_success(problem_with_cases):
 
     attempt.check_tests()
 
-    assert attempt.passed is True
+    assert attempt.tests_passed is True
 
 
 def test_mark_as_passed_mismatch_count(problem_with_cases):

@@ -115,7 +115,7 @@ class UpdateModules(_CourseRepoRelatedUseCase):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules])
             for module_data in data:
-                module = course.get_module_by_id(module_data.id)
+                module = course.get_module_by_id(module_data.id)  # type: ignore
                 if not module:
                     raise UndefinedModuleError(
                         f"Module with name '{module_data.name}' does not exist but retrieved to update")
@@ -131,8 +131,8 @@ class CreateModules(_CourseRepoRelatedUseCase):
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules])
             to_add = []
             for module_data in data:
-                to_add.append(Module(module_data.name, course.id, module_data.order))
-            module_manager = CourseModulesManagerService(course)
+                to_add.append(Module(module_data.name, course.id, module_data.order))  # type: ignore
+            module_manager = CourseModulesManagerService(course)  # type: ignore
             module_manager.add_modules(to_add)
 
 
@@ -170,7 +170,7 @@ class UpdateProblem(_ProblemCreateUpdateUseCase):
     async def execute(self, course_id: int, module_id: int, problem_id: int, data: ProblemUpdateDTO):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
-            module = course.get_module_by_id(module_id)
+            module = course.get_module_by_id(module_id)  # type: ignore
             if not module:
                 raise UndefinedModuleError("Module does not exist", status=404)
             problem = module.get_problem_by_id(problem_id)
@@ -192,7 +192,7 @@ class CreateProblem(_ProblemCreateUpdateUseCase):
     async def execute(self, course_id: int, module_id: int, data: ProblemCreateDTO):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
-            module = course.get_module_by_id(module_id)
+            module = course.get_module_by_id(module_id)  # type: ignore
             if not module:
                 raise UndefinedModuleError("Module does not exist", status=404)
             created = Problem(
@@ -203,7 +203,7 @@ class CreateProblem(_ProblemCreateUpdateUseCase):
                 data.show_test_cases,
                 self._map_test_cases(data.test_cases)
             )
-            problem_manager = CourseProblemManagerService(course)
+            problem_manager = CourseProblemManagerService(course)  # type: ignore
             problem_manager.add_problems(module, [created])
 
 
@@ -243,7 +243,7 @@ class UpdateTags:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students], [Course._students])
             for tag_data in data:
                 if tag_data.id:
-                    tag = course.get_tag_by_id(tag_data.id)
+                    tag = course.get_tag_by_id(tag_data.id)  # type: ignore
                     if not tag:
                         raise UndefinedTagError("pass")
 
