@@ -1,6 +1,6 @@
 from abc import ABC
 
-from src.domain.entities import Course, Problem, Module, Tag, DefautTagType
+from src.domain.entities import Course, Problem, Module, Tag, DefautTagType, Attempt
 from src.domain.value_objects import TestCases, TestCase
 from src.domain.services.course import (
     CourseTagManagerService,
@@ -14,7 +14,8 @@ from src.application.interfaces.repositories import (
     CourseRepositoryInterface,
     UserRepositoryInterface,
     ModuleRepositoryInterface,
-    ProblemRepositoryInterface
+    ProblemRepositoryInterface,
+    AttemptRepositoryInterface
 )
 from src.application.use_cases.exceptions import (
     UndefinedCourseError,
@@ -43,8 +44,8 @@ from src.logger import logger
 
 
 __all__ = [
-    "ShowTeacherCourseToManageStudents",
-    "ShowTeacherCourseToManageProblems",
+    "ShowTeacherCourseTagsToRateStudents",
+    "ShowTeacherCourseModulesToRateStudents",
     "UpdateCourseData",
     "CreateModules",
     "UpdateModules",
@@ -57,7 +58,9 @@ __all__ = [
     "AddStudents",
     "DeleteStudents",
     "GenerateInviteLink",
-    "ShowTeacherCourseData"
+    "ShowTeacherCourseData",
+    "ShowStudentProblems",
+    "ShowProblemStudents"
 ]
 
 
@@ -71,14 +74,14 @@ class _CourseRepoRelatedUseCase(ABC):
         self._course_repo = course_repo
 
 
-class ShowTeacherCourseToManageStudents(_CourseRepoRelatedUseCase):
+class ShowTeacherCourseTagsToRateStudents(_CourseRepoRelatedUseCase):
     async def execute(self, course_id: int):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
         return course
 
 
-class ShowTeacherCourseToManageProblems(_CourseRepoRelatedUseCase):
+class ShowTeacherCourseModulesToRateStudents(_CourseRepoRelatedUseCase):
     async def execute(self, course_id: int):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
@@ -331,3 +334,39 @@ class GenerateInviteLink:
                 target_tags.append(tag.name)
         payload.update({"tags_names": target_tags})
         return self._confirm_subscription_url + f"/{self._token_service.encode(payload, self._exp_time)}"
+
+
+class ShowStudentProblems:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        attempt_repo: AttemptRepositoryInterface,
+        module_repo: ModuleRepositoryInterface
+    ):
+        self._uow = uow
+        self._attempt_repo = attempt_repo
+        self._module_repo = module_repo
+
+    async def execute(self, course_id: int, student_id: int) -> tuple[list[Attempt], list[Module]]:
+        async with self._uow:
+            attempts = await self._attempt_repo.get_student_attempts(course_id, student_id)
+            modules_ids = [attempt.problem.module_id for attempt in attempts]
+            modules = await self._module_repo.get_by_ids(modules_ids)
+        return attempts, modules
+
+
+class ShowProblemStudents:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        attempt_repo: AttemptRepositoryInterface,
+        module_repo: ModuleRepositoryInterface
+    ):
+        self._uow = uow
+        self._attempt_repo = attempt_repo
+        self._module_repo = module_repo
+
+    async def execute(self, problem_id: int):
+        async with self._uow:
+            students = await self._attempt_repo.get_problem_students(problem_id)
+        return students

@@ -19,6 +19,7 @@ from src.application.dtos.teacher import (
     DeleteStudentsDTO,
     DeleteModulesDTO
 )
+from src.application.dtos.user import UserG1
 from src.application.dtos.problem import (
     ProblemCreateDTO,
     ProblemUpdateDTO
@@ -28,8 +29,8 @@ from src.application.dtos.module import (
     ModuleUpdateDTO
 )
 from src.application.use_cases import (
-    ShowTeacherCourseToManageProblems,
-    ShowTeacherCourseToManageStudents,
+    ShowTeacherCourseModulesToRateStudents,
+    ShowTeacherCourseTagsToRateStudents,
     UpdateCourseData,
     GenerateInviteLink,
     CreateProblem,
@@ -41,17 +42,22 @@ from src.application.use_cases import (
     AddStudents,
     DeleteStudents,
     DeleteTags,
-    ShowTeacherCourseData
+    ShowTeacherCourseData,
+    ShowStudentProblems,
+    ShowProblemStudents
 )
 from src.domain.value_objects import AuthenticatedTeacherId
+from src.interfaces.presenters.http.dtos import ModuleWithRateInfoDTO
+from src.interfaces.presenters.http import student_problems_info
+
 teacher_router = APIRouter(prefix="/teaching", tags=["Manage teaching"], route_class=DishkaRoute)
 
 
-@teacher_router.get("/course/{course_id}/manage/students")
-async def get_teacher_course_to_manage_students(
+@teacher_router.get("/course/{course_id}/rate/tags")
+async def get_tags_and_students_to_rate(
     course_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
-    use_case: FromDishka[ShowTeacherCourseToManageStudents]
+    use_case: FromDishka[ShowTeacherCourseTagsToRateStudents]
 ) -> Optional[CourseG4]:
     """
     Endpoint returns data of course with all students, tags and tags students data.
@@ -60,11 +66,22 @@ async def get_teacher_course_to_manage_students(
     return await use_case.execute(course_id)
 
 
-@teacher_router.get("/course/{course_id}/manage/problems")
-async def get_teacher_course_to_manage_problems(
+@teacher_router.get("/course/{course_id}/rate/students/{student_id}")
+async def get_student_problems_info(
+    course_id: int,
+    student_id: int,
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[ShowStudentProblems]
+) -> list[ModuleWithRateInfoDTO]:
+    attempts, modules = await use_case.execute(course_id, student_id)
+    return student_problems_info(attempts, modules)
+
+
+@teacher_router.get("/course/{course_id}/rate/modules")
+async def get_modules_and_problems_to_rate(
     course_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
-    use_case: FromDishka[ShowTeacherCourseToManageProblems]
+    use_case: FromDishka[ShowTeacherCourseModulesToRateStudents]
 ) -> Optional[CourseG3]:
     """
     Endpoint returns data of course with all needed modules and modules problems data.
@@ -73,13 +90,23 @@ async def get_teacher_course_to_manage_problems(
     return await use_case.execute(course_id)
 
 
+@teacher_router.get("/course/{course_id}/rate/problems/{problem_id}")
+async def get_problem_students_info(
+    course_id: int,
+    problem_id: int,
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[ShowProblemStudents]
+) -> list[UserG1]:
+    return await use_case.execute(problem_id)
+
+
 @teacher_router.patch("/course/{course_id}")
 async def update_course_data(
     course_id: int,
     dto: CourseUpdateDTO,
     user_id: FromDishka[AuthenticatedTeacherId],
     use_case: FromDishka[UpdateCourseData]
-):
+) -> None:
     await use_case.execute(course_id, dto)
 
 
@@ -90,14 +117,14 @@ async def create_invite_link(
     user_id: FromDishka[AuthenticatedTeacherId],
     use_case: FromDishka[GenerateInviteLink]
 ) -> LinkDTO:
-    return {"link": await use_case.execute(course_id, dto)}  # type: ignore
+    return LinkDTO(link=await use_case.execute(course_id, dto))
 
 
 @teacher_router.get("/course/{course_id}/problems")
 async def get_course_to_update_problems(
     course_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
-    use_case: FromDishka[ShowTeacherCourseToManageProblems]
+    use_case: FromDishka[ShowTeacherCourseModulesToRateStudents]
 ) -> Optional[CourseG6]:
     return await use_case.execute(course_id)
 
@@ -106,6 +133,7 @@ async def get_course_to_update_problems(
 async def create_modules(
     course_id: int,
     data: list[ModuleCreateDTO],
+    user_id: FromDishka[AuthenticatedTeacherId],
     use_case: FromDishka[CreateModules]
 ):
     return await use_case.execute(course_id, data)
@@ -115,6 +143,7 @@ async def create_modules(
 async def update_modules(
     course_id: int,
     data: list[ModuleUpdateDTO],
+    user_id: FromDishka[AuthenticatedTeacherId],
     use_case: FromDishka[UpdateModules]
 ):
     return await use_case.execute(course_id, data)

@@ -109,10 +109,8 @@ class RequestSubscribeOnCourse:
                 raise CoursePrivacyError("Course is not private")
             user = await self._user_repo.get_by_id(user_id)  # type: ignore
             manager = CourseStudentsManagerService(course)
-            manager.add_students_by_tag(
-                DefautTagType.WAITING_FOR_SUBSCRIBE.value, [user])  # type: ignore
-        topic, msg = EmailMessageTextTemplate.notify_student_requested_subscribe(
-            course.name)  # type: ignore
+            manager.request_subscribe([user])  # type: ignore
+        topic, msg = EmailMessageTextTemplate.notify_student_requested_subscribe(course.name)  # type: ignore
         await self._email_service.send_mail(user.email, topic, msg)  # type: ignore
         if course.notify_request_sub:  # type: ignore
             async with self._uow:
