@@ -15,11 +15,11 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
             .where(Attempt.user_id == student_id, Module.course_id == course_id)
         )
         res = await self._session.scalars(stmt.options(selectinload(Attempt.problem)))
-        return res.unique().all()
+        return res.unique().all()  # type: ignore
 
     async def get_problem_students(self, problem_id: int) -> list[User]:
         res = await self._session.scalars(
             select(User)
             .join(Attempt, Attempt.user_id == User.id).where(Attempt.problem_id == problem_id)
         )
-        return res.unique().all()
+        return res.unique().all()  # type: ignore

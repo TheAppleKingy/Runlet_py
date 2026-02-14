@@ -69,6 +69,8 @@ class CourseStudentsManagerService(BaseCourseManagerService):
         target = self._course.get_tag(DefautTagType.WAITING_FOR_SUBSCRIBE.value)
         self._validate_teacher_is_student(students)
         for s in students:
+            if s in self._course.students:
+                raise ImpossibleOperationError("Unable to request subscribe on course: already subscribed")
             if s not in target.students:
                 target.students.append(s)
 
