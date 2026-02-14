@@ -17,11 +17,12 @@ class Attempt:
     problem_id: int
     problem: Problem = field(default=None, init=False)  # type: ignore
     amount: int = field(default=0, init=False)
-    passed: bool = field(default=False, init=False)
+    tests_passed: bool = field(default=False, init=False)
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), init=False)
     test_cases: TestCases = field(default_factory=TestCases)
+    confirmed_passed: bool = field(default=False, init=False)
 
-    def mark_as_passed(self):
+    def check_tests(self):
         """
         Mark attempt as passed comparing test cases got in last attempt with excpected values of cases outputs 
 
@@ -44,4 +45,6 @@ class Attempt:
         if mismatchng_nums:
             raise MismatchTestNumsError(
                 f"Provided results dont contain tests {mismatchng_nums}")
-        self.passed = True
+        self.tests_passed = True
+        if self.problem.auto_pass:
+            self.confirmed_passed = True

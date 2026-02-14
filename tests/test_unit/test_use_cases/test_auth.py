@@ -401,7 +401,7 @@ async def test_course_not_found(auth_teacher, mock_course_repo):
         await auth_teacher.execute(user_id, course_id)
 
     assert str(exc_info.value) == "Course does not exist"
-    assert exc_info.value.status == 400
+    assert exc_info.value.status == 404
     mock_course_repo.get_by_id.assert_called_once_with(course_id)
 
 

@@ -20,7 +20,6 @@ from src.infrastructure.configs import (
 )
 from src.infrastructure.repositories import *
 from src.infrastructure.uow import AlchemyUoW
-from src.interfaces.broker.rabbitmq import callback_registry
 from src.domain.value_objects import (
     AuthenticatedUserId,
     AuthenticatedStudentId,
@@ -68,17 +67,11 @@ class DBProvider(Provider):
 class RepoProvider(Provider):
     scope = Scope.REQUEST
 
-    @provide
-    def get_uow(self, session: AsyncSession) -> UoWInterface:
-        return AlchemyUoW(session)
-
-    @provide
-    def get_user_alchemy_repo(self, session: AsyncSession) -> UserRepositoryInterface:
-        return AlchemyUserRepository(session)
-
-    @provide
-    def get_course_alchemy_repo(self, session: AsyncSession) -> CourseRepositoryInterface:
-        return AlchemyCourseRepository(session)
+    uow = provide(AlchemyUoW, provides=UoWInterface)
+    attempt_repo = provide(AlchemyAttemptRepository, provides=AttemptRepositoryInterface)
+    module_repo = provide(AlchemyModuleRepository, provides=ModuleRepositoryInterface)
+    user_repo = provide(AlchemyUserRepository, provides=UserRepositoryInterface)
+    course_repo = provide(AlchemyCourseRepository, provides=CourseRepositoryInterface)
 
 
 class ApplicationServiceProvider(Provider):
@@ -182,8 +175,8 @@ use_case_provider.provide_all(
     RegisterUserConfirm,
     CreateCourse,
     UpdateCourseData,
-    ShowTeacherCourseToManageStudents,
-    ShowTeacherCourseToManageProblems,
+    ShowTeacherCourseModulesToRateStudents,
+    ShowTeacherCourseTagsToRateStudents,
     CreateProblem,
     UpdateProblem,
     DeleteProblems,
@@ -203,7 +196,9 @@ use_case_provider.provide_all(
     SubscribeOnCourseByLink,
     SubscribeOnCourse,
     ShowTeacherCourseData,
-    ChangePasswordConfirm
+    ChangePasswordConfirm,
+    ShowStudentProblems,
+    ShowProblemStudents
 )
 
 

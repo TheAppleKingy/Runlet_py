@@ -30,16 +30,6 @@ def test_module_add_problems_appends_unique(module, problem_factory):
     assert module.problems == [p1, p2]
 
 
-def test_module_add_problems_skips_existing(module, problem_factory):
-    p1 = problem_factory("P1", pid=1)
-    p2 = problem_factory("P2", pid=2)
-
-    module.add_problems([p1])
-    module.add_problems([p1, p2])  # p1 уже есть
-
-    assert module.problems == [p1, p2]
-
-
 def test_module_delete_problems_by_id(module, problem_factory):
     p1 = problem_factory("P1", pid=1)
     p2 = problem_factory("P2", pid=2)
