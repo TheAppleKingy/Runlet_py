@@ -46,25 +46,31 @@ class CourseStudentsManagerService(BaseCourseManagerService):
 
     def add_students(self, students: list[User]):
         self._validate_teacher_is_student(students)
+        waiting_tag = self._course.get_tag(DefautTagType.WAITING_FOR_SUBSCRIBE.value)
         for s in students:
             if s not in self._course._students:
                 self._course._students.append(s)
-
-    def _find_tag_to_add_students(self, target_name: str):
-        for tag in self._course.tags:
-            if tag.name == target_name:
-                return tag
-        return None
+            if s in waiting_tag.students:
+                waiting_tag.students.remove(s)
 
     def add_students_by_tag(self, tag_name: str, students: list[User]):
-        target_tag = self._find_tag_to_add_students(tag_name)
+        if tag_name in [type_.value for type_ in DefautTagType]:
+            raise ImpossibleOperationError(f"Unable to add student to default tag '{tag_name}'")
+        target_tag = self._course.get_tag(tag_name)
         if not target_tag:
             raise UndefinedTagError(
-                f"Unable to bind students to tag {tag_name}: tag not related with course")
+                f"Unable to add students to tag '{tag_name}': tag not related with course")
         self.add_students(students)
         for s in students:
             if s not in target_tag.students:
                 target_tag.students.append(s)
+
+    def request_subscribe(self, students: list[User]):
+        target = self._course.get_tag(DefautTagType.WAITING_FOR_SUBSCRIBE.value)
+        self._validate_teacher_is_student(students)
+        for s in students:
+            if s not in target.students:
+                target.students.append(s)
 
     def _delete_students_common(self, ids: list[int]) -> list[int]:
         to_delete = [s.id for s in self._course._students if s.id in ids]

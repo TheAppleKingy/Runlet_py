@@ -1,7 +1,8 @@
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
+from src.domain.entities import DefautTagType
 from .module import ModuleG1, ModuleG2
 from .tag import TagG2
 from .user import UserG1
@@ -29,6 +30,10 @@ class CourseG4(BaseModel):
     name: str
     students: list[UserG1]
     tags: list[TagG2]
+
+    @field_serializer("tags")
+    def serialize_tags(self, tags: list[TagG2]):
+        return [tag_data for tag_data in tags if tag_data.name not in DefautTagType.names()]
 
 
 class CourseG5(BaseModel):

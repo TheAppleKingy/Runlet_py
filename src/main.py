@@ -12,7 +12,7 @@ from src.application.use_cases.user import *
 from src.application.use_cases.teacher import *
 from src.infrastructure.db.tables import *
 from src.domain.exc import HandlingError
-from src.interfaces.http import *
+from src.interfaces.controllers.http import *
 from src.domain.entities import *
 from src.logger import logger
 from src.container import (

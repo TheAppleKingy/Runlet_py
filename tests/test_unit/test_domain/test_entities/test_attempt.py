@@ -50,7 +50,7 @@ def test_mark_as_passed_success(problem_with_cases):
     }
     attempt = make_attempt(user_id=10, problem=problem_with_cases, provided_data=provided)
 
-    attempt.mark_as_passed()
+    attempt.check_tests()
 
     assert attempt.passed is True
 
@@ -67,7 +67,7 @@ def test_mark_as_passed_mismatch_count(problem_with_cases):
     attempt = make_attempt(user_id=10, problem=problem_with_cases, provided_data=provided)
 
     with pytest.raises(MismatchTestsCountError):
-        attempt.mark_as_passed()
+        attempt.check_tests()
 
 
 def test_mark_as_passed_mismatching_outputs(problem_with_cases):
@@ -82,7 +82,7 @@ def test_mark_as_passed_mismatching_outputs(problem_with_cases):
     attempt = make_attempt(user_id=10, problem=problem_with_cases, provided_data=provided)
 
     with pytest.raises(MismatchTestOutputsError) as exc:
-        attempt.mark_as_passed()
+        attempt.check_tests()
 
     # опционально проверяем, что номер неправильного теста указан в сообщении
     assert "1" in str(exc.value)
@@ -101,7 +101,7 @@ def test_mark_as_passed_mismatching_nums(problem_with_cases):
     attempt = make_attempt(user_id=10, problem=problem_with_cases, provided_data=provided)
 
     with pytest.raises(MismatchTestNumsError) as exc:
-        attempt.mark_as_passed()
+        attempt.check_tests()
 
     assert "999" in str(exc.value)
 
@@ -118,6 +118,19 @@ def test_mark_as_passed_not_marked_on_error(problem_with_cases):
     attempt = make_attempt(user_id=10, problem=problem_with_cases, provided_data=provided)
 
     with pytest.raises(MismatchTestOutputsError):
-        attempt.mark_as_passed()
+        attempt.check_tests()
 
-    assert attempt.passed is False
+    assert attempt.tests_passed is False
+
+
+def test_check_tests_not_auto_pass(problem_with_cases):
+    attempt = make_attempt(1, problem_with_cases, {1: ("in1", "out1"), 2: ("in2", "out2"), 3: ("in3", "out3")})
+    attempt.check_tests()
+    assert not attempt.confirmed_passed
+
+
+def test_check_tests_auto_pass(problem_with_cases):
+    problem_with_cases.auto_pass = True
+    attempt = make_attempt(1, problem_with_cases, {1: ("in1", "out1"), 2: ("in2", "out2"), 3: ("in3", "out3")})
+    attempt.check_tests()
+    assert attempt.confirmed_passed
