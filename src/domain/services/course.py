@@ -9,7 +9,7 @@ from src.domain.entities.exceptions import (
     NamesAlreadyExistError,
     ImpossibleOperationError,
     UndefinedProblemError,
-    UndefinedModuleOrderError
+    IncorrectModulesOrdersError
 )
 from src.logger import logger
 from src.domain.interfaces.data import ModuleData
@@ -53,13 +53,13 @@ class CourseStudentsManagerService(BaseCourseManagerService):
             if s in waiting_tag.students:
                 waiting_tag.students.remove(s)
 
-    def add_students_by_tag(self, tag_name: str, students: list[User]):
-        if tag_name in [type_.value for type_ in DefautTagType]:
-            raise ImpossibleOperationError(f"Unable to add student to default tag '{tag_name}'")
-        target_tag = self._course.get_tag(tag_name)
+    def add_students_by_tag(self, tag_id: int, students: list[User]):
+        target_tag = self._course.get_tag_by_id(tag_id)
         if not target_tag:
             raise UndefinedTagError(
-                f"Unable to add students to tag '{tag_name}': tag not related with course")
+                f"Unable to add students to tag: tag not related with course")
+        if target_tag.name in DefautTagType.names():
+            raise ImpossibleOperationError(f"Unable to add student to default tag '{target_tag.name}'")
         self.add_students(students)
         for s in students:
             if s not in target_tag.students:
@@ -84,14 +84,28 @@ class CourseStudentsManagerService(BaseCourseManagerService):
         for tag in self._course.tags:
             tag.students = [s for s in tag.students if s.id not in deleted]
 
+    def delete_students_from_tag(self, tag_id: int, students_ids: list[int]):
+        tag = self._course.get_tag_by_id(tag_id)
+        if not tag:
+            raise UndefinedTagError("Tag does not exist")
+        tag.students = [s for s in tag.students if s.id not in students_ids]
+
 
 class CourseModulesManagerService(BaseCourseNamedAttrsManagerService):
-    def _validate_incoming_modules(self, modules: list[Module]):
-        self._validate_repeatable_names(modules)
-        self._validate_already_exists(self._course.modules, modules)
+    def _validate_orders(self, current: list[Module], incoming: list[Module]):
+        orders = sorted([module.order for module in current + incoming])
+        print(orders, [module.order for module in current], [module.order for module in incoming])
+        for i in range(1, len(orders) + 1):
+            if i != orders[i-1]:
+                raise IncorrectModulesOrdersError("Retrieved modules have incorrect orders")
+
+    def _validate_incoming_modules(self, current: list[Module], incoming: list[Module]):
+        self._validate_repeatable_names(incoming)
+        self._validate_already_exists(current, incoming)
+        self._validate_orders(current, incoming)
 
     def add_modules(self, modules: list[Module]):
-        self._validate_incoming_modules(modules)
+        self._validate_incoming_modules(self._course.modules, modules)
         self._course._modules += modules
 
     def delete_modules(self, ids: list[int]):
@@ -124,9 +138,8 @@ class CourseProblemManagerService(BaseCourseNamedAttrsManagerService):
         self._validate_incoming_problems(module, problems)
         module.add_problems(problems)
 
-    def delete_problems(self, module_name: str, problems_ids: list[int]):
-        module = self._course.get_module(module_name)
+    def delete_problems(self, module_id: int, problems_ids: list[int]):
+        module = self._course.get_module_by_id(module_id)
         if not module:
-            raise UndefinedModuleError(
-                f"Module with name {module_name} does not exist in course")
+            raise UndefinedModuleError(f"Module does not exist")
         module.delete_problems(problems_ids)

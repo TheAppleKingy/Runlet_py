@@ -1,28 +1,26 @@
 from typing import Optional
 
 from pydantic import BaseModel, Field
+from .module import ModuleCreateUpdateDTO
+from .tag import TagCreateUpdateDTO
 
 
 class GenLinkDTO(BaseModel):
-    tags_names: list[str] = []
+    tags_ids: list[int] = []
 
 
 class LinkDTO(BaseModel):
     link: str
 
 
-class TagsCreateUpdate(BaseModel):
-    id: Optional[int] = None
-    name: Optional[str] = None
-
-
 class DeleteTagsDTO(BaseModel):
     tags_ids: list[int]
 
 
-class AddStudentsDTO(BaseModel):
-    tag_name: Optional[str] = None
-    student_ids: list[int]
+class UpdateTagStudentsDTO(BaseModel):
+    tag_id: Optional[int] = None
+    to_add: list[int] = []
+    to_delete: list[int] = []
 
 
 class DeleteStudentsDTO(BaseModel):
@@ -31,8 +29,18 @@ class DeleteStudentsDTO(BaseModel):
 
 class DeleteProblemsDTO(BaseModel):
     problems_ids: list[int] = []
-    module_name: str
+    module_id: int
 
 
 class DeleteModulesDTO(BaseModel):
     modules_ids: list[int]
+
+
+class ManageModulesDTO(BaseModel):
+    to_delete: list[int] = []
+    to_create_update: list[ModuleCreateUpdateDTO] = []
+
+
+class ManageTagsDTO(BaseModel):
+    to_delete: list[int] = []
+    to_create_update: list[TagCreateUpdateDTO] = []

@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from .user import User
+from .exceptions import AttributeRequired
 
 
 class DefautTagType(Enum):
@@ -18,3 +19,7 @@ class Tag:
     course_id: int
     students: list[User] = field(default_factory=list, init=False)
     id: int = field(default=None, init=False)  # type: ignore
+
+    def __post_init__(self):
+        if self.name is None:
+            raise AttributeRequired("Tag must has name")

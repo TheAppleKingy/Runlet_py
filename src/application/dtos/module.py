@@ -24,3 +24,9 @@ class ModuleUpdateDTO(BaseModel):
 class ModuleCreateDTO(BaseModel):
     name: str
     order: int
+
+
+class ModuleCreateUpdateDTO(BaseModel):
+    id: Optional[int] = None
+    name: str
+    order: int
