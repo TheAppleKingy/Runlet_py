@@ -37,7 +37,7 @@ class UndefinedModuleError(DomainError):
     pass
 
 
-class UndefinedModuleOrderError(DomainError):
+class IncorrectModulesOrdersError(DomainError):
     pass
 
 
@@ -57,9 +57,9 @@ class NamesAlreadyExistError(DomainError):
     pass
 
 
-class NoDefaultCourseTagsError(DomainError):
+class ImpossibleOperationError(DomainError):
     pass
 
 
-class ImpossibleOperationError(DomainError):
+class AttributeRequired(DomainError):
     pass

@@ -32,3 +32,13 @@ class ProblemUpdateDTO(BaseModel):
     auto_pass: Optional[bool] = None
     test_cases: dict[int, TestCaseDTO] = {}
     show_test_cases: Optional[bool] = None
+
+
+class CreateUpdateProblemDTO(BaseModel):
+    id: Optional[int] = None
+    name: str = Field(max_length=100)
+    module_id: int
+    description: Optional[str] = Field(max_length=1024, default=None)
+    auto_pass: bool
+    test_cases: dict[int, TestCaseDTO] = {}
+    show_test_cases: bool
