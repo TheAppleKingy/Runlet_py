@@ -177,15 +177,11 @@ use_case_provider.provide_all(
     UpdateCourseData,
     ShowTeacherCourseModulesToRateStudents,
     ShowTeacherCourseTagsToRateStudents,
-    CreateProblem,
-    UpdateProblem,
+    CreateUpdateProblem,
     DeleteProblems,
-    AddStudents,
-    DeleteStudents,
-    DeleteTags,
-    CreateModules,
-    UpdateModules,
-    DeleteModules,
+    ManageStudents,
+    ManageTags,
+    ManageModules,
     ShowStudentCourses,
     ShowStudentCourse,
     ShowCourse,
@@ -198,7 +194,8 @@ use_case_provider.provide_all(
     ShowTeacherCourseData,
     ChangePasswordConfirm,
     ShowStudentProblems,
-    ShowProblemStudents
+    ShowProblemStudents,
+    ShowTagsToUpdate
 )
 
 

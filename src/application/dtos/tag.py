@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+from typing import Optional
+
+from pydantic import BaseModel
 from .user import UserG3, UserG1
 
 
@@ -7,12 +9,20 @@ class TagG1(BaseModel):
     name: str
     students: list[UserG1]
 
+    class Config:
+        from_attributes = True
+
 
 class TagG2(BaseModel):
     name: str
     students: list[UserG1]
 
 
-class TagC1(BaseModel):
-    name: str = Field(max_length=100)
-    students_ids: list[int] = []
+class TagG3(BaseModel):
+    id: int
+    name: str
+
+
+class TagCreateUpdateDTO(BaseModel):
+    id: Optional[int] = None
+    name: str
