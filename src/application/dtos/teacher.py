@@ -19,8 +19,8 @@ class DeleteTagsDTO(BaseModel):
 
 class UpdateTagStudentsDTO(BaseModel):
     tag_id: Optional[int] = None
-    to_add: list[int] = []
-    to_delete: list[int] = []
+    to_add: list[int] = Field(default_factory=list)
+    to_delete: list[int] = Field(default_factory=list)
 
 
 class DeleteStudentsDTO(BaseModel):
@@ -37,10 +37,10 @@ class DeleteModulesDTO(BaseModel):
 
 
 class ManageModulesDTO(BaseModel):
-    to_delete: list[int] = []
-    to_create_update: list[ModuleCreateUpdateDTO] = []
+    to_delete: list[int] = Field(default_factory=list)
+    to_create_update: list[ModuleCreateUpdateDTO] = Field(default_factory=list)
 
 
 class ManageTagsDTO(BaseModel):
-    to_delete: list[int] = []
-    to_create_update: list[TagCreateUpdateDTO] = []
+    to_delete: list[int] = Field(default_factory=list)
+    to_create_update: list[TagCreateUpdateDTO] = Field(default_factory=list)
