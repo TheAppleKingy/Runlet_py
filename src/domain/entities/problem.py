@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from .exceptions import HasNoDirectAccessError
-from ..value_objects import TestCases, TestCase
+from ..value_objects import TestCases, Examples
 
 
 @dataclass
@@ -13,7 +13,7 @@ class Problem:
     auto_pass: bool = False
     show_test_cases: bool = False
     test_cases: TestCases = field(default_factory=TestCases)
-    # _examples: list[dict[str, str]] = field(default_factory=list)
+    examples: Examples = field(default_factory=Examples)
     id: int = field(default=None, init=False)  # type: ignore
 
 

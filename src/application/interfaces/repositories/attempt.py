@@ -1,4 +1,4 @@
-from typing import Protocol, Optional, Any, Sequence
+from typing import Protocol
 
 from src.domain.entities import User, Attempt
 

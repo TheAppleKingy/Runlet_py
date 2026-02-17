@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter
 from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
-from src.application.use_cases import ShowStudentCourses, ShowStudentCourse
+from src.application.use_cases import ShowStudentCourse
 from src.application.dtos.student import SendProblemSolutionDTO
 from src.application.dtos.course import (
     CourseG7

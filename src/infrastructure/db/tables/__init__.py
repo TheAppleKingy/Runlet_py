@@ -4,3 +4,16 @@ from .courses import courses
 from .problems import problems, modules
 from .users_courses import users_courses
 from .base import metadata
+
+
+__all__ = [
+    "metadata",
+    "users_courses",
+    "problems",
+    "modules",
+    "courses",
+    "users",
+    "users_tags",
+    "tags",
+    "attempts"
+]

@@ -1,7 +1,9 @@
 from sqlalchemy import (
-    Table, Column,
-    String, Boolean,
-    ForeignKey
+    Table,
+    Column,
+    String,
+    Boolean,
+    ForeignKey,
 )
 from sqlalchemy_utils import EmailType  # type: ignore
 

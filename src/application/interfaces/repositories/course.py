@@ -1,6 +1,6 @@
 from typing import Protocol, Optional, Any, Sequence
 
-from src.domain.entities import Course, Module
+from src.domain.entities import Course
 
 
 class CourseRepositoryInterface(Protocol):

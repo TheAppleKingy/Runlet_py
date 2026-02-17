@@ -5,7 +5,7 @@ from .user import User
 from .exceptions import AttributeRequired
 
 
-class DefautTagType(Enum):
+class DefaultTagType(Enum):
     WAITING_FOR_SUBSCRIBE = "Ожидают зачисления"
 
     @classmethod

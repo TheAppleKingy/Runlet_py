@@ -1,23 +1,37 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, APIRouter, Request, HTTPException
+from fastapi import FastAPI, APIRouter, Request
 from fastapi.responses import JSONResponse
 from dishka.integrations.fastapi import setup_dishka
 from sqlalchemy.orm import registry, relationship, column_property
-from ploomby.registry import MessageConsumerRegistry
-from ploomby.rabbit import RabbitConsumerFactory
 
-from src.application.use_cases.student import *
-from src.application.use_cases.user import *
-from src.application.use_cases.teacher import *
-from src.infrastructure.db.tables import *
-from src.domain.exc import HandlingError
-from src.interfaces.controllers.http import *
-from src.domain.entities import *
-from src.logger import logger
-from src.container import (
-    container
+from src.infrastructure.db.tables import (
+    problems,
+    attempts,
+    modules,
+    users,
+    tags,
+    users_tags,
+    courses,
+    users_courses
 )
+from src.domain.exc import HandlingError
+from src.interfaces.controllers.http import (
+    user_router,
+    student_router,
+    teacher_router,
+    auth_router
+)
+from src.domain.entities import (
+    Problem,
+    Attempt,
+    Module,
+    User,
+    Tag,
+    Course,
+)
+from src.logger import logger
+from src.container import container
 
 
 def map_tables():

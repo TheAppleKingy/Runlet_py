@@ -1,6 +1,9 @@
 from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import (
+    APIRouter,
+    Query
+)
 from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from src.application.dtos.course import (
@@ -13,7 +16,6 @@ from src.application.dtos.course import (
 from src.application.dtos.teacher import (
     GenLinkDTO,
     LinkDTO,
-    DeleteTagsDTO,
     DeleteProblemsDTO,
     UpdateTagStudentsDTO,
     ManageModulesDTO,
@@ -21,8 +23,6 @@ from src.application.dtos.teacher import (
 )
 from src.application.dtos.user import UserG1
 from src.application.dtos.problem import CreateUpdateProblemDTO
-from src.application.dtos.module import ModuleCreateUpdateDTO
-from src.application.dtos.tag import TagCreateUpdateDTO
 from src.application.dtos.tag import TagG3
 from src.application.use_cases import (
     ShowTeacherCourseModulesToRateStudents,
@@ -37,7 +37,9 @@ from src.application.use_cases import (
     ShowTeacherCourseData,
     ShowStudentProblems,
     ShowProblemStudents,
-    ShowTagsToUpdate
+    ShowTagsToUpdate,
+    ShowProblemDataToUpdate,
+    SearchStudents
 )
 from src.domain.value_objects import AuthenticatedTeacherId
 from src.interfaces.presenters.http.dtos import ModuleWithRateInfoDTO, TagsToUpdateDTO
@@ -142,6 +144,17 @@ async def create_update_problem(
     return await use_case.execute(course_id, dto)
 
 
+@teacher_router.get("/course/{course_id}/modules/{module_id}/problems/{problem_id}")
+async def get_problem_data_to_update(
+    course_id: int,
+    module_id: int,
+    problem_id: int,
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[ShowProblemDataToUpdate]
+):
+    return await use_case.execute(course_id, module_id, problem_id)
+
+
 @teacher_router.delete("/course/{course_id}/problems")
 async def delete_problems(
     course_id: int,
@@ -162,7 +175,7 @@ async def manage_tags(
     """
     Returns info id and names of created tags
     """
-    return await use_case.execute(course_id, dto)
+    return await use_case.execute(course_id, dto)  # type: ignore[return-value]
 
 
 @teacher_router.patch("/courses/{course_id}/students")
@@ -192,3 +205,14 @@ async def get_tags_students_to_update(
 ) -> TagsToUpdateDTO:
     students, tags = await use_case.execute(course_id)
     return TagsToUpdateDTO(students=students, tags=tags)
+
+
+@teacher_router.get("/course/{course_id}/search/students")
+async def search_students(
+    course_id: int,
+    use_case: FromDishka[SearchStudents],
+    user_id: FromDishka[AuthenticatedTeacherId],
+    tag_id: Optional[int] = Query(default=None, gt=0),
+    q: str = Query(min_length=2)
+) -> list[UserG1]:
+    return await use_case.execute(course_id, q, tag_id=tag_id)  # type: ignore[return-value]

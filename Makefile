@@ -86,3 +86,6 @@ runlet.test.unit: runlet.test.build
 
 runlet.test.full: runlet.test.build runlet.test_db.start
 	@docker compose -f ${TESTS_COMPOSE} run --rm test_app pytest -v ${TESTS_PATH}; docker compose -f ${TESTS_COMPOSE} down
+
+runlet.lint:
+	@mypy src/; ruff check src/
