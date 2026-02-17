@@ -6,7 +6,6 @@ from typing import Optional
 
 from .exceptions import JWTUnauthorizedError
 from src.application.interfaces.services import AuthenticationServiceInterface
-from src.logger import logger
 
 
 class JWTAuthenticationService(AuthenticationServiceInterface):

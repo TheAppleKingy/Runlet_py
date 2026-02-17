@@ -9,7 +9,13 @@ from src.application.dtos.auth import (
     ChangePasswordRequestDTO,
     ChangePasswordConfirmDTO
 )
-from src.application.use_cases import *
+from src.application.use_cases import (
+    RegisterUserRequest,
+    RegisterUserConfirm,
+    LoginUser,
+    ChangePasswordRequest,
+    ChangePasswordConfirm
+)
 
 
 auth_router = APIRouter(prefix="/auth", tags=["Auth"], route_class=DishkaRoute)

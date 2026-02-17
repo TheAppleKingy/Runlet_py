@@ -1,10 +1,6 @@
 from src.domain.entities import Course, Module
 from src.application.interfaces.repositories import CourseRepositoryInterface
 from src.application.interfaces.uow import UoWInterface
-__all__ = [
-    "ShowStudentCourses",
-    "ShowStudentCourse",
-]
 
 
 class ShowStudentCourses:

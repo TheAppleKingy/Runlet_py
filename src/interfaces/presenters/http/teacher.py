@@ -1,4 +1,4 @@
-from src.domain.entities import Attempt, Module, User, Tag
+from src.domain.entities import Attempt, Module
 
 from .dtos import ProblemWithRateInfoDTO, ModuleWithRateInfoDTO
 

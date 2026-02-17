@@ -21,6 +21,7 @@ class Attempt:
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), init=False)
     test_cases: TestCases = field(default_factory=TestCases)
     confirmed_passed: bool = field(default=False, init=False)
+    seen: bool = field(default=False, init=False)
 
     def check_tests(self):
         """

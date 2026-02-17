@@ -1,5 +1,3 @@
-from typing import Optional
-
 from fastapi import APIRouter, Query
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 
@@ -15,10 +13,8 @@ from src.domain.value_objects import AuthenticatedUserId, AuthenticatedNotStrict
 from src.application.dtos.main import MainDTO
 from src.application.dtos.course import (
     CourseG2,
-    CourseG5,
     CourseCreateDTO
 )
-from src.logger import logger
 
 user_router = APIRouter(prefix="/me", route_class=DishkaRoute)
 

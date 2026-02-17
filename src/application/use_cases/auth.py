@@ -11,9 +11,11 @@ from src.application.dtos.auth import (
     LoginUserDTO,
     RegisterUserRequestDTO,
     ChangePasswordConfirmDTO,
-    ChangePasswordRequestDTO
 )
-from src.application.interfaces.repositories import UserRepositoryInterface, CourseRepositoryInterface
+from src.application.interfaces.repositories import (
+    UserRepositoryInterface,
+    CourseRepositoryInterface
+)
 from .exceptions import (
     UndefinedUserError,
     InvalidUserPasswordError,
@@ -24,19 +26,6 @@ from .exceptions import (
     HasNoAccessError
 )
 from src.domain.entities import User
-from src.logger import logger
-
-__all__ = [
-    "AuthenticateUser",
-    "LoginUser",
-    "RegisterUserRequest",
-    "RegisterUserConfirm",
-    "AuthenticateUserAsTeacher",
-    "AuthenticateUserAsStudent",
-    "OptionalAuthenticateUser",
-    "ChangePasswordRequest",
-    "ChangePasswordConfirm"
-]
 
 
 class BaseAuthUseCase:
@@ -86,7 +75,7 @@ class OptionalAuthenticateUser(BaseAuthUseCase):
             return None
         try:
             return await super().execute(token)
-        except:
+        except Exception:
             return None
 
 

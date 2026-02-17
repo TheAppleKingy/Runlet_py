@@ -1,7 +1,7 @@
 from sqlalchemy import Table, Column, String, ForeignKey, Boolean, Integer
 
 
-from .base import metadata, id_, TestCaseJSONBType
+from .base import metadata, id_, TestCaseJSONBType, ExamplesJSONBType
 
 problems = Table(
     "problems", metadata,
@@ -10,8 +10,9 @@ problems = Table(
     Column('description', String(1024), nullable=True, unique=False),
     Column('module_id', ForeignKey("modules.id", ondelete="CASCADE"), nullable=False),
     Column("auto_pass", Boolean, default=False, nullable=False),
-    Column('test_cases', TestCaseJSONBType(), nullable=True, unique=False),
-    Column("show_test_cases", Boolean, default=False, nullable=False)
+    Column('test_cases', TestCaseJSONBType(), nullable=False, unique=False),
+    Column("show_test_cases", Boolean, default=False, nullable=False),
+    Column("examples", ExamplesJSONBType(), nullable=False, unique=False)
 )
 
 
