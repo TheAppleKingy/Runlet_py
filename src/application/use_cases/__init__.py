@@ -27,7 +27,8 @@ from .teacher import (
     ShowStudentProblems,
     ShowProblemStudents,
     ShowTagsToUpdate,
-    ShowProblemDataToUpdate
+    ShowProblemDataToUpdate,
+    SearchStudents
 )
 from .user import (
     ShowCourse,
@@ -70,5 +71,6 @@ __all__ = [
     "CreateCourse",
     "RequestSubscribeOnCourse",
     "SubscribeOnCourse",
-    "SubscribeOnCourseByLink"
+    "SubscribeOnCourseByLink",
+    "SearchStudents"
 ]

@@ -1,6 +1,9 @@
 from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import (
+    APIRouter,
+    Query
+)
 from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from src.application.dtos.course import (
@@ -35,7 +38,8 @@ from src.application.use_cases import (
     ShowStudentProblems,
     ShowProblemStudents,
     ShowTagsToUpdate,
-    ShowProblemDataToUpdate
+    ShowProblemDataToUpdate,
+    SearchStudents
 )
 from src.domain.value_objects import AuthenticatedTeacherId
 from src.interfaces.presenters.http.dtos import ModuleWithRateInfoDTO, TagsToUpdateDTO
@@ -171,7 +175,7 @@ async def manage_tags(
     """
     Returns info id and names of created tags
     """
-    return await use_case.execute(course_id, dto)
+    return await use_case.execute(course_id, dto)  # type: ignore[return-value]
 
 
 @teacher_router.patch("/courses/{course_id}/students")
@@ -201,3 +205,14 @@ async def get_tags_students_to_update(
 ) -> TagsToUpdateDTO:
     students, tags = await use_case.execute(course_id)
     return TagsToUpdateDTO(students=students, tags=tags)
+
+
+@teacher_router.get("/course/{course_id}/search/students")
+async def search_students(
+    course_id: int,
+    use_case: FromDishka[SearchStudents],
+    user_id: FromDishka[AuthenticatedTeacherId],
+    tag_id: Optional[int] = Query(default=None, gt=0),
+    q: str = Query(min_length=2)
+) -> list[UserG1]:
+    return await use_case.execute(course_id, q, tag_id=tag_id)  # type: ignore[return-value]

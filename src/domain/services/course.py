@@ -1,6 +1,15 @@
-from typing import TypeVar, Protocol
-
-from src.domain.entities import Course, User, Problem, Module, Tag, DefautTagType
+from typing import (
+    TypeVar,
+    Protocol
+)
+from src.domain.entities import (
+    Course,
+    User,
+    Problem,
+    Module,
+    Tag,
+    DefaultTagType
+)
 from src.domain.entities.exceptions import (
     RolesError,
     UndefinedModuleError,
@@ -43,7 +52,7 @@ class CourseStudentsManagerService(BaseCourseManagerService):
 
     def add_students(self, students: list[User]):
         self._validate_teacher_is_student(students)
-        waiting_tag = self._course.get_tag(DefautTagType.WAITING_FOR_SUBSCRIBE.value)
+        waiting_tag = self._course.get_tag(DefaultTagType.WAITING_FOR_SUBSCRIBE.value)
         for s in students:
             if s not in self._course._students:
                 self._course._students.append(s)
@@ -54,7 +63,7 @@ class CourseStudentsManagerService(BaseCourseManagerService):
         target_tag = self._course.get_tag_by_id(tag_id)
         if not target_tag:
             raise UndefinedTagError("Unable to add students to tag: tag not related with course")
-        if target_tag.name in DefautTagType.names():
+        if target_tag.name in DefaultTagType.names():
             raise ImpossibleOperationError(f"Unable to add student to default tag '{target_tag.name}'")
         self.add_students(students)
         for s in students:
@@ -62,7 +71,7 @@ class CourseStudentsManagerService(BaseCourseManagerService):
                 target_tag.students.append(s)
 
     def request_subscribe(self, students: list[User]):
-        target = self._course.get_tag(DefautTagType.WAITING_FOR_SUBSCRIBE.value)
+        target = self._course.get_tag(DefaultTagType.WAITING_FOR_SUBSCRIBE.value)
         self._validate_teacher_is_student(students)
         for s in students:
             if s in self._course.students:
@@ -118,7 +127,7 @@ class CourseTagManagerService(BaseCourseNamedAttrsManagerService):
         self._course._tags += tags
 
     def delete_tags(self, ids: list[int]):
-        for type_ in DefautTagType:
+        for type_ in DefaultTagType:
             default_tag = self._course.get_tag(type_.value)
             if default_tag.id in ids:
                 raise ImpossibleOperationError(f"Unable to delete default tag '{type_.value}'")

@@ -1,3 +1,4 @@
+from typing import Optional
 from abc import ABC
 
 from src.domain.entities import (
@@ -6,7 +7,8 @@ from src.domain.entities import (
     Module,
     Tag,
     DefaultTagType,
-    Attempt
+    Attempt,
+    User
 )
 from src.domain.value_objects import (
     TestCases,
@@ -103,19 +105,19 @@ class ManageModules(_CourseRepoRelatedUseCase):
     async def execute(self, course_id: int, dto: ManageModulesDTO):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules])
-            module_manager = CourseModulesManagerService(course)
+            module_manager = CourseModulesManagerService(course)  # type: ignore[arg-type]
             to_add = []
             module_manager.delete_modules(dto.to_delete)
             for module_data in dto.to_create_update:
                 if module_data.id:
-                    module = course.get_module_by_id(module_data.id)
+                    module = course.get_module_by_id(module_data.id)  # type: ignore[union-attr]
                     if not module:
                         raise UndefinedModuleError(
                             f"Module '{module_data.name}' does not exist")
                     module.name = module_data.name
                     module.order = module_data.order
                 else:
-                    to_add.append(Module(module_data.name, course.id, module_data.order))
+                    to_add.append(Module(module_data.name, course.id, module_data.order))  # type: ignore[union-attr]
             module_manager.add_modules(to_add)
 
 
@@ -160,7 +162,7 @@ class CreateUpdateProblem(_ProblemCreateUpdateUseCase):
                     self._map_test_cases(dto.test_cases),
                     Examples([TestCase(case.input, case.output) for case in dto.examples])
                 )
-                problem_manager = CourseProblemManagerService(course)
+                problem_manager = CourseProblemManagerService(course)  # type: ignore[arg-type]
                 problem_manager.add_problems(module, [created])
 
 
@@ -197,7 +199,7 @@ class ManageTags:
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags])
             to_add = []
-            tag_manager = CourseTagManagerService(course)
+            tag_manager = CourseTagManagerService(course)  # type: ignore[arg-type]
             tag_manager.delete_tags(dto.to_delete)
             for tag_data in dto.to_create_update:
                 if tag_data.id:
@@ -206,7 +208,7 @@ class ManageTags:
                         raise UndefinedTagError(f"Tag '{tag_data.name}' does not exist")
                     tag.name = tag_data.name
                 else:
-                    to_add.append(Tag(tag_data.name, course.id))
+                    to_add.append(Tag(tag_data.name, course.id))  # type: ignore[union-attr]
             tag_manager.add_tags(to_add)
         return to_add  # returns created with id
 
@@ -328,17 +330,38 @@ class ShowTagsToUpdate(_CourseRepoRelatedUseCase):
     async def execute(self, course_id: int):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
-        return course.students, course.tags
+        return course.students, course.tags  # type: ignore[union-attr]
 
 
 class ShowProblemDataToUpdate(_CourseRepoRelatedUseCase):
-    async def execute(self, course_id: int, module_id: int, problem_id: int) -> Problem:
+    async def execute(self, course_id: int, module_id: int, problem_id: int) -> Problem:  # type: ignore[return]
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
-            module = course.get_module_by_id(module_id)
+            module = course.get_module_by_id(module_id)  # type: ignore[union-attr]
             if not module:
                 raise UndefinedModuleError("Module does not exist", status=404)
             problem = module.get_problem_by_id(problem_id)
             if not problem:
                 raise UndefinedProblemError("Problem does not exist", status=404)
             return problem
+
+
+class SearchStudents(_CourseRepoRelatedUseCase):
+    def __init__(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        user_repo: UserRepositoryInterface
+    ):
+        super().__init__(uow, course_repo)
+        self._user_repo = user_repo
+
+    async def execute(
+        self,
+        course_id: int,
+        namelike: str,
+        tag_id: Optional[int] = None
+    ) -> list[User]:  # type: ignore[return]
+        async with self._uow:
+            res = await self._user_repo.find_by_name(course_id, namelike, tag_id=tag_id)
+        return res

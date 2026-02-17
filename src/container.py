@@ -205,7 +205,8 @@ use_case_provider.provide_all(
     ShowStudentProblems,
     ShowProblemStudents,
     ShowTagsToUpdate,
-    ShowProblemDataToUpdate
+    ShowProblemDataToUpdate,
+    SearchStudents
 )
 
 
