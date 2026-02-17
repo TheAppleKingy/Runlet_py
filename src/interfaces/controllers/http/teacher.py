@@ -8,7 +8,6 @@ from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
 from src.application.dtos.course import (
     CourseG3,
-    CourseG4,
     CourseUpdateDTO,
     CourseG6,
     CourseG8
@@ -42,8 +41,15 @@ from src.application.use_cases import (
     SearchStudents
 )
 from src.domain.value_objects import AuthenticatedTeacherId
-from src.interfaces.presenters.http.dtos import ModuleWithRateInfoDTO, TagsToUpdateDTO
-from src.interfaces.presenters.http import student_problems_info
+from src.interfaces.presenters.http.dtos import (
+    ModuleWithRateInfoDTO,
+    TagsToUpdateDTO,
+    CourseWithStudentsSeensDTO
+)
+from src.interfaces.presenters.http import (
+    student_problems_info,
+    show_tags_students_with_seen_info
+)
 
 teacher_router = APIRouter(prefix="/teaching", tags=["Manage teaching"], route_class=DishkaRoute)
 
@@ -52,13 +58,14 @@ teacher_router = APIRouter(prefix="/teaching", tags=["Manage teaching"], route_c
 async def get_tags_and_students_to_rate(
     course_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
-    use_case: FromDishka[ShowTeacherCourseTagsToRateStudents]
-) -> Optional[CourseG4]:
+    use_case: FromDishka[ShowTeacherCourseTagsToRateStudents],
+) -> CourseWithStudentsSeensDTO:
     """
     Endpoint returns data of course with all students, tags and tags students data.
     Need to add additional data for indicators of progress 
     """
-    return await use_case.execute(course_id)
+    course, students_info = await use_case.execute(course_id)
+    return show_tags_students_with_seen_info(course, students_info)
 
 
 @teacher_router.get("/course/{course_id}/rate/students/{student_id}")

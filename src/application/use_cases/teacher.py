@@ -65,11 +65,20 @@ class _CourseRepoRelatedUseCase(ABC):
 
 
 class ShowTeacherCourseTagsToRateStudents(_CourseRepoRelatedUseCase):
-    async def execute(self, course_id: int):
-        # TODO: add indicators of progress
+    def __init__(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        user_repo: UserRepositoryInterface
+    ):
+        super().__init__(uow, course_repo)
+        self._user_repo = user_repo
+
+    async def execute(self, course_id: int) -> tuple[Course, list[tuple[User, Optional[bool]]]]:
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
-        return course
+            students_seens = await self._user_repo.get_by_id_with_attempts_seen_info(course_id)
+        return course, students_seens
 
 
 class ShowTeacherCourseModulesToRateStudents(_CourseRepoRelatedUseCase):

@@ -2,7 +2,10 @@ from typing import Optional
 
 from sqlalchemy import select, func
 
-from src.domain.entities import User
+from src.domain.entities import (
+    User,
+    Attempt,
+)
 from src.application.interfaces.repositories import UserRepositoryInterface
 from src.infrastructure.db.tables import (
     users,
@@ -41,4 +44,20 @@ class AlchemyUserRepository(BaseAlchemyRepository, UserRepositoryInterface):
                 .where(users_courses.c.course_id == course_id, ilike_clause)
             )
         res = await self._session.scalars(stmt.limit(10))
+        return res.unique().all()  # type: ignore[return-value]
+
+    async def get_by_id_with_attempts_seen_info(
+        self,
+        course_id: int,
+    ) -> list[tuple[User, bool]]:
+        stmt = (
+            select(User).add_columns(Attempt.seen).join(
+                users_courses, users_courses.c.student_id == User.id
+            ).join(
+                Attempt, Attempt.user_id == User.id, isouter=True
+            ).where(
+                users_courses.c.course_id == course_id,
+            )
+        )
+        res = await self._session.execute(stmt)
         return res.unique().all()  # type: ignore[return-value]

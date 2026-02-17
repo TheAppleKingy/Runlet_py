@@ -1,11 +1,6 @@
-from typing import Self, Protocol, TypeVar
+from typing import Self, Protocol
 
-
-class HasId(Protocol):
-    id: int
-
-
-DomainEnt = TypeVar("DomainEnt", bound=HasId)
+from src.domain.interfaces.types import DomainEnt
 
 
 class UoWInterface(Protocol):
