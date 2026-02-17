@@ -78,7 +78,7 @@ class ShowTeacherCourseTagsToRateStudents(_CourseRepoRelatedUseCase):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
             students_seens = await self._user_repo.get_by_id_with_attempts_seen_info(course_id)
-        return course, students_seens
+        return course, students_seens  # type: ignore[return-value]
 
 
 class ShowTeacherCourseModulesToRateStudents(_CourseRepoRelatedUseCase):
