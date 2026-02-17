@@ -1,4 +1,4 @@
-from typing import Optional, Any, Sequence
+from typing import Optional, Sequence, Any
 
 from sqlalchemy import select, exists, func
 from sqlalchemy.orm import selectinload
@@ -38,6 +38,16 @@ class AlchemyCourseRepository(BaseAlchemyRepository, CourseRepositoryInterface):
         res = await self._session.scalars(select(Course).where(Course._teacher_id == teacher_id))
         return res.all()  # type: ignore
 
+    async def check_user_in_course(self, user_id: int, course_id: int) -> bool:
+        return await self._session.scalar(  # type: ignore
+            select(
+                exists(
+                    select(1).select_from(users_courses).where(users_courses.c.student_id ==
+                                                               user_id, users_courses.c.course_id == course_id)
+                )
+            )
+        )
+
     async def get_by_id_with_rels(self, course_id: int, *rels_chains: Sequence[Any]) -> Optional[Course]:
         options = []
         for list_models in rels_chains:
@@ -49,13 +59,3 @@ class AlchemyCourseRepository(BaseAlchemyRepository, CourseRepositoryInterface):
                 root_rel = getattr(root_rel, "selectinload")(list_models[i])
             options.append(root_rel)
         return await self._session.scalar(select(Course).where(Course.id == course_id).options(*options))
-
-    async def check_user_in_course(self, user_id: int, course_id: int) -> bool:
-        return await self._session.scalar(  # type: ignore
-            select(
-                exists(
-                    select(1).select_from(users_courses).where(users_courses.c.student_id ==
-                                                               user_id, users_courses.c.course_id == course_id)
-                )
-            )
-        )
