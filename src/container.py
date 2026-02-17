@@ -1,24 +1,33 @@
-from typing import Optional, AsyncGenerator
+# ruff: noqa: F405
+from typing import AsyncGenerator
 
 from fastapi import Request
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession, AsyncEngine
-from ploomby.rabbit import RabbitConsumerFactory
-from ploomby.registry import MessageConsumerRegistry
-from dishka import make_async_container, Scope, provide, Provider
+from sqlalchemy.ext.asyncio import (
+    create_async_engine,
+    async_sessionmaker,
+    AsyncSession,
+    AsyncEngine
+)
+from dishka import (
+    make_async_container,
+    Scope,
+    provide,
+    Provider
+)
 from dishka.integrations.fastapi import FastapiProvider
 
-from src.application.use_cases import *
-from src.application.interfaces.repositories import *
+from src.application.use_cases import *  # noqa: F403
+from src.application.interfaces.repositories import *  # noqa: F403
 from src.application.interfaces.uow import UoWInterface
-from src.application.interfaces.services import *
-from src.infrastructure.services.user import *
-from src.infrastructure.services import *
+from src.application.interfaces.services import *  # noqa: F403
+from src.infrastructure.services.user import *  # noqa: F403
+from src.infrastructure.services import *  # noqa: F403
 from src.infrastructure.configs import (
     DBConfig,
     EmailConfig,
     AppConfig
 )
-from src.infrastructure.repositories import *
+from src.infrastructure.repositories import *  # noqa: F403
 from src.infrastructure.uow import AlchemyUoW
 from src.domain.value_objects import (
     AuthenticatedUserId,
@@ -195,7 +204,8 @@ use_case_provider.provide_all(
     ChangePasswordConfirm,
     ShowStudentProblems,
     ShowProblemStudents,
-    ShowTagsToUpdate
+    ShowTagsToUpdate,
+    ShowProblemDataToUpdate
 )
 
 

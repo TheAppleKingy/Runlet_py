@@ -13,7 +13,6 @@ from src.application.dtos.course import (
 from src.application.dtos.teacher import (
     GenLinkDTO,
     LinkDTO,
-    DeleteTagsDTO,
     DeleteProblemsDTO,
     UpdateTagStudentsDTO,
     ManageModulesDTO,
@@ -21,8 +20,6 @@ from src.application.dtos.teacher import (
 )
 from src.application.dtos.user import UserG1
 from src.application.dtos.problem import CreateUpdateProblemDTO
-from src.application.dtos.module import ModuleCreateUpdateDTO
-from src.application.dtos.tag import TagCreateUpdateDTO
 from src.application.dtos.tag import TagG3
 from src.application.use_cases import (
     ShowTeacherCourseModulesToRateStudents,
@@ -37,7 +34,8 @@ from src.application.use_cases import (
     ShowTeacherCourseData,
     ShowStudentProblems,
     ShowProblemStudents,
-    ShowTagsToUpdate
+    ShowTagsToUpdate,
+    ShowProblemDataToUpdate
 )
 from src.domain.value_objects import AuthenticatedTeacherId
 from src.interfaces.presenters.http.dtos import ModuleWithRateInfoDTO, TagsToUpdateDTO
@@ -140,6 +138,17 @@ async def create_update_problem(
     user_id: FromDishka[AuthenticatedTeacherId]
 ):
     return await use_case.execute(course_id, dto)
+
+
+@teacher_router.get("/course/{course_id}/modules/{module_id}/problems/{problem_id}")
+async def get_problem_data_to_update(
+    course_id: int,
+    module_id: int,
+    problem_id: int,
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[ShowProblemDataToUpdate]
+):
+    return await use_case.execute(course_id, module_id, problem_id)
 
 
 @teacher_router.delete("/course/{course_id}/problems")

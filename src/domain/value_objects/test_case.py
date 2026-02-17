@@ -79,9 +79,7 @@ class TestCases:
         return cls(_data=data)
 
     def update_test_cases(self, cases_data: TestCasesDataType):
-        res = self._data.copy()
-        res.update(cases_data)
-        deduplicated_io = self._get_validated_test_cases(res)
+        deduplicated_io = self._get_validated_test_cases(cases_data)
         self._data = deduplicated_io
 
     def delete_test_cases(self, nums: Sequence[int]):

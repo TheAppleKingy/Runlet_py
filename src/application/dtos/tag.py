@@ -1,7 +1,7 @@
 from typing import Optional
 
 from pydantic import BaseModel
-from .user import UserG3, UserG1
+from .user import UserG1
 
 
 class TagG1(BaseModel):

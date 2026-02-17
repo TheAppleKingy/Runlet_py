@@ -2,7 +2,6 @@ from typing import Self
 
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncSessionTransaction
 from src.application.interfaces.uow import UoWInterface, DomainEnt
-from src.logger import logger
 
 
 class AlchemyUoW(UoWInterface):

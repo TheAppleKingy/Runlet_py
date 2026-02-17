@@ -1,6 +1,6 @@
 from sqlalchemy import MetaData, Column, Integer, TypeDecorator
 from sqlalchemy.dialects.postgresql import JSONB
-from src.domain.value_objects import TestCases
+from src.domain.value_objects import TestCases, Examples
 
 metadata = MetaData()
 
@@ -24,6 +24,26 @@ class TestCaseJSONBType(TypeDecorator):
         if value is None:
             return TestCases()
         return TestCases.from_dict({int(test_num): value[test_num] for test_num in value})
+
+    def copy(self, **kw):
+        return self.__class__()
+
+
+class ExamplesJSONBType(TypeDecorator):
+    impl = JSONB
+
+    def process_bind_param(self, value, dialect):
+        if isinstance(value, Examples):
+            return value.as_dicts()
+        elif not value:
+            return []
+        else:
+            raise TypeError(f"Undefined type: {type(value)}. Should be Examples")
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return Examples()
+        return Examples.from_raw(value)
 
     def copy(self, **kw):
         return self.__class__()

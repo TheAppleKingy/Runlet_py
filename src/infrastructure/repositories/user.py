@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import select, func, insert
+from sqlalchemy import select, func
 
 from src.domain.entities import User
 from src.application.interfaces.repositories import UserRepositoryInterface

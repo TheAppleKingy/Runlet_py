@@ -1,7 +1,18 @@
 from abc import ABC
 
-from src.domain.entities import Course, Problem, Module, Tag, DefautTagType, Attempt
-from src.domain.value_objects import TestCases, TestCase
+from src.domain.entities import (
+    Course,
+    Problem,
+    Module,
+    Tag,
+    DefaultTagType,
+    Attempt
+)
+from src.domain.value_objects import (
+    TestCases,
+    TestCase,
+    Examples
+)
 from src.domain.services.course import (
     CourseTagManagerService,
     CourseStudentsManagerService,
@@ -14,7 +25,6 @@ from src.application.interfaces.repositories import (
     CourseRepositoryInterface,
     UserRepositoryInterface,
     ModuleRepositoryInterface,
-    ProblemRepositoryInterface,
     AttemptRepositoryInterface
 )
 from src.application.use_cases.exceptions import (
@@ -36,26 +46,10 @@ from src.application.dtos.course import (
     CourseUpdateDTO
 )
 
-from src.application.dtos.tag import TagCreateUpdateDTO
-from src.application.dtos.problem import CreateUpdateProblemDTO, TestCaseDTO
-from src.logger import logger
-
-
-__all__ = [
-    "ShowTeacherCourseTagsToRateStudents",
-    "ShowTeacherCourseModulesToRateStudents",
-    "UpdateCourseData",
-    "ManageModules",
-    "CreateUpdateProblem",
-    "DeleteProblems",
-    "ManageTags",
-    "ManageStudents",
-    "GenerateInviteLink",
-    "ShowTeacherCourseData",
-    "ShowStudentProblems",
-    "ShowProblemStudents",
-    "ShowTagsToUpdate"
-]
+from src.application.dtos.problem import (
+    CreateUpdateProblemDTO,
+    TestCaseDTO
+)
 
 
 class _CourseRepoRelatedUseCase(ABC):
@@ -134,8 +128,8 @@ class _ProblemCreateUpdateUseCase(ABC):
         self._uow = uow
         self._course_repo = course_repo
 
-    def _map_test_cases(self, cases_dto: dict[int, TestCaseDTO]) -> TestCases:
-        prepared = {k: TestCase(case_data.input, case_data.output) for k, case_data in cases_dto.items()}
+    def _map_test_cases(self, cases_dto: list[TestCaseDTO]) -> TestCases:
+        prepared = {case_data.test_num: TestCase(case_data.input, case_data.output) for case_data in cases_dto}
         return TestCases(prepared)
 
 
@@ -145,7 +139,7 @@ class CreateUpdateProblem(_ProblemCreateUpdateUseCase):
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
             module = course.get_module_by_id(dto.module_id)  # type: ignore
             if not module:
-                raise UndefinedModuleError("Module does not exist", status=404)
+                raise UndefinedModuleError("Module does not exist or not related to course")
             if dto.id:
                 problem = module.get_problem_by_id(dto.id)
                 if not problem:
@@ -155,6 +149,7 @@ class CreateUpdateProblem(_ProblemCreateUpdateUseCase):
                 problem.auto_pass = dto.auto_pass
                 problem.show_test_cases = dto.show_test_cases
                 problem.test_cases = self._map_test_cases(dto.test_cases)
+                problem.examples = Examples([TestCase(case.input, case.output) for case in dto.examples])
             else:
                 created = Problem(
                     dto.name,
@@ -162,7 +157,8 @@ class CreateUpdateProblem(_ProblemCreateUpdateUseCase):
                     dto.description,
                     dto.auto_pass,
                     dto.show_test_cases,
-                    self._map_test_cases(dto.test_cases)
+                    self._map_test_cases(dto.test_cases),
+                    Examples([TestCase(case.input, case.output) for case in dto.examples])
                 )
                 problem_manager = CourseProblemManagerService(course)
                 problem_manager.add_problems(module, [created])
@@ -286,7 +282,7 @@ class GenerateInviteLink:
             tag = course.get_tag_by_id(tag_id)  # type: ignore
             if not tag:
                 raise UndefinedTagError("Tag does not exist")
-            if tag.name in DefautTagType.names():
+            if tag.name in DefaultTagType.names():
                 raise ImpossibleOperationError("Unable to create link for default tag")
             if tag.id not in target_ids:
                 target_ids.append(tag.id)
@@ -318,11 +314,9 @@ class ShowProblemStudents:
         self,
         uow: UoWInterface,
         attempt_repo: AttemptRepositoryInterface,
-        module_repo: ModuleRepositoryInterface
     ):
         self._uow = uow
         self._attempt_repo = attempt_repo
-        self._module_repo = module_repo
 
     async def execute(self, problem_id: int):
         async with self._uow:
@@ -335,3 +329,16 @@ class ShowTagsToUpdate(_CourseRepoRelatedUseCase):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
         return course.students, course.tags
+
+
+class ShowProblemDataToUpdate(_CourseRepoRelatedUseCase):
+    async def execute(self, course_id: int, module_id: int, problem_id: int) -> Problem:
+        async with self._uow:
+            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
+            module = course.get_module_by_id(module_id)
+            if not module:
+                raise UndefinedModuleError("Module does not exist", status=404)
+            problem = module.get_problem_by_id(problem_id)
+            if not problem:
+                raise UndefinedProblemError("Problem does not exist", status=404)
+            return problem

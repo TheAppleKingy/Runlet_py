@@ -1,4 +1,4 @@
-from typing import TypeVar, Protocol, Optional
+from typing import TypeVar, Protocol
 
 from src.domain.entities import Course, User, Problem, Module, Tag, DefautTagType
 from src.domain.entities.exceptions import (
@@ -8,11 +8,8 @@ from src.domain.entities.exceptions import (
     RepeatableNamesError,
     NamesAlreadyExistError,
     ImpossibleOperationError,
-    UndefinedProblemError,
     IncorrectModulesOrdersError
 )
-from src.logger import logger
-from src.domain.interfaces.data import ModuleData
 
 
 class HasNameType(Protocol):
@@ -56,8 +53,7 @@ class CourseStudentsManagerService(BaseCourseManagerService):
     def add_students_by_tag(self, tag_id: int, students: list[User]):
         target_tag = self._course.get_tag_by_id(tag_id)
         if not target_tag:
-            raise UndefinedTagError(
-                f"Unable to add students to tag: tag not related with course")
+            raise UndefinedTagError("Unable to add students to tag: tag not related with course")
         if target_tag.name in DefautTagType.names():
             raise ImpossibleOperationError(f"Unable to add student to default tag '{target_tag.name}'")
         self.add_students(students)
@@ -141,5 +137,5 @@ class CourseProblemManagerService(BaseCourseNamedAttrsManagerService):
     def delete_problems(self, module_id: int, problems_ids: list[int]):
         module = self._course.get_module_by_id(module_id)
         if not module:
-            raise UndefinedModuleError(f"Module does not exist")
+            raise UndefinedModuleError("Module does not exist")
         module.delete_problems(problems_ids)

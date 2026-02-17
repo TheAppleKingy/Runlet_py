@@ -1,11 +1,17 @@
 from typing import Optional
 
-from src.domain.entities import Course, DefautTagType, Tag
-from src.domain.services import CourseStudentsManagerService, CourseTagManagerService
+from src.domain.entities import (
+    Course,
+    DefaultTagType,
+    Tag
+)
+from src.domain.services import (
+    CourseStudentsManagerService,
+    CourseTagManagerService
+)
 from src.application.interfaces.repositories import (
     UserRepositoryInterface,
     CourseRepositoryInterface,
-    ProblemRepositoryInterface
 )
 from src.application.interfaces.uow import UoWInterface
 from src.application.interfaces.services import (
@@ -19,15 +25,6 @@ from src.application.use_cases.exceptions import (
     CoursePrivacyError,
 )
 from src.application.dtos.course import CourseCreateDTO
-
-__all__ = [
-    "ShowCourse",
-    "ShowMain",
-    "CreateCourse",
-    "RequestSubscribeOnCourse",
-    "SubscribeOnCourse",
-    "SubscribeOnCourseByLink"
-]
 
 
 class ShowMain:
@@ -81,7 +78,7 @@ class CreateCourse:
                             dto.is_private, dto.notify_request_sub)
             uow.save(course)
             await uow.flush()
-            default_tags = [Tag(type_.value, course.id) for type_ in DefautTagType]
+            default_tags = [Tag(type_.value, course.id) for type_ in DefaultTagType]
             uow.save(*default_tags)
             manager = CourseTagManagerService(course)
             manager.add_tags(default_tags)
