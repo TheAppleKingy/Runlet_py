@@ -1,6 +1,6 @@
 import pytest
 
-from src.domain.entities import Course, User, Tag, DefautTagType
+from src.domain.entities import Course, User, Tag, DefaultTagType
 from src.domain.services.course import CourseStudentsManagerService
 from src.domain.entities.exceptions import RolesError, ImpossibleOperationError, UndefinedTagError
 
@@ -17,7 +17,7 @@ def user():
 
 @pytest.fixture
 def waiting_tag():
-    tag = Tag(name=DefautTagType.WAITING_FOR_SUBSCRIBE.value, course_id=1)
+    tag = Tag(name=DefaultTagType.WAITING_FOR_SUBSCRIBE.value, course_id=1)
     tag.id = 1
     return tag
 
@@ -54,7 +54,7 @@ class TestAddStudents:
     def test_removes_from_waiting_tag(self, manager, user, waiting_tag):
         manager._course._tags = [waiting_tag]
         waiting_tag.students.append(user)
-        manager._course.get_tag = lambda name: waiting_tag if name == DefautTagType.WAITING_FOR_SUBSCRIBE.value else None
+        manager._course.get_tag = lambda name: waiting_tag if name == DefaultTagType.WAITING_FOR_SUBSCRIBE.value else None
 
         manager.add_students([user])
         assert user not in waiting_tag.students

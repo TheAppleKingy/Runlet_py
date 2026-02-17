@@ -1,7 +1,3 @@
-from typing import (
-    TypeVar,
-    Protocol
-)
 from src.domain.entities import (
     Course,
     User,
@@ -19,13 +15,7 @@ from src.domain.entities.exceptions import (
     ImpossibleOperationError,
     IncorrectModulesOrdersError
 )
-
-
-class HasNameType(Protocol):
-    name: str
-
-
-Named = TypeVar("Named", bound=HasNameType)
+from src.domain.interfaces.types import Named
 
 
 class BaseCourseManagerService:

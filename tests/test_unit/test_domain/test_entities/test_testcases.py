@@ -1,414 +1,601 @@
 import pytest
-from src.domain.value_objects.exceptions import DuplicateTestCaseInput, ValidationTestCaseError
 from src.domain.value_objects import TestCase, TestCases
+from src.domain.value_objects.exceptions import DuplicateTestCaseInput, ValidationTestCaseError
 
 
-# ============ TestCases Tests ============
+class TestTestCases:
+    """Тесты для класса TestCases"""
 
-def test_testcases_empty_creation():
-    """Test creating empty TestCases collection"""
-    tcs = TestCases()
+    # ===== ТЕСТЫ ИНИЦИАЛИЗАЦИИ =====
 
-    assert tcs.count == 0
-    assert list(tcs) == []
-    assert tcs.as_dict() == {}
+    def test_create_empty(self):
+        """Создание пустого TestCases"""
+        test_cases = TestCases()
 
+        assert test_cases.count == 0
+        assert test_cases.as_dict() == {}
+        assert list(test_cases) == []
 
-def test_testcases_creation_with_initial_data():
-    """Test creating TestCases with initial data"""
-    tc1 = TestCase(input="1+1", output="2")
-    tc2 = TestCase(input="2+2", output="4")
+    def test_create_with_valid_data(self):
+        """Создание с валидными данными"""
+        data = {
+            1: TestCase(input="1 2", output="3"),
+            2: TestCase(input="4 5", output="9"),
+            3: TestCase(input="7 8", output="15")
+        }
+        test_cases = TestCases(_data=data)
 
-    tcs = TestCases(_data={1: tc1, 2: tc2})
+        assert test_cases.count == 3
+        assert test_cases.get_case(1).input == "1 2"
+        assert test_cases.get_case(2).output == "9"
+        assert test_cases.get_case(3).input == "7 8"
 
-    assert tcs.count == 2
-    assert list(tcs) == [(1, tc1), (2, tc2)]
-    assert tcs.get_case(1) == tc1
-    assert tcs.get_case(2) == tc2
-    assert tcs.get_case(3) is None
+    def test_create_with_invalid_key_type(self):
+        """Создание с невалидным типом ключа"""
+        data = {
+            "1": TestCase(input="1 2", output="3"),  # строка
+            2: TestCase(input="4 5", output="9")
+        }
 
+        with pytest.raises(ValidationTestCaseError, match="Number of test should be natural int"):
+            TestCases(_data=data)  # type: ignore
 
-def test_testcases_validation_on_creation():
-    """Test validation happens during creation"""
-    # Same input, different outputs should raise
-    with pytest.raises(DuplicateTestCaseInput):
-        TestCases(_data={
-            1: TestCase(input="same", output="output1"),
-            2: TestCase(input="same", output="output2")
+    def test_create_with_zero_key(self):
+        """Создание с ключом 0 (не натуральное число)"""
+        data = {
+            0: TestCase(input="1 2", output="3"),
+            1: TestCase(input="4 5", output="9")
+        }
+
+        with pytest.raises(ValidationTestCaseError, match="Number of test should be natural int"):
+            TestCases(_data=data)
+
+    def test_create_with_negative_key(self):
+        """Создание с отрицательным ключом"""
+        data = {
+            -1: TestCase(input="1 2", output="3"),
+            1: TestCase(input="4 5", output="9")
+        }
+
+        with pytest.raises(ValidationTestCaseError, match="Number of test should be natural int"):
+            TestCases(_data=data)
+
+    def test_create_with_duplicate_inputs_same_output(self):
+        """Создание с дубликатами input+output - должны отфильтроваться"""
+        data = {
+            1: TestCase(input="1 2", output="3"),
+            2: TestCase(input="1 2", output="3"),  # дубликат
+            3: TestCase(input="4 5", output="9"),
+            4: TestCase(input="4 5", output="9")   # дубликат
+        }
+
+        test_cases = TestCases(_data=data)
+
+        assert test_cases.count == 2
+        # Должны остаться первые вхождения
+        assert 1 in test_cases.as_dict()
+        assert 3 in test_cases.as_dict()
+        assert 2 not in test_cases.as_dict()
+        assert 4 not in test_cases.as_dict()
+
+    def test_create_with_duplicate_inputs_different_output(self):
+        """Создание с дубликатами input но разным output - ошибка"""
+        data = {
+            1: TestCase(input="1 2", output="3"),
+            2: TestCase(input="1 2", output="4"),  # тот же input, другой output
+            3: TestCase(input="4 5", output="9")
+        }
+
+        with pytest.raises(DuplicateTestCaseInput, match="Inputs cannot match"):
+            TestCases(_data=data)
+
+    # ===== ТЕСТЫ set_test_cases (ПОЛНАЯ ЗАМЕНА) =====
+
+    def test_set_on_empty(self):
+        """set_test_cases на пустой объект"""
+        test_cases = TestCases()
+
+        new_data = {
+            1: TestCase(input="1", output="1"),
+            2: TestCase(input="2", output="2")
+        }
+        test_cases.set_test_cases(new_data)
+
+        assert test_cases.count == 2
+        assert test_cases.get_case(1).input == "1"
+        assert test_cases.get_case(2).output == "2"
+
+    def test_set_completely_replaces_existing(self):
+        """set_test_cases полностью заменяет существующие данные"""
+        original = {
+            1: TestCase(input="old1", output="old1"),
+            2: TestCase(input="old2", output="old2"),
+            3: TestCase(input="old3", output="old3")
+        }
+        test_cases = TestCases(_data=original)
+
+        new_data = {
+            4: TestCase(input="new4", output="new4"),
+            5: TestCase(input="new5", output="new5")
+        }
+        test_cases.set_test_cases(new_data)
+
+        assert test_cases.count == 2
+        assert test_cases.get_case(1) is None  # старые удалены
+        assert test_cases.get_case(2) is None
+        assert test_cases.get_case(3) is None
+        assert test_cases.get_case(4).input == "new4"
+        assert test_cases.get_case(5).output == "new5"
+
+    def test_set_with_overlapping_keys(self):
+        """set_test_cases с пересекающимися ключами - старые заменяются"""
+        original = {
+            1: TestCase(input="old1", output="old1"),
+            2: TestCase(input="old2", output="old2")
+        }
+        test_cases = TestCases(_data=original)
+
+        new_data = {
+            2: TestCase(input="new2", output="new2"),  # ключ 2 перезаписан
+            3: TestCase(input="new3", output="new3")
+        }
+        test_cases.set_test_cases(new_data)
+
+        assert test_cases.count == 2
+        assert test_cases.get_case(1) is None  # удален
+        assert test_cases.get_case(2).input == "new2"  # обновлен
+        assert test_cases.get_case(3).input == "new3"  # добавлен
+
+    def test_set_with_duplicates_in_new_data(self):
+        """set_test_cases с дубликатами в новых данных"""
+        test_cases = TestCases()
+
+        new_data = {
+            1: TestCase(input="1 2", output="3"),
+            2: TestCase(input="1 2", output="3"),  # дубликат
+            3: TestCase(input="4 5", output="9")
+        }
+        test_cases.set_test_cases(new_data)
+
+        assert test_cases.count == 2
+        assert 1 in test_cases.as_dict()
+        assert 3 in test_cases.as_dict()
+        assert 2 not in test_cases.as_dict()
+
+    def test_set_with_duplicate_input_different_output(self):
+        """set_test_cases с дубликатом input но разным output"""
+        test_cases = TestCases()
+
+        new_data = {
+            1: TestCase(input="1 2", output="3"),
+            2: TestCase(input="1 2", output="4")  # тот же input, другой output
+        }
+
+        with pytest.raises(DuplicateTestCaseInput):
+            test_cases.set_test_cases(new_data)
+
+    def test_set_empty_data(self):
+        """set_test_cases с пустыми данными"""
+        original = {
+            1: TestCase(input="old", output="old")
+        }
+        test_cases = TestCases(_data=original)
+
+        test_cases.set_test_cases({})
+
+        assert test_cases.count == 0
+        assert test_cases.as_dict() == {}
+
+    # ===== ТЕСТЫ get_case =====
+
+    def test_get_existing_case(self):
+        """Получение существующего тест-кейса"""
+        data = {1: TestCase(input="test", output="result")}
+        test_cases = TestCases(_data=data)
+
+        case = test_cases.get_case(1)
+        assert case is not None
+        assert case.input == "test"
+        assert case.output == "result"
+
+    def test_get_nonexistent_case(self):
+        """Получение несуществующего тест-кейса"""
+        test_cases = TestCases()
+
+        assert test_cases.get_case(999) is None
+
+    def test_get_after_set(self):
+        """get_case после set_test_cases"""
+        test_cases = TestCases()
+        test_cases.set_test_cases({1: TestCase(input="a", output="b")})
+
+        assert test_cases.get_case(1).input == "a"
+
+        test_cases.set_test_cases({2: TestCase(input="c", output="d")})
+
+        assert test_cases.get_case(1) is None
+        assert test_cases.get_case(2).input == "c"
+
+    # ===== ТЕСТЫ delete_test_cases =====
+
+    def test_delete_single(self):
+        """Удаление одного тест-кейса"""
+        data = {
+            1: TestCase(input="1", output="1"),
+            2: TestCase(input="2", output="2"),
+            3: TestCase(input="3", output="3")
+        }
+        test_cases = TestCases(_data=data)
+
+        test_cases.delete_test_cases([2])
+
+        assert test_cases.count == 2
+        assert test_cases.get_case(1) is not None
+        assert test_cases.get_case(2) is None
+        assert test_cases.get_case(3) is not None
+
+    def test_delete_multiple(self):
+        """Удаление нескольких тест-кейсов"""
+        data = {
+            1: TestCase(input="1", output="1"),
+            2: TestCase(input="2", output="2"),
+            3: TestCase(input="3", output="3"),
+            4: TestCase(input="4", output="4")
+        }
+        test_cases = TestCases(_data=data)
+
+        test_cases.delete_test_cases([1, 3, 5])  # 5 не существует
+
+        assert test_cases.count == 2
+        assert test_cases.get_case(2) is not None
+        assert test_cases.get_case(4) is not None
+        assert test_cases.get_case(1) is None
+        assert test_cases.get_case(3) is None
+
+    def test_delete_all(self):
+        """Удаление всех тест-кейсов"""
+        data = {
+            1: TestCase(input="1", output="1"),
+            2: TestCase(input="2", output="2")
+        }
+        test_cases = TestCases(_data=data)
+
+        test_cases.delete_test_cases([1, 2])
+
+        assert test_cases.count == 0
+        assert test_cases.as_dict() == {}
+
+    def test_delete_empty_list(self):
+        """Удаление с пустым списком"""
+        data = {1: TestCase(input="1", output="1")}
+        test_cases = TestCases(_data=data)
+
+        test_cases.delete_test_cases([])
+
+        assert test_cases.count == 1
+
+    def test_delete_nonexistent(self):
+        """Удаление несуществующих ключей"""
+        data = {1: TestCase(input="1", output="1")}
+        test_cases = TestCases(_data=data)
+
+        test_cases.delete_test_cases([999, 888])
+
+        assert test_cases.count == 1
+
+    # ===== ТЕСТЫ as_dict =====
+
+    def test_as_dict_empty(self):
+        """as_dict для пустого объекта"""
+        test_cases = TestCases()
+        assert test_cases.as_dict() == {}
+
+    def test_as_dict_with_data(self):
+        """as_dict с данными"""
+        data = {
+            1: TestCase(input="1 2", output="3"),
+            2: TestCase(input="4 5", output="9")
+        }
+        test_cases = TestCases(_data=data)
+
+        result = test_cases.as_dict()
+        assert result == {
+            1: {"input": "1 2", "output": "3"},
+            2: {"input": "4 5", "output": "9"}
+        }
+
+    def test_as_dict_returns_copy(self):
+        """as_dict возвращает копию, не оригинал"""
+        data = {1: TestCase(input="test", output="result")}
+        test_cases = TestCases(_data=data)
+
+        result = test_cases.as_dict()
+        result[2] = {"input": "hack", "output": "hack"}  # изменяем результат
+
+        assert test_cases.count == 1  # оригинал не изменился
+        assert test_cases.get_case(2) is None
+
+    # ===== ТЕСТЫ from_dict =====
+
+    def test_from_dict_valid(self):
+        """Создание TestCases из словаря словарей"""
+        data = {
+            1: {"input": "1 2", "output": "3"},
+            2: {"input": "4 5", "output": "9"},
+            3: {"input": "7 8", "output": "15"}
+        }
+
+        test_cases = TestCases.from_dict(data)
+
+        assert test_cases.count == 3
+        assert test_cases.get_case(1).input == "1 2"
+        assert test_cases.get_case(2).output == "9"
+        assert test_cases.get_case(3).input == "7 8"
+
+    def test_from_dict_with_duplicates(self):
+        """from_dict с дубликатами"""
+        data = {
+            1: {"input": "1 2", "output": "3"},
+            2: {"input": "1 2", "output": "3"},  # дубликат
+            3: {"input": "4 5", "output": "9"}
+        }
+
+        test_cases = TestCases.from_dict(data)
+
+        assert test_cases.count == 2
+        assert 1 in test_cases.as_dict()
+        assert 3 in test_cases.as_dict()
+        assert 2 not in test_cases.as_dict()
+
+    def test_from_dict_with_invalid_data(self):
+        """from_dict с невалидными данными"""
+        data = {
+            1: {"input": "1 2", "output": "3"},
+            2: {"input": 123, "output": "9"}  # input не строка
+        }
+
+        with pytest.raises(ValidationTestCaseError):
+            TestCases.from_dict(data)  # type: ignore
+
+    def test_from_dict_empty(self):
+        """from_dict с пустым словарем"""
+        test_cases = TestCases.from_dict({})
+
+        assert test_cases.count == 0
+        assert test_cases.as_dict() == {}
+
+    # ===== ТЕСТЫ __iter__ =====
+
+    def test_iter_empty(self):
+        """Итерация по пустому объекту"""
+        test_cases = TestCases()
+
+        items = list(test_cases)
+        assert items == []
+
+    def test_iter_with_data(self):
+        """Итерация по объекту с данными"""
+        data = {
+            1: TestCase(input="1", output="1"),
+            2: TestCase(input="2", output="2")
+        }
+        test_cases = TestCases(_data=data)
+
+        items = list(test_cases)
+        assert len(items) == 2
+        assert isinstance(items[0], tuple)
+        assert items[0][0] in [1, 2]
+        assert isinstance(items[0][1], TestCase)
+
+    def test_iter_order_preserved(self):
+        """Итерация сохраняет порядок вставки"""
+        data = {
+            3: TestCase(input="3", output="3"),
+            1: TestCase(input="1", output="1"),
+            2: TestCase(input="2", output="2")
+        }
+        test_cases = TestCases(_data=data)
+
+        keys = [key for key, _ in test_cases]
+        assert keys == [3, 1, 2]  # порядок вставки сохраняется
+
+    # ===== ТЕСТЫ property count =====
+
+    def test_count_after_operations(self):
+        """count после различных операций"""
+        test_cases = TestCases()
+        assert test_cases.count == 0
+
+        # set
+        test_cases.set_test_cases({
+            1: TestCase(input="1", output="1"),
+            2: TestCase(input="2", output="2")
+        })
+        assert test_cases.count == 2
+
+        # delete
+        test_cases.delete_test_cases([1])
+        assert test_cases.count == 1
+
+        # set again (замена)
+        test_cases.set_test_cases({
+            3: TestCase(input="3", output="3")
+        })
+        assert test_cases.count == 1
+        assert test_cases.get_case(3) is not None
+        assert test_cases.get_case(2) is None  # старые удалены
+
+    # ===== ТЕСТЫ НА ВЗАИМОДЕЙСТВИЕ МЕТОДОВ =====
+
+    def test_set_then_delete(self):
+        """set_test_cases затем delete_test_cases"""
+        test_cases = TestCases()
+
+        test_cases.set_test_cases({
+            1: TestCase(input="a", output="a"),
+            2: TestCase(input="b", output="b"),
+            3: TestCase(input="c", output="c")
+        })
+        assert test_cases.count == 3
+
+        test_cases.delete_test_cases([1, 3])
+        assert test_cases.count == 1
+        assert test_cases.get_case(2).input == "b"
+
+    def test_from_dict_then_set(self):
+        """from_dict затем set_test_cases"""
+        test_cases = TestCases.from_dict({
+            1: {"input": "old", "output": "old"}
+        })
+        assert test_cases.count == 1
+
+        test_cases.set_test_cases({
+            2: TestCase(input="new", output="new")
+        })
+        assert test_cases.count == 1
+        assert test_cases.get_case(2).input == "new"
+        assert test_cases.get_case(1) is None
+
+    def test_as_dict_after_set(self):
+        """as_dict после set_test_cases"""
+        test_cases = TestCases()
+        test_cases.set_test_cases({
+            1: TestCase(input="x", output="y")
         })
 
+        assert test_cases.as_dict() == {
+            1: {"input": "x", "output": "y"}
+        }
 
-def test_testcases_duplicate_input_output_pairs_removed():
-    """Test exact duplicate test cases are removed"""
-    tc1 = TestCase(input="1+1", output="2")
-    tc2 = TestCase(input="1+1", output="2")  # Exact duplicate
-    tc3 = TestCase(input="2+2", output="4")
+    # ===== ТЕСТЫ ГРАНИЧНЫХ СЛУЧАЕВ =====
 
-    tcs = TestCases(_data={1: tc1, 2: tc2, 3: tc3})
+    def test_large_numbers_as_keys(self):
+        """Большие числа в качестве ключей"""
+        data = {
+            999999: TestCase(input="big", output="number"),
+            1000000: TestCase(input="very big", output="very number")
+        }
+        test_cases = TestCases(_data=data)
 
-    # tc2 should be silently removed
-    assert tcs.count == 2
-    assert 1 in tcs._data
-    assert 2 not in tcs._data  # Removed
-    assert 3 in tcs._data
+        assert test_cases.count == 2
+        assert test_cases.get_case(999999).input == "big"
+        assert test_cases.get_case(1000000).output == "very number"
 
+    def test_special_characters_in_input(self):
+        """Спецсимволы в input/output"""
+        data = {
+            1: TestCase(input="!@#$%^&*()", output="\\n\\t\\r"),
+            2: TestCase(input="你好世界", output="안녕하세요"),
+            3: TestCase(input="\n\t\r", output="   ")
+        }
+        test_cases = TestCases(_data=data)
 
-def test_testcases_as_dict():
-    """Test converting TestCases to dictionary"""
-    tc1 = TestCase(input="test1", output="result1")
-    tc2 = TestCase(input="test2", output="result2")
+        assert test_cases.count == 3
+        assert test_cases.get_case(1).input == "!@#$%^&*()"
+        assert test_cases.get_case(1).output == "\\n\\t\\r"
+        assert test_cases.get_case(2).input == "你好世界"
+        assert test_cases.get_case(3).input == "\n\t\r"
 
-    tcs = TestCases(_data={1: tc1, 2: tc2})
-    result = tcs.as_dict()
+    def test_empty_strings(self):
+        """Пустые строки в input/output"""
+        data = {
+            1: TestCase(input="", output=""),
+            2: TestCase(input=" ", output=" ")
+        }
+        test_cases = TestCases(_data=data)
 
-    assert result == {
-        1: {"input": "test1", "output": "result1"},
-        2: {"input": "test2", "output": "result2"}
-    }
+        assert test_cases.count == 2
+        assert test_cases.get_case(1).input == ""
+        assert test_cases.get_case(1).output == ""
+        assert test_cases.get_case(2).input == " "
+        assert test_cases.get_case(2).output == " "
 
-    # Empty collection
-    empty_tcs = TestCases()
-    assert empty_tcs.as_dict() == {}
+    def test_very_long_strings(self):
+        """Очень длинные строки"""
+        long_input = "a" * 10000
+        long_output = "b" * 10000
 
+        data = {1: TestCase(input=long_input, output=long_output)}
+        test_cases = TestCases(_data=data)
 
-def test_testcases_from_dict_with_missing_output():
-    """Test from_dict handles missing output (uses default)"""
-    data = {
-        1: {"input": "1+1", "output": "2"},
-        2: {"input": "2+2", "output": "4"},
-        3: {"input": "print('hi')"}  # Missing output, should use default ""
-    }
+        assert test_cases.count == 1
+        assert len(test_cases.get_case(1).input) == 10000
+        assert len(test_cases.get_case(1).output) == 10000
 
-    # Это ДОЛЖНО РАБОТАТЬ!
-    tcs = TestCases.from_dict(data)
+    def test_max_int_key(self):
+        """Максимальное значение int как ключ"""
+        max_int = 2**31 - 1
+        data = {max_int: TestCase(input="max", output="int")}
 
-    assert tcs.count == 3
-    assert tcs.get_case(3).input == "print('hi')"
-    assert tcs.get_case(3).output == ""  # Default value
+        test_cases = TestCases(_data=data)
 
+        assert test_cases.count == 1
+        assert test_cases.get_case(max_int).input == "max"
 
-def test_testcases_from_dict_valid():
-    """Test from_dict with valid complete data"""
-    data = {
-        1: {"input": "1+1", "output": "2"},
-        2: {"input": "2+2", "output": "4"}
-    }
+    # ===== ТЕСТЫ ИНТЕГРАЦИОННЫЕ =====
 
-    tcs = TestCases.from_dict(data)
+    def test_complete_workflow(self):
+        """Полный рабочий процесс"""
+        # 1. Создание пустого
+        test_cases = TestCases()
+        assert test_cases.count == 0
 
-    assert tcs.count == 2
-    assert tcs.get_case(1).input == "1+1"
-    assert tcs.get_case(1).output == "2"
-    assert tcs.get_case(2).input == "2+2"
-    assert tcs.get_case(2).output == "4"
-
-
-def test_testcases_update_test_cases():
-    """Test updating test cases"""
-    tcs = TestCases()
-
-    tc1 = TestCase(input="1", output="1")
-    tc2 = TestCase(input="2", output="2")
-
-    tcs.update_test_cases({1: tc1, 2: tc2})
-
-    assert tcs.count == 2
-    assert tcs.get_case(1) == tc1
-    assert tcs.get_case(2) == tc2
-
-    # Update existing and add new
-    tc3 = TestCase(input="3", output="3")
-    tc1_updated = TestCase(input="1_updated", output="1")
-
-    tcs.update_test_cases({1: tc1_updated, 3: tc3})
-
-    assert tcs.count == 3
-    assert tcs.get_case(1).input == "1_updated"  # Updated
-    assert tcs.get_case(2).input == "2"  # Unchanged
-    assert tcs.get_case(3).input == "3"  # New
-
-
-def test_testcases_update_with_duplicates_fails():
-    """Test update fails when introducing duplicate inputs"""
-    tc1 = TestCase(input="unique", output="1")
-    tcs = TestCases(_data={1: tc1})
-
-    # Try to add test case with same input as existing
-    tc2 = TestCase(input="unique", output="2")
-
-    with pytest.raises(DuplicateTestCaseInput):
-        tcs.update_test_cases({2: tc2})
-
-
-def test_testcases_update_removes_exact_duplicates():
-    """Test update silently removes exact duplicates"""
-    tc1 = TestCase(input="test", output="result")
-    tcs = TestCases(_data={1: tc1})
-
-    # Exact same test case
-    tc2 = TestCase(input="test", output="result")
-
-    # Should not raise, should silently ignore duplicate
-    tcs.update_test_cases({2: tc2})
-    assert tcs.count == 1
-    assert tcs.get_case(1) == tc1
-
-    # The duplicate might be removed or not added
-    # Current implementation would remove it in _validate_io_duplicates
-
-
-def test_testcases_delete_test_cases():
-    """Test deleting test cases"""
-    tc1 = TestCase(input="1", output="1")
-    tc2 = TestCase(input="2", output="2")
-    tc3 = TestCase(input="3", output="3")
-
-    tcs = TestCases(_data={1: tc1, 2: tc2, 3: tc3})
-
-    # Delete single
-    tcs.delete_test_cases([2])
-
-    assert tcs.count == 2
-    assert tcs.get_case(1) == tc1
-    assert tcs.get_case(2) is None
-    assert tcs.get_case(3) == tc3
-
-    # Delete multiple
-    tcs.delete_test_cases([1, 3])
-
-    assert tcs.count == 0
-    assert list(tcs) == []
-
-
-def test_testcases_delete_nonexistent():
-    """Test deleting non-existent test cases"""
-    tc1 = TestCase(input="test", output="result")
-    tcs = TestCases(_data={1: tc1})
-
-    # Should not raise when deleting non-existent
-    tcs.delete_test_cases([999, 1000])
-
-    assert tcs.count == 1
-    assert tcs.get_case(1) == tc1
-
-
-def test_testcases_iteration():
-    """Test iteration over TestCases"""
-    tc1 = TestCase(input="1", output="1")
-    tc2 = TestCase(input="2", output="2")
-    tc3 = TestCase(input="3", output="3")
-
-    tcs = TestCases(_data={1: tc1, 2: tc2, 3: tc3})
-
-    # Test iteration
-    items = list(tcs)
-    assert len(items) == 3
-    assert items[0] == (1, tc1)
-    assert items[1] == (2, tc2)
-    assert items[2] == (3, tc3)
-
-    # Test iteration order (should match insertion order in Python 3.7+)
-    tcs2 = TestCases(_data={3: tc3, 1: tc1, 2: tc2})
-    order = [num for num, _ in tcs2]
-    assert order == [3, 1, 2]
-
-
-def test_testcases_count_property():
-    """Test count property updates correctly"""
-    tcs = TestCases()
-    assert tcs.count == 0
-
-    tc1 = TestCase(input="1", output="1")
-    tcs.update_test_cases({1: tc1})
-    assert tcs.count == 1
-
-    tc2 = TestCase(input="2", output="2")
-    tcs.update_test_cases({2: tc2})
-    assert tcs.count == 2
-
-    tcs.delete_test_cases([1])
-    assert tcs.count == 1
-
-    tcs.delete_test_cases([2])
-    assert tcs.count == 0
-
-# ===================== Edge Cases =====================
-
-
-def test_testcases_with_empty_inputs():
-    """Test handling of empty input strings"""
-    # Multiple empty inputs should be considered duplicates
-    with pytest.raises(DuplicateTestCaseInput):
-        TestCases(_data={
-            1: TestCase(input="", output="result1"),
-            2: TestCase(input="", output="result2")  # Same empty input
+        # 2. Установка данных
+        test_cases.set_test_cases({
+            1: TestCase(input="1 2", output="3"),
+            2: TestCase(input="4 5", output="9"),
+            3: TestCase(input="7 8", output="15")
         })
+        assert test_cases.count == 3
 
+        # 3. Получение конкретного
+        case = test_cases.get_case(2)
+        assert case is not None
+        assert case.input == "4 5"
 
-def test_testcases_with_special_characters():
-    """Test with special/unicode characters"""
-    special = TestCase(input="print('café')", output="café")
-    emoji = TestCase(input="print('🎉')", output="🎉")
+        # 4. Удаление одного
+        test_cases.delete_test_cases([1])
+        assert test_cases.count == 2
+        assert test_cases.get_case(1) is None
 
-    tcs = TestCases(_data={1: special, 2: emoji})
+        # 5. Конвертация в dict
+        as_dict = test_cases.as_dict()
+        assert as_dict == {
+            2: {"input": "4 5", "output": "9"},
+            3: {"input": "7 8", "output": "15"}
+        }
 
-    assert tcs.get_case(1).input == "print('café')"
-    assert tcs.get_case(2).output == "🎉"
+        # 6. Создание нового из dict
+        new_test_cases = TestCases.from_dict(as_dict)
+        assert new_test_cases.count == 2
+        assert new_test_cases.get_case(2).input == "4 5"
 
-    # Roundtrip through dict
-    as_dict = tcs.as_dict()
-    assert as_dict[1]["input"] == "print('café')"
-    assert as_dict[2]["output"] == "🎉"
+        # 7. Полная замена данных
+        new_test_cases.set_test_cases({
+            10: TestCase(input="new", output="new")
+        })
+        assert new_test_cases.count == 1
+        assert new_test_cases.get_case(10).input == "new"
+        assert new_test_cases.get_case(2) is None
 
+    def test_duplicate_handling_through_operations(self):
+        """Обработка дубликатов через разные операции"""
+        test_cases = TestCases()
 
-def test_testcases_negative_and_zero_keys():
-    """Test with non-positive integer keys"""
-    tc = TestCase(input="test", output="result")
+        # Первая установка - ок
+        test_cases.set_test_cases({
+            1: TestCase(input="same", output="1"),
+            2: TestCase(input="different", output="2")
+        })
+        assert test_cases.count == 2
 
-    # Negative key
-    with pytest.raises(ValidationTestCaseError):
-        tcs1 = TestCases(_data={-1: tc})
+        # Попытка установить с дубликатом input но разным output
+        with pytest.raises(DuplicateTestCaseInput):
+            test_cases.set_test_cases({
+                3: TestCase(input="same", output="3"),  # конфликт с existing
+                4: TestCase(input="same", output="4")
+            })
 
-    # Zero key
-    with pytest.raises(ValidationTestCaseError):
-        tcs2 = TestCases(_data={0: tc})
-
-    # Mixed
-    tc2 = TestCase(input="test2", output="result2")
-    with pytest.raises(ValidationTestCaseError):
-        tcs3 = TestCases(_data={-10: tc, 0: tc2, 10: TestCase(input="3", output="3")})
-
-
-def test_testcases_large_number_of_cases():
-    """Test with many test cases"""
-    # Create 1000 test cases
-    data = {
-        i: TestCase(input=f"input_{i}", output=f"output_{i}")
-        for i in range(1, 1000)
-    }
-
-    tcs = TestCases(_data=data)
-
-    assert tcs.count == 999
-
-    # Verify random samples
-    assert tcs.get_case(0) == None
-    assert tcs.get_case(500).input == "input_500"
-    assert tcs.get_case(999).input == "input_999"
-
-
-def test_testcases_string_keys_in_dict():
-    """Test behavior with string keys (type hint violation)"""
-    # Type hints say keys should be int, but Python doesn't enforce
-    data = {
-        "1": {"input": "test1", "output": "result1"},  # string key
-        "2": {"input": "test2", "output": "result2"}
-    }
-
-    with pytest.raises(ValidationTestCaseError):
-        tcs = TestCases.from_dict(data)  # type: ignore
-
-
-# ===================== Error Scenarios =====================
-
-
-def test_testcases_atomicity_of_update():
-    """Test that failed update doesn't partially modify data"""
-    tc1 = TestCase(input="original", output="1")
-    tcs = TestCases(_data={1: tc1})
-
-    # Try to update with valid and invalid data
-    tc2 = TestCase(input="new", output="2")
-    tc3 = TestCase(input="original", output="different")  # Will cause duplicate error
-
-    try:
-        tcs.update_test_cases({2: tc2, 3: tc3})
-    except DuplicateTestCaseInput:
-        pass
-
-    # Original data should be unchanged
-    assert tcs.count == 1
-    assert tcs.get_case(1) == tc1
-    assert tcs.get_case(2) is None  # Should not have been added
-    assert tcs.get_case(3) is None
-
-
-def test_testcases_modify_case_after_adding():
-    """Test that modifying a TestCase affects the collection"""
-    tc = TestCase(input="original", output="result")
-    tcs = TestCases(_data={1: tc})
-
-    # Modify the TestCase object directly
-    tc.input = "modified"
-
-    # The change is reflected in the collection
-    assert tcs.get_case(1).input == "modified"
-
-    # This shows TestCases holds references, not copies
-    # This might be desired or not depending on use case
-
-
-def test_testcases_shared_references():
-    """Test that TestCases can share TestCase objects"""
-    tc = TestCase(input="shared", output="result")
-
-    # Same object in multiple slots
-    tcs = TestCases(_data={1: tc, 2: tc})
-
-    assert tcs.count == 1  # Duplicate removed!
-    # Because _validate_io_duplicates removes exact duplicates
-
-    # Or if not removed, they're the same object
-    if 2 in tcs._data:
-        assert tcs.get_case(1) is tcs.get_case(2)  # Same object
-
-# ===================== Property-based Style Tests =====================
-
-
-def test_testcases_roundtrip_consistency():
-    """Test that to_dict and from_dict are inverses"""
-    original = TestCases(_data={
-        1: TestCase(input="a = 1", output=""),
-        2: TestCase(input="print(a)", output="1"),
-        3: TestCase(input="", output="empty")
-    })
-
-    # Convert to dict and back
-    as_dict = original.as_dict()
-    reconstructed = TestCases.from_dict(as_dict)
-
-    # Should have same data
-    assert reconstructed.count == original.count
-
-    for num, case in original:
-        recon_case = reconstructed.get_case(num)
-        assert recon_case is not None
-        assert recon_case.input == case.input
-        assert recon_case.output == case.output
-
-    # Dict representation should match
-    assert reconstructed.as_dict() == as_dict
-
-
-def test_testcases_idempotent_updates():
-    """Test that updating with same data doesn't change anything"""
-    tc1 = TestCase(input="test1", output="result1")
-    tc2 = TestCase(input="test2", output="result2")
-
-    tcs = TestCases(_data={1: tc1, 2: tc2})
-
-    original_data = tcs._data.copy()
-
-    # Update with same data
-    tcs.update_test_cases({1: tc1, 2: tc2})
-
-    # Should be unchanged
-    assert tcs._data == original_data
-
-    # Update with exact duplicates
-    tc1_dup = TestCase(input="test1", output="result1")
-    tcs.update_test_cases({1: tc1_dup})
-
-    # Might be different object but same value
-    assert tcs.get_case(1).input == "test1"
-    assert tcs.get_case(1).output == "result1"
+        # Данные не изменились
+        assert test_cases.count == 2
+        assert test_cases.get_case(1).output == "1"

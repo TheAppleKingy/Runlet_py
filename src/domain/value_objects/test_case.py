@@ -78,7 +78,7 @@ class TestCases:
                 for num, case_data in test_cases_data.items()}
         return cls(_data=data)
 
-    def update_test_cases(self, cases_data: TestCasesDataType):
+    def set_test_cases(self, cases_data: TestCasesDataType):
         deduplicated_io = self._get_validated_test_cases(cases_data)
         self._data = deduplicated_io
 

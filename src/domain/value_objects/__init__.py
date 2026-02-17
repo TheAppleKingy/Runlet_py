@@ -1,5 +1,5 @@
 from .test_case import TestCase, TestCases
-from .ints import (
+from ..interfaces.types import (
     AuthenticatedNotStrictlyUserId,
     AuthenticatedStudentId,
     AuthenticatedTeacherId,
