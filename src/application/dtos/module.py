@@ -4,12 +4,16 @@ from pydantic import BaseModel
 from .problem import ProblemG1, ProblemG2
 
 
-class ModuleG1(BaseModel):
+class OrderedModuleDTO(BaseModel):
+    order: int
+
+
+class ModuleG1(OrderedModuleDTO):
     name: str
     problems: list[ProblemG1]
 
 
-class ModuleG2(BaseModel):
+class ModuleG2(OrderedModuleDTO):
     id: int
     name: str
     problems: list[ProblemG2]

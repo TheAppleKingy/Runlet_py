@@ -148,7 +148,7 @@ class SubscribeOnCourse:
     async def execute(self, user_id: int, course_id: int):
         async with self._uow:
             # only authorized users be able to subscribe on course therefore, don't need to check whether user exists or not.
-            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students])
+            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
             if not course:
                 raise UndefinedCourseError("Course does not exist")
             if course.is_private:
