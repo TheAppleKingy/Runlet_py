@@ -14,7 +14,7 @@ def student_problems_info(attempts: list[Attempt], modules: list[Module]):
         presented = module_map[attempt.problem.module_id]
         presented.problems.append(ProblemWithRateInfoDTO(id=attempt.problem_id,
                                   name=attempt.problem.name, tests_passed=attempt.tests_passed, confirmed_passed=attempt.confirmed_passed))
-    return list(module_map.values())
+    return sorted(list(module_map.values()), key=lambda m: m.order)
 
 
 def show_tags_students_with_seen_info(course: Course, students_seens: list[tuple[User, bool | None]]):

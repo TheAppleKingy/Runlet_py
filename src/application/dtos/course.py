@@ -1,9 +1,9 @@
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
 from src.domain.entities import DefaultTagType
-from .module import ModuleG1, ModuleG2
+from .module import ModuleG1, ModuleG2, OrderedModuleDTO
 from .tag import TagG2
 from .user import UserG1
 
@@ -19,7 +19,16 @@ class CourseG2(BaseModel):
     description: str
 
 
-class CourseG3(BaseModel):
+class _ContainsOrderedModulesDTO(BaseModel):
+    modules: list[OrderedModuleDTO] = Field(default_factory=list)
+
+    @field_validator("modules", mode="after")
+    @classmethod
+    def validate_modules(cls, modules: list[OrderedModuleDTO]):
+        return sorted(modules, key=lambda m: m.order)
+
+
+class CourseG3(_ContainsOrderedModulesDTO):
     id: int
     name: str
     modules: list[ModuleG1]
@@ -43,7 +52,7 @@ class CourseG5(BaseModel):
     total: int
 
 
-class CourseG6(BaseModel):
+class CourseG6(_ContainsOrderedModulesDTO):
     id: int
     name: str
     modules: list[ModuleG2]
