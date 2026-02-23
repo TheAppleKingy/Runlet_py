@@ -10,6 +10,7 @@ class UserG1(BaseModel):
 
 
 class UserG2(BaseModel):
+    id: int
     name: str
     email: str
 

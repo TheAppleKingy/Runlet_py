@@ -47,15 +47,17 @@ class ProblemG3(_ContainsExampleModel, _ContainsTestCasesModel):
     id: int
     name: str
     module_id: int
-    description: Optional[str] = Field(max_length=1024, default=None)
+    description: Optional[str] = None
     auto_pass: bool
     show_test_cases: bool
 
 
-class CreateUpdateProblemDTO(_ContainsExampleModel, _ContainsTestCasesModel):
+class CreateUpdateProblemDTO(BaseModel):
     id: Optional[int] = None
     name: str = Field(max_length=100)
     module_id: int
     description: Optional[str] = Field(max_length=1024, default=None)
     auto_pass: bool
     show_test_cases: bool
+    test_cases: list[TestCaseDTO] = Field(default_factory=list)
+    examples: list[ExampleCaseDTO] = Field(default_factory=list)

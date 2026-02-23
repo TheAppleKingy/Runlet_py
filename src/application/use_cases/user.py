@@ -48,6 +48,21 @@ class ShowMain:
         return as_teacher, as_student, paginated
 
 
+class ShowMyProfile:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        user_repo: UserRepositoryInterface
+    ):
+        self._uow = uow
+        self._user_repo = user_repo
+
+    async def execute(self, user_id: int):
+        async with self._uow:
+            user = await self._user_repo.get_by_id(user_id)
+        return user
+
+
 class ShowCourse:
     def __init__(
         self,

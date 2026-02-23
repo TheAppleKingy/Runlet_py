@@ -25,7 +25,8 @@ from src.infrastructure.services import *  # noqa: F403
 from src.infrastructure.configs import (
     DBConfig,
     EmailConfig,
-    AppConfig
+    AppConfig,
+    RabbitMQConfig
 )
 from src.infrastructure.repositories import *  # noqa: F403
 from src.infrastructure.uow import AlchemyUoW
@@ -37,16 +38,16 @@ from src.domain.value_objects import (
 )
 
 
-# _consumer_factory = RabbitConsumerFactory(rabbit_conf.conn_url())
-# consumer_registry = MessageConsumerRegistry(callback_registry, _consumer_factory)
-
-
 class DBProvider(Provider):
     scope = Scope.APP
 
     @provide
     def get_db_conf(self) -> DBConfig:
         return DBConfig()  # type: ignore
+
+    @provide
+    def rabbit_conf(self) -> RabbitMQConfig:
+        return RabbitMQConfig()
 
     @provide
     def get_engine(self, config: DBConfig) -> AsyncEngine:
@@ -206,7 +207,8 @@ use_case_provider.provide_all(
     ShowProblemStudents,
     ShowTagsToUpdate,
     ShowProblemDataToUpdate,
-    SearchStudents
+    SearchStudents,
+    ShowMyProfile
 )
 
 

@@ -7,14 +7,19 @@ from src.application.use_cases.user import (
     CreateCourse,
     RequestSubscribeOnCourse,
     SubscribeOnCourseByLink,
-    SubscribeOnCourse
+    SubscribeOnCourse,
+    ShowMyProfile
 )
-from src.domain.value_objects import AuthenticatedUserId, AuthenticatedNotStrictlyUserId
+from src.domain.interfaces.types import (
+    AuthenticatedUserId,
+    AuthenticatedNotStrictlyUserId
+)
 from src.application.dtos.main import MainDTO
 from src.application.dtos.course import (
     CourseG2,
     CourseCreateDTO
 )
+from src.application.dtos.user import UserG2
 
 user_router = APIRouter(prefix="/me", route_class=DishkaRoute)
 
@@ -37,6 +42,14 @@ async def get_main(
             "total": data[2][3] if data[2] else 0
         }
     }
+
+
+@user_router.get("/profile")
+async def get_my_profile(
+    user_id: FromDishka[AuthenticatedUserId],
+    use_case: FromDishka[ShowMyProfile],
+) -> UserG2:
+    return await use_case.execute(user_id)
 
 
 @user_router.get("/course/{course_id}")

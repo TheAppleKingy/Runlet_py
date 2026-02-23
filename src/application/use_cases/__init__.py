@@ -36,7 +36,8 @@ from .user import (
     CreateCourse,
     RequestSubscribeOnCourse,
     SubscribeOnCourse,
-    SubscribeOnCourseByLink
+    SubscribeOnCourseByLink,
+    ShowMyProfile
 )
 
 
@@ -72,5 +73,6 @@ __all__ = [
     "RequestSubscribeOnCourse",
     "SubscribeOnCourse",
     "SubscribeOnCourseByLink",
-    "SearchStudents"
+    "SearchStudents",
+    "ShowMyProfile"
 ]
