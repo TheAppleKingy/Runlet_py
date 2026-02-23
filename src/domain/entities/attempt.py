@@ -22,6 +22,7 @@ class Attempt:
     test_cases: TestCases = field(default_factory=TestCases)
     confirmed_passed: bool = field(default=False, init=False)
     seen: bool = field(default=False, init=False)
+    pending: bool = field(default=False, init=False)
 
     def check_tests(self):
         """

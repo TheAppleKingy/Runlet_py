@@ -63,4 +63,6 @@ networks:
 
 volumes:
   runlet_rabbitmq_data:
+    name: runlet_rabbitmq_data
   runlet_postgres_data:
+    name: runlet_postgres_data

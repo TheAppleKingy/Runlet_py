@@ -21,7 +21,10 @@ from src.application.dtos.teacher import (
     ManageTagsDTO
 )
 from src.application.dtos.user import UserG1
-from src.application.dtos.problem import CreateUpdateProblemDTO
+from src.application.dtos.problem import (
+    CreateUpdateProblemDTO,
+    ProblemG3
+)
 from src.application.dtos.tag import TagG3
 from src.application.use_cases import (
     ShowTeacherCourseModulesToRateStudents,
@@ -158,7 +161,7 @@ async def get_problem_data_to_update(
     problem_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
     use_case: FromDishka[ShowProblemDataToUpdate]
-):
+) -> ProblemG3:
     return await use_case.execute(course_id, module_id, problem_id)
 
 

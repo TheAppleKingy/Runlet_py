@@ -2,6 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, APIRouter, Request
 from fastapi.responses import JSONResponse
+from ploomby.registry import MessageConsumerRegistry
+from ploomby.rabbit import RabbitConsumerFactory
 from dishka.integrations.fastapi import setup_dishka
 from sqlalchemy.orm import registry, relationship, column_property
 
@@ -16,12 +18,14 @@ from src.infrastructure.db.tables import (
     users_courses
 )
 from src.domain.exc import HandlingError
+from src.infrastructure.configs import RabbitMQConfig
 from src.interfaces.controllers.http import (
     user_router,
     student_router,
     teacher_router,
     auth_router
 )
+from src.interfaces.controllers.broker.handle_test_result import reg
 from src.domain.entities import (
     Problem,
     Attempt,
@@ -60,7 +64,10 @@ def map_tables():
 async def lifespan_handler(app: FastAPI):
     map_tables()
     setup_routers(app)
-    # await consumer_registry.register("callback", "task_name")
+    rabbit_conf = await container.get(RabbitMQConfig)
+    factory = RabbitConsumerFactory(rabbit_conf.conn_url)
+    consumer_registry = MessageConsumerRegistry(reg, factory)
+    await consumer_registry.register(rabbit_conf.incoming_data_queue, "task_name")
     logger.info("App is ready. Starting...")
     yield
     await container.close()

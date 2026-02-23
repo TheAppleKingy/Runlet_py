@@ -4,6 +4,7 @@ from sqlalchemy import (
     String,
     Boolean,
     ForeignKey,
+    Index
 )
 from sqlalchemy_utils import EmailType  # type: ignore
 
@@ -16,6 +17,12 @@ users = Table(
     Column('password', String(255), nullable=False),
     Column('name', String(100), nullable=True),
     Column('is_active', Boolean, default=False, nullable=False),
+    Index(
+        'idx_users_name_trgm',
+        'name',
+        postgresql_using='gin',
+        postgresql_ops={'name': 'gin_trgm_ops'}
+    )
 )
 
 tags = Table(
@@ -30,5 +37,6 @@ users_tags = Table(
     Column('user_id', ForeignKey('users.id', ondelete="CASCADE"),
            nullable=False, primary_key=True),
     Column('tag_id', ForeignKey("tags.id", ondelete="CASCADE"),
-           nullable=False, primary_key=True)
+           nullable=False, primary_key=True),
+    Index("users_tags_pkey_reverse", "tag_id", "user_id")
 )
