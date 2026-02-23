@@ -12,6 +12,8 @@ from .auth import (
 from .student import (
     ShowStudentCourses,
     ShowStudentCourse,
+    ShowProblemToSolve,
+    SendProblemSolution
 )
 from .teacher import (
     ShowTeacherCourseTagsToRateStudents,
@@ -28,7 +30,8 @@ from .teacher import (
     ShowProblemStudents,
     ShowTagsToUpdate,
     ShowProblemDataToUpdate,
-    SearchStudents
+    SearchStudents,
+    ShowStudentProblemInfoToRate
 )
 from .user import (
     ShowCourse,
@@ -39,6 +42,7 @@ from .user import (
     SubscribeOnCourseByLink,
     ShowMyProfile
 )
+from .callback import HandleTestResultUseCase
 
 
 __all__ = [
@@ -74,5 +78,9 @@ __all__ = [
     "SubscribeOnCourse",
     "SubscribeOnCourseByLink",
     "SearchStudents",
-    "ShowMyProfile"
+    "ShowMyProfile",
+    "ShowProblemToSolve",
+    "ShowStudentProblemInfoToRate",
+    "SendProblemSolution",
+    "HandleTestResultUseCase"
 ]

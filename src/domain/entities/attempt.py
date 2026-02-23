@@ -5,9 +5,8 @@ from .problem import Problem
 
 from ..value_objects import TestCases
 from .exceptions import (
-    MismatchTestNumsError,
-    MismatchTestsCountError,
-    MismatchTestOutputsError,
+    AttemptAlreadyInProcessError,
+    AlreadyPassedError,
 )
 
 
@@ -15,8 +14,9 @@ from .exceptions import (
 class Attempt:
     user_id: int
     problem_id: int
+    code: str
     problem: Problem = field(default=None, init=False)  # type: ignore
-    amount: int = field(default=0, init=False)
+    amount: int = field(default_factory=lambda: 0, init=False)
     tests_passed: bool = field(default=False, init=False)
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), init=False)
     test_cases: TestCases = field(default_factory=TestCases)
@@ -24,15 +24,16 @@ class Attempt:
     seen: bool = field(default=False, init=False)
     pending: bool = field(default=False, init=False)
 
-    def check_tests(self):
+    def stop(self, result_test_cases: TestCases):
         """
-        Mark attempt as passed comparing test cases got in last attempt with excpected values of cases outputs 
+        Compares test cases got in last attempt with excpected values of cases outputs.
+        Updates data of  attempt instance
 
-        :param expected_cases: set of test cases that with correct outputs(problem.test_cases)
-        :type expected_cases: TestCases
+        :param result_test_cases: result of last code running
+        :type result_test_cases: TestCases
         """
-        if self.problem.test_cases.count != self.test_cases.count:
-            raise MismatchTestsCountError("Count of provided results mismatch with specified cases")
+        self.test_cases = result_test_cases
+        count_matches = self.problem.test_cases.count == self.test_cases.count
         mismatching_outputs = []
         mismatchng_nums = []
         for num, case in self.test_cases:
@@ -42,11 +43,21 @@ class Attempt:
                 continue
             if matching_result.output != case.output:
                 mismatching_outputs.append(num)
-        if mismatching_outputs:
-            raise MismatchTestOutputsError(f"Result of tests {mismatching_outputs} are incorrect")
-        if mismatchng_nums:
-            raise MismatchTestNumsError(
-                f"Provided results dont contain tests {mismatchng_nums}")
-        self.tests_passed = True
-        if self.problem.auto_pass:
-            self.confirmed_passed = True
+        if (mismatching_outputs or mismatchng_nums) or not count_matches:
+            self.tests_passed = False
+        else:
+            self.tests_passed = True
+            if self.problem.auto_pass:
+                self.confirmed_passed = True
+        self.pending = False
+        self.updated_at = datetime.now(timezone.utc)
+
+    def start(self):
+        if self.pending:
+            raise AttemptAlreadyInProcessError("Code is already testing now. Try later")
+        if self.confirmed_passed:
+            raise AlreadyPassedError("Attempt already confirmed by teacher")
+        self.updated_at = datetime.now(timezone.utc)
+        self.pending = True
+        self.amount += 1
+        self.seen = False

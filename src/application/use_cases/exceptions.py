@@ -45,6 +45,10 @@ class undefinedStudentError(ApplicationError):
     pass
 
 
+class UndefinedAttemptError(ApplicationError):
+    pass
+
+
 class HasNoAccessError(ApplicationError):
     pass
 

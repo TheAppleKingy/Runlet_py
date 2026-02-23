@@ -92,9 +92,8 @@ class AuthenticateUserAsStudent:
         async with self._uow:
             course = await self._course_repo.get_by_id(course_id)
             if not course:
-                raise UndefinedCourseError("Course does not exist")
-            subscribed = await self._course_repo.check_user_in_course(user_id, course_id)
-            if not subscribed:
+                raise UndefinedCourseError("Course does not exist", status=404)
+            if not await self._course_repo.check_user_in_course(user_id, course_id):
                 raise HasNoAccessError("User not subscribed on course", status=403)
         return user_id
 

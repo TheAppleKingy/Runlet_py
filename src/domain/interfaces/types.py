@@ -1,4 +1,4 @@
-from typing import Optional, NewType, TypeVar, Protocol
+from typing import Optional, NewType, TypeVar, Protocol, Literal
 
 
 AuthenticatedUserId = NewType("AuthenticatedUserId", int)
@@ -7,13 +7,18 @@ AuthenticatedTeacherId = NewType("AuthenticatedTeacherId", int)
 AuthenticatedNotStrictlyUserId = Optional[AuthenticatedUserId]
 
 
-class HasId(Protocol):
-    id: int
-
-
 class HasNameType(Protocol):
     name: str
 
 
 Named = TypeVar("Named", bound=HasNameType)
-DomainEnt = TypeVar("DomainEnt", bound=HasId)
+DomainEnt = TypeVar("DomainEnt")
+
+
+CodeName = Literal[
+    "py",
+    "go",
+    "js",
+    "cpp",
+    "cs"
+]

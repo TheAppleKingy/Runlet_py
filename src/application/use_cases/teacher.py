@@ -35,7 +35,8 @@ from src.application.use_cases.exceptions import (
     undefinedStudentError,
     UndefinedModuleError,
     UndefinedProblemError,
-    UndefinedTagError
+    UndefinedTagError,
+    UndefinedAttemptError
 )
 from src.application.dtos.teacher import (
     GenLinkDTO,
@@ -306,14 +307,18 @@ class ShowStudentProblems:
         self,
         uow: UoWInterface,
         attempt_repo: AttemptRepositoryInterface,
-        module_repo: ModuleRepositoryInterface
+        module_repo: ModuleRepositoryInterface,
+        course_repo: CourseRepositoryInterface
     ):
         self._uow = uow
         self._attempt_repo = attempt_repo
         self._module_repo = module_repo
+        self._course_repo = course_repo
 
     async def execute(self, course_id: int, student_id: int) -> tuple[list[Attempt], list[Module]]:
         async with self._uow:
+            if not await self._course_repo.check_user_in_course(student_id, course_id):
+                raise undefinedStudentError("Student is not subscribed on course")
             attempts = await self._attempt_repo.get_student_attempts(course_id, student_id)
             modules_ids = [attempt.problem.module_id for attempt in attempts]
             modules = await self._module_repo.get_by_ids(modules_ids)
@@ -348,10 +353,10 @@ class ShowProblemDataToUpdate(_CourseRepoRelatedUseCase):
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
             module = course.get_module_by_id(module_id)  # type: ignore[union-attr]
             if not module:
-                raise UndefinedModuleError("Module does not exist", status=404)
+                raise UndefinedModuleError("Module does not exist or not related to course", status=404)
             problem = module.get_problem_by_id(problem_id)
             if not problem:
-                raise UndefinedProblemError("Problem does not exist", status=404)
+                raise UndefinedProblemError("Problem does not exist or not related to module", status=404)
             return problem
 
 
@@ -374,3 +379,34 @@ class SearchStudents(_CourseRepoRelatedUseCase):
         async with self._uow:
             res = await self._user_repo.find_by_name(course_id, namelike, tag_id=tag_id)
         return res
+
+
+class ShowStudentProblemInfoToRate:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        attempt_repo: AttemptRepositoryInterface
+    ):
+        self._uow = uow
+        self._course_repo = course_repo
+        self._attempt_repo = attempt_repo
+
+    async def execute(  # type: ignore[return]
+        self,
+        course_id: int,
+        module_id: int,
+        problem_id: int,
+        student_id: int
+    ) -> Attempt:
+        async with self._uow:
+            if not await self._course_repo.check_user_in_course(student_id, course_id):
+                raise undefinedStudentError("User does not exist or not subscribed on course", status=404)
+            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
+            module = course.get_module_by_id(module_id)  # type: ignore[union-attr]
+            if not module:
+                raise UndefinedModuleError("Module does not exist or not related to course", status=404)
+            attempt = await self._attempt_repo.get_student_attempt(course_id, student_id, problem_id)
+            if not attempt:
+                raise UndefinedAttemptError("Problem does not exist or student did not try to solve", status=404)
+            return attempt

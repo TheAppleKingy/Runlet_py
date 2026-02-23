@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from sqlalchemy import (
     Table, Column,
     Integer, Boolean,
-    ForeignKey, CheckConstraint, DateTime
+    ForeignKey, CheckConstraint, DateTime, Text
 )
 
 from .base import metadata, TestCaseJSONBType
@@ -23,5 +23,6 @@ attempts = Table(
     Column("confirmed_passed", Boolean, nullable=False, default=False),
     Column("seen", Boolean, default=False, nullable=False),
     Column("pending", Boolean, default=False, nullable=False),
+    Column("code", Text, nullable=False, unique=False),
     CheckConstraint("amount >= 0", name="ck_attempts_amount_non_negative")
 )

@@ -1,10 +1,18 @@
-from src.domain.entities import Attempt, Module, Course, User
+from src.domain.entities import (
+    Attempt,
+    Module,
+    Course,
+    User,
+)
 
 from .dtos import (
     ProblemWithRateInfoDTO,
     ModuleWithRateInfoDTO,
     CourseWithStudentsSeensDTO,
-    UserWithSeenDTO, TagsStudentsWithSeenDTO
+    UserWithSeenDTO,
+    TagsStudentsWithSeenDTO,
+    TestCaseForStudentDTO,
+    ProblemInfoForStudentDTO
 )
 
 
@@ -27,3 +35,23 @@ def show_tags_students_with_seen_info(course: Course, students_seens: list[tuple
         ) for t in course.tags
     ]
     return CourseWithStudentsSeensDTO(id=course.id, name=course.name, tags=tags_dtos, students=students_dtos)
+
+
+def show_student_problem_to_rate(attempt: Attempt):
+    return ProblemInfoForStudentDTO(
+        problem_id=attempt.problem.id,
+        problem_description=attempt.problem.description,
+        problem_name=attempt.problem.name,
+        code=attempt.code,
+        test_cases=sorted(
+            [
+                TestCaseForStudentDTO(
+                    test_num=num,
+                    input=case.input,
+                    output=case.output,
+                    ok=case.output == attempt.problem.test_cases.get_case(num).output  # type: ignore[union-attr]
+                ) for num, case in attempt.test_cases
+            ],
+            key=lambda tc: tc.test_num
+        )
+    )

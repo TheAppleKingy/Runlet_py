@@ -41,7 +41,8 @@ from src.application.use_cases import (
     ShowProblemStudents,
     ShowTagsToUpdate,
     ShowProblemDataToUpdate,
-    SearchStudents
+    SearchStudents,
+    ShowStudentProblemInfoToRate
 )
 from src.domain.value_objects import AuthenticatedTeacherId
 from src.interfaces.presenters.http.dtos import (
@@ -51,8 +52,10 @@ from src.interfaces.presenters.http.dtos import (
 )
 from src.interfaces.presenters.http import (
     student_problems_info,
-    show_tags_students_with_seen_info
+    show_tags_students_with_seen_info,
+    show_student_problem_to_rate
 )
+from src.interfaces.presenters.http.dtos import ProblemInfoForStudentDTO
 
 teacher_router = APIRouter(prefix="/teaching", tags=["Manage teaching"], route_class=DishkaRoute)
 
@@ -162,7 +165,7 @@ async def get_problem_data_to_update(
     user_id: FromDishka[AuthenticatedTeacherId],
     use_case: FromDishka[ShowProblemDataToUpdate]
 ) -> ProblemG3:
-    return await use_case.execute(course_id, module_id, problem_id)
+    return await use_case.execute(course_id, module_id, problem_id)  # type: ignore[return-value]
 
 
 @teacher_router.delete("/course/{course_id}/problems")
@@ -226,3 +229,17 @@ async def search_students(
     q: str = Query(min_length=2)
 ) -> list[UserG1]:
     return await use_case.execute(course_id, q, tag_id=tag_id)  # type: ignore[return-value]
+
+
+@teacher_router.get("/course/{course_id}/modules/{module_id}/problems/{problem_id}/students/{student_id}")
+async def get_student_problem_info_to_rate(
+    course_id: int,
+    module_id: int,
+    problem_id: int,
+    student_id: int,
+    user_id: FromDishka[AuthenticatedTeacherId],
+    use_case: FromDishka[ShowStudentProblemInfoToRate]
+) -> ProblemInfoForStudentDTO:
+    return show_student_problem_to_rate(
+        await use_case.execute(course_id, module_id, problem_id, student_id)
+    )

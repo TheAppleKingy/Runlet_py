@@ -19,6 +19,7 @@ from dishka.integrations.fastapi import FastapiProvider
 from src.application.use_cases import *  # noqa: F403
 from src.application.interfaces.repositories import *  # noqa: F403
 from src.application.interfaces.uow import UoWInterface
+from src.application.interfaces.message_publisher import MessagePublisherInterface
 from src.application.interfaces.services import *  # noqa: F403
 from src.infrastructure.services.user import *  # noqa: F403
 from src.infrastructure.services import *  # noqa: F403
@@ -30,6 +31,7 @@ from src.infrastructure.configs import (
 )
 from src.infrastructure.repositories import *  # noqa: F403
 from src.infrastructure.uow import AlchemyUoW
+from src.infrastructure.broker import RabbitPublisher
 from src.domain.value_objects import (
     AuthenticatedUserId,
     AuthenticatedStudentId,
@@ -44,10 +46,6 @@ class DBProvider(Provider):
     @provide
     def get_db_conf(self) -> DBConfig:
         return DBConfig()  # type: ignore
-
-    @provide
-    def rabbit_conf(self) -> RabbitMQConfig:
-        return RabbitMQConfig()
 
     @provide
     def get_engine(self, config: DBConfig) -> AsyncEngine:
@@ -74,6 +72,18 @@ class DBProvider(Provider):
                 await session.close()
 
 
+class BrokerProvider(Provider):
+    scope = Scope.APP
+
+    @provide
+    def rabbit_conf(self) -> RabbitMQConfig:
+        return RabbitMQConfig()  # type: ignore[call-arg]
+
+    @provide
+    def publisher(self, conf: RabbitMQConfig) -> MessagePublisherInterface:
+        return RabbitPublisher(conf.conn_url, conf.outcoming_data_queue, conf.task_name)
+
+
 class RepoProvider(Provider):
     scope = Scope.REQUEST
 
@@ -82,6 +92,7 @@ class RepoProvider(Provider):
     module_repo = provide(AlchemyModuleRepository, provides=ModuleRepositoryInterface)
     user_repo = provide(AlchemyUserRepository, provides=UserRepositoryInterface)
     course_repo = provide(AlchemyCourseRepository, provides=CourseRepositoryInterface)
+    problem_repo = provide(AlchemyProblemRepository, provides=ProblemRepositoryInterface)
 
 
 class ApplicationServiceProvider(Provider):
@@ -178,7 +189,7 @@ class UseCaseProvider(Provider):
         )
 
 
-use_case_provider = UseCaseProvider()
+use_case_provider = UseCaseProvider(scope=Scope.REQUEST)
 use_case_provider.provide_all(
     AuthenticateUser,
     OptionalAuthenticateUser,
@@ -208,7 +219,11 @@ use_case_provider.provide_all(
     ShowTagsToUpdate,
     ShowProblemDataToUpdate,
     SearchStudents,
-    ShowMyProfile
+    ShowMyProfile,
+    ShowProblemToSolve,
+    ShowStudentProblemInfoToRate,
+    SendProblemSolution,
+    HandleTestResultUseCase
 )
 
 
@@ -252,5 +267,6 @@ container = make_async_container(
     RepoProvider(),
     ApplicationServiceProvider(),
     AuthProvider(),
+    BrokerProvider(),
     FastapiProvider()
 )

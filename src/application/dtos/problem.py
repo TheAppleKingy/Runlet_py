@@ -19,7 +19,7 @@ class ProblemG1(BaseModel):
     name: str
 
 
-class _ContainsExampleModel(BaseModel):
+class _ContainsExample(BaseModel):
     examples: list[ExampleCaseDTO] = Field(default_factory=list)
 
     @field_validator("examples", mode="before")
@@ -28,7 +28,7 @@ class _ContainsExampleModel(BaseModel):
         return value.as_dicts()
 
 
-class _ContainsTestCasesModel(BaseModel):
+class _ContainsTestCases(BaseModel):
     test_cases: list[TestCaseDTO] = Field(default_factory=list)
 
     @field_validator("test_cases", mode="before")
@@ -37,19 +37,25 @@ class _ContainsTestCasesModel(BaseModel):
         return [{"test_num": case[0], **case[1].to_dict()} for case in value]
 
 
-class ProblemG2(_ContainsExampleModel):
+class ProblemG2(_ContainsExample):
     id: int
     name: str
     description: str
 
 
-class ProblemG3(_ContainsExampleModel, _ContainsTestCasesModel):
+class ProblemG3(_ContainsExample, _ContainsTestCases):
     id: int
     name: str
     module_id: int
     description: Optional[str] = None
     auto_pass: bool
     show_test_cases: bool
+
+
+class ProblemG4(_ContainsExample):
+    id: int
+    name: str
+    description: str
 
 
 class CreateUpdateProblemDTO(BaseModel):

@@ -1,3 +1,4 @@
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -37,3 +38,18 @@ class CourseWithStudentsSeensDTO(BaseModel):
     name: str
     tags: list[TagsStudentsWithSeenDTO] = Field(default_factory=list)
     students: list[UserWithSeenDTO] = Field(default_factory=list)
+
+
+class TestCaseForStudentDTO(BaseModel):
+    test_num: int
+    input: Optional[str] = None
+    output: Optional[str] = None
+    ok: bool
+
+
+class ProblemInfoForStudentDTO(BaseModel):
+    problem_id: int
+    problem_name: str
+    problem_description: Optional[str] = None
+    code: Optional[str] = None
+    test_cases: list[TestCaseForStudentDTO] = Field(default_factory=list)
