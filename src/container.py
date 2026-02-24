@@ -16,7 +16,7 @@ from dishka import (
 )
 from dishka.integrations.fastapi import FastapiProvider
 
-from src.application.use_cases import *  # noqa: F403
+from src.application.interactors import *  # noqa: F403
 from src.application.interfaces.repositories import *  # noqa: F403
 from src.application.interfaces.uow import UoWInterface
 from src.application.interfaces.message_publisher import MessagePublisherInterface
@@ -81,7 +81,7 @@ class BrokerProvider(Provider):
 
     @provide
     def publisher(self, conf: RabbitMQConfig) -> MessagePublisherInterface:
-        return RabbitPublisher(conf.conn_url, conf.outcoming_data_queue, conf.task_name)
+        return RabbitPublisher(conf.conn_url)
 
 
 class RepoProvider(Provider):
@@ -107,7 +107,7 @@ class ApplicationServiceProvider(Provider):
         return EmailConfig()  # type: ignore
 
     password_service = provide(PasswordService, provides=PasswordServiceInterface)
-    email_service = provide(AsyncEmailService, provides=EmailServiceInterface)
+    email_service = provide(BrokerEmailService, provides=EmailServiceInterface)
 
     @provide(provides=AuthenticationServiceInterface)
     def get_jwt_auth_service(self, conf: AppConfig) -> AuthenticationServiceInterface:
@@ -189,8 +189,8 @@ class UseCaseProvider(Provider):
         )
 
 
-use_case_provider = UseCaseProvider(scope=Scope.REQUEST)
-use_case_provider.provide_all(
+interactors_provider = UseCaseProvider(scope=Scope.REQUEST)
+interactors_provider.provide_all(
     AuthenticateUser,
     OptionalAuthenticateUser,
     RegisterUserConfirm,
@@ -223,7 +223,7 @@ use_case_provider.provide_all(
     ShowProblemToSolve,
     ShowStudentProblemInfoToRate,
     SendProblemSolution,
-    HandleTestResultUseCase
+    HandleTestResult
 )
 
 
@@ -231,21 +231,21 @@ class AuthProvider(Provider):
     scope = Scope.REQUEST
 
     @provide
-    async def auth_user(self, r: Request, use_case: AuthenticateUser) -> AuthenticatedUserId:
-        return AuthenticatedUserId(await use_case.execute(r.cookies.get("token")))
+    async def auth_user(self, r: Request, interactor: AuthenticateUser) -> AuthenticatedUserId:
+        return AuthenticatedUserId(await interactor(r.cookies.get("token")))
 
     @provide
-    async def optional_auth_user(self, r: Request, use_case: OptionalAuthenticateUser) -> AuthenticatedNotStrictlyUserId:
-        return AuthenticatedUserId(await use_case.execute(r.cookies.get("token")))
+    async def optional_auth_user(self, r: Request, interactor: OptionalAuthenticateUser) -> AuthenticatedNotStrictlyUserId:
+        return AuthenticatedUserId(await interactor(r.cookies.get("token")))
 
     @provide
     async def auth_student(
         self,
         r: Request,
-        use_case: AuthenticateUserAsStudent,
+        interactor: AuthenticateUserAsStudent,
         user_id: AuthenticatedUserId
     ) -> AuthenticatedStudentId:
-        return AuthenticatedStudentId(await use_case.execute(user_id, int(
+        return AuthenticatedStudentId(await interactor(user_id, int(
             r.path_params.get("course_id")  # type: ignore
         )))
 
@@ -253,16 +253,16 @@ class AuthProvider(Provider):
     async def auth_teacher(
         self,
         r: Request,
-        use_case: AuthenticateUserAsTeacher,
+        interactor: AuthenticateUserAsTeacher,
         user_id: AuthenticatedUserId
     ) -> AuthenticatedTeacherId:
-        return AuthenticatedTeacherId(await use_case.execute(user_id, int(
+        return AuthenticatedTeacherId(await interactor(user_id, int(
             r.path_params.get("course_id")  # type: ignore
         )))
 
 
 container = make_async_container(
-    use_case_provider,
+    interactors_provider,
     DBProvider(),
     RepoProvider(),
     ApplicationServiceProvider(),

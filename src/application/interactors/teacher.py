@@ -1,5 +1,4 @@
 from typing import Optional
-from abc import ABC
 
 from src.domain.entities import (
     Course,
@@ -25,11 +24,10 @@ from src.application.interfaces.uow import UoWInterface
 from src.application.interfaces.services import AuthenticationServiceInterface
 from src.application.interfaces.repositories import (
     CourseRepositoryInterface,
-    UserRepositoryInterface,
     ModuleRepositoryInterface,
     AttemptRepositoryInterface
 )
-from src.application.use_cases.exceptions import (
+from src.application.interactors.exceptions import (
     UndefinedCourseError,
     ImpossibleOperationError,
     undefinedStudentError,
@@ -54,49 +52,36 @@ from src.application.dtos.problem import (
     TestCaseDTO
 )
 
-
-class _CourseRepoRelatedUseCase(ABC):
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface,
-    ):
-        self._uow = uow
-        self._course_repo = course_repo
+from .base import (
+    _CourseRepoRelatedInteractor,
+    _CourseUserReposRelatedInteractor,
+    _CourseAttemptReposRelatedInteractor
+)
 
 
-class ShowTeacherCourseTagsToRateStudents(_CourseRepoRelatedUseCase):
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface,
-        user_repo: UserRepositoryInterface
-    ):
-        super().__init__(uow, course_repo)
-        self._user_repo = user_repo
-
-    async def execute(self, course_id: int) -> tuple[Course, list[tuple[User, Optional[bool]]]]:
+class ShowTeacherCourseTagsToRateStudents(_CourseUserReposRelatedInteractor):
+    async def __call__(self, course_id: int) -> tuple[Course, list[tuple[User, Optional[bool]]]]:
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
             students_seens = await self._user_repo.get_by_id_with_attempts_seen_info(course_id)
         return course, students_seens  # type: ignore[return-value]
 
 
-class ShowTeacherCourseModulesToRateStudents(_CourseRepoRelatedUseCase):
-    async def execute(self, course_id: int):
+class ShowTeacherCourseModulesToRateStudents(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
         return course
 
 
-class ShowTeacherCourseData(_CourseRepoRelatedUseCase):
-    async def execute(self, course_id: int):
+class ShowTeacherCourseData(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int):
         async with self._uow:
             return await self._course_repo.get_by_id(course_id)
 
 
-class UpdateCourseData(_CourseRepoRelatedUseCase):
-    async def execute(self, course_id: int, dto: CourseUpdateDTO):
+class UpdateCourseData(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int, dto: CourseUpdateDTO):
         async with self._uow:
             course = await self._course_repo.get_by_id(course_id)
             if not course:
@@ -111,8 +96,8 @@ class UpdateCourseData(_CourseRepoRelatedUseCase):
                 course.notify_request_sub = dto.notify_request_sub
 
 
-class ManageModules(_CourseRepoRelatedUseCase):
-    async def execute(self, course_id: int, dto: ManageModulesDTO):
+class ManageModules(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int, dto: ManageModulesDTO):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules])
             module_manager = CourseModulesManagerService(course)  # type: ignore[arg-type]
@@ -131,22 +116,12 @@ class ManageModules(_CourseRepoRelatedUseCase):
             module_manager.add_modules(to_add)
 
 
-class _ProblemCreateUpdateUseCase(ABC):
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface
-    ):
-        self._uow = uow
-        self._course_repo = course_repo
-
+class CreateUpdateProblem(_CourseRepoRelatedInteractor):
     def _map_test_cases(self, cases_dto: list[TestCaseDTO]) -> TestCases:
         prepared = {case_data.test_num: TestCase(case_data.input, case_data.output) for case_data in cases_dto}
         return TestCases(prepared)
 
-
-class CreateUpdateProblem(_ProblemCreateUpdateUseCase):
-    async def execute(self, course_id: int, dto: CreateUpdateProblemDTO):
+    async def __call__(self, course_id: int, dto: CreateUpdateProblemDTO):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
             module = course.get_module_by_id(dto.module_id)  # type: ignore
@@ -176,16 +151,8 @@ class CreateUpdateProblem(_ProblemCreateUpdateUseCase):
                 problem_manager.add_problems(module, [created])
 
 
-class DeleteProblems:
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface
-    ):
-        self._uow = uow
-        self._course_repo = course_repo
-
-    async def execute(self, course_id: int, data: list[DeleteProblemsDTO]):
+class DeleteProblems(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int, data: list[DeleteProblemsDTO]):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(
                 course_id,
@@ -196,16 +163,8 @@ class DeleteProblems:
                 manager.delete_problems(delete_data.module_id, delete_data.problems_ids)
 
 
-class ManageTags:
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface,
-    ):
-        self._uow = uow
-        self._course_repo = course_repo
-
-    async def execute(self, course_id: int, dto: ManageTagsDTO) -> list[Tag]:
+class ManageTags(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int, dto: ManageTagsDTO) -> list[Tag]:
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags])
             to_add = []
@@ -223,34 +182,16 @@ class ManageTags:
         return to_add  # returns created with id
 
 
-class DeleteTags:
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface,
-    ):
-        self._uow = uow
-        self._course_repo = course_repo
-
-    async def execute(self, course_id: int, tags_ids: list[int]):
+class DeleteTags(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int, tags_ids: list[int]):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags])
             manager = CourseTagManagerService(course)  # type: ignore
             manager.delete_tags(tags_ids)
 
 
-class ManageStudents:
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface,
-        user_repo: UserRepositoryInterface
-    ):
-        self._uow = uow
-        self._course_repo = course_repo
-        self._user_repo = user_repo
-
-    async def execute(self, course_id: int, data: list[UpdateTagStudentsDTO]):
+class ManageStudents(_CourseUserReposRelatedInteractor):
+    async def __call__(self, course_id: int, data: list[UpdateTagStudentsDTO]):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students], [Course._students])
             manager = CourseStudentsManagerService(course)  # type: ignore
@@ -270,7 +211,7 @@ class ManageStudents:
                         manager.add_students(students)
 
 
-class GenerateInviteLink:
+class GenerateInviteLink(_CourseRepoRelatedInteractor):
     def __init__(
         self,
         uow: UoWInterface,
@@ -279,13 +220,12 @@ class GenerateInviteLink:
         link_exp_time: int,
         token_service: AuthenticationServiceInterface
     ):
-        self._uow = uow
-        self._course_repo = course_repo
+        super().__init__(uow, course_repo)
         self._confirm_subscription_url = confirm_subscription_url
         self._token_service = token_service
         self._exp_time = link_exp_time
 
-    async def execute(self, course_id: int, dto: GenLinkDTO):
+    async def __call__(self, course_id: int, dto: GenLinkDTO):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags])
         payload = {"course_id": course.id}  # type: ignore
@@ -302,7 +242,7 @@ class GenerateInviteLink:
         return self._confirm_subscription_url + f"/{self._token_service.encode(payload, self._exp_time)}"
 
 
-class ShowStudentProblems:
+class ShowStudentProblems(_CourseAttemptReposRelatedInteractor):
     def __init__(
         self,
         uow: UoWInterface,
@@ -310,12 +250,10 @@ class ShowStudentProblems:
         module_repo: ModuleRepositoryInterface,
         course_repo: CourseRepositoryInterface
     ):
-        self._uow = uow
-        self._attempt_repo = attempt_repo
+        super().__init__(uow, course_repo, attempt_repo)
         self._module_repo = module_repo
-        self._course_repo = course_repo
 
-    async def execute(self, course_id: int, student_id: int) -> tuple[list[Attempt], list[Module]]:
+    async def __call__(self, course_id: int, student_id: int) -> tuple[list[Attempt], list[Module]]:
         async with self._uow:
             if not await self._course_repo.check_user_in_course(student_id, course_id):
                 raise undefinedStudentError("Student is not subscribed on course")
@@ -334,21 +272,21 @@ class ShowProblemStudents:
         self._uow = uow
         self._attempt_repo = attempt_repo
 
-    async def execute(self, problem_id: int):
+    async def __call__(self, problem_id: int):
         async with self._uow:
             students = await self._attempt_repo.get_problem_students(problem_id)
         return students
 
 
-class ShowTagsToUpdate(_CourseRepoRelatedUseCase):
-    async def execute(self, course_id: int):
+class ShowTagsToUpdate(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
         return course.students, course.tags  # type: ignore[union-attr]
 
 
-class ShowProblemDataToUpdate(_CourseRepoRelatedUseCase):
-    async def execute(self, course_id: int, module_id: int, problem_id: int) -> Problem:  # type: ignore[return]
+class ShowProblemDataToUpdate(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int, module_id: int, problem_id: int) -> Problem:  # type: ignore[return]
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
             module = course.get_module_by_id(module_id)  # type: ignore[union-attr]
@@ -360,17 +298,8 @@ class ShowProblemDataToUpdate(_CourseRepoRelatedUseCase):
             return problem
 
 
-class SearchStudents(_CourseRepoRelatedUseCase):
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface,
-        user_repo: UserRepositoryInterface
-    ):
-        super().__init__(uow, course_repo)
-        self._user_repo = user_repo
-
-    async def execute(
+class SearchStudents(_CourseUserReposRelatedInteractor):
+    async def __call__(
         self,
         course_id: int,
         namelike: str,
@@ -381,18 +310,8 @@ class SearchStudents(_CourseRepoRelatedUseCase):
         return res
 
 
-class ShowStudentProblemInfoToRate:
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface,
-        attempt_repo: AttemptRepositoryInterface
-    ):
-        self._uow = uow
-        self._course_repo = course_repo
-        self._attempt_repo = attempt_repo
-
-    async def execute(  # type: ignore[return]
+class ShowStudentProblemInfoToRate(_CourseAttemptReposRelatedInteractor):
+    async def __call__(  # type: ignore[return]
         self,
         course_id: int,
         module_id: int,

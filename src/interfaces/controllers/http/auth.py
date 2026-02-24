@@ -9,7 +9,7 @@ from src.application.dtos.auth import (
     ChangePasswordRequestDTO,
     ChangePasswordConfirmDTO
 )
-from src.application.use_cases import (
+from src.application.interactors import (
     RegisterUserRequest,
     RegisterUserConfirm,
     LoginUser,
@@ -24,27 +24,27 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"], route_class=DishkaRoute)
 @auth_router.post("/registration/request", response_model=None)
 async def registration_request(
     dto: RegisterUserRequestDTO,
-    use_case: FromDishka[RegisterUserRequest]
+    interactor: FromDishka[RegisterUserRequest]
 ):
-    await use_case.execute(dto)
+    await interactor(dto)
     return {"detail": "Email with instructions to confirm registration was sent"}
 
 
 @auth_router.get("/registration/confirm/{token}")
 async def registration_confirm(
     token: str,
-    use_case: FromDishka[RegisterUserConfirm]
+    interactor: FromDishka[RegisterUserConfirm]
 ) -> None:
-    return await use_case.execute(token)
+    return await interactor(token)
 
 
 @auth_router.post("/login")
 async def login(
     dto: LoginUserDTO,
-    use_case: FromDishka[LoginUser],
+    interactor: FromDishka[LoginUser],
     token: str = Cookie(default=None, include_in_schema=False)
 ):
-    token = await use_case.execute(dto)
+    token = await interactor(dto)
     resp = JSONResponse({"detail": "Logged in"})
     resp.set_cookie("token", token)
     return resp
@@ -60,9 +60,9 @@ async def logout(user_id: FromDishka[AuthenticatedUserId]):
 @auth_router.post("/change_password/request")
 async def request_change_password(
     dto: ChangePasswordRequestDTO,
-    use_case: FromDishka[ChangePasswordRequest]
+    interactor: FromDishka[ChangePasswordRequest]
 ):
-    await use_case.execute(dto.email)
+    await interactor(dto.email)
     return {"detail": "Email with instructions sent"}
 
 
@@ -70,7 +70,7 @@ async def request_change_password(
 async def confirm_change_password(
     token: str,
     dto: ChangePasswordConfirmDTO,
-    use_case: FromDishka[ChangePasswordConfirm]
+    interactor: FromDishka[ChangePasswordConfirm]
 ):
-    await use_case.execute(token, dto)
+    await interactor(token, dto)
     return {"detail": "Password changed successfuly"}

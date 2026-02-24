@@ -15,7 +15,7 @@ from .exceptions import (
 )
 
 
-class HandleTestResultUseCase:
+class HandleTestResult:
     def __init__(
         self,
         uow: UoWInterface,
@@ -26,7 +26,7 @@ class HandleTestResultUseCase:
         self._problem_repo = problem_repo
         self._attempt_repo = attempt_repo
 
-    async def execute(self, dto: ResultDTO):
+    async def __call__(self, dto: ResultDTO):
         async with self._uow:
             problem = await self._problem_repo.get_by_id(dto.problem_id)
             if not problem:
@@ -34,7 +34,8 @@ class HandleTestResultUseCase:
                     f"Got result of testing code for unexistant problem with id '{dto.problem_id}'")
             attempt = await self._attempt_repo.get_student_attempt(dto.course_id, dto.student_id, dto.problem_id)
             if not attempt:
-                attempt = Attempt(dto.student_id, dto.problem_id, dto.code)
+                attempt = Attempt(dto.student_id, dto.problem_id)
+            attempt.code = dto.code
             test_cases = TestCases.from_dict(
                 {case.test_num: {"input": case.input, "output": case.output} for case in dto.test_cases}
             )

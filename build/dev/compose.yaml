@@ -32,6 +32,18 @@ services:
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
 
+  runlet_mailgeno:
+    image: theapplekingy/mailgeno:latest
+    env_file:
+      - .env
+    command: ["-c", "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@${RABBITMQ_HOST}", "-r", "mail"]
+    networks:
+      - runlet_internal
+    depends_on:
+      runlet_rabbitmq:
+        condition: service_healthy
+
+
   runlet_rabbitmq:
     hostname: rabbitmq
     build:

@@ -42,7 +42,7 @@ from .user import (
     SubscribeOnCourseByLink,
     ShowMyProfile
 )
-from .callback import HandleTestResultUseCase
+from .callback import HandleTestResult
 
 
 __all__ = [
@@ -82,5 +82,5 @@ __all__ = [
     "ShowProblemToSolve",
     "ShowStudentProblemInfoToRate",
     "SendProblemSolution",
-    "HandleTestResultUseCase"
+    "HandleTestResult"
 ]

@@ -19,20 +19,20 @@ from src.application.interfaces.services import (
     EmailServiceInterface,
     AuthenticationServiceInterface
 )
-from src.application.use_cases.exceptions import (
+from src.application.interactors.exceptions import (
     UndefinedCourseError,
     InvalidInvitingLinkError,
     CoursePrivacyError,
 )
 from src.application.dtos.course import CourseCreateDTO
+from .base import (
+    _CourseRepoRelatedInteractor,
+    _CourseUserReposRelatedInteractor
+)
 
 
-class ShowMain:
-    def __init__(self, uow: UoWInterface, course_repo: CourseRepositoryInterface):
-        self._uow = uow
-        self._course_repo = course_repo
-
-    async def execute(
+class ShowMain(_CourseRepoRelatedInteractor):
+    async def __call__(
         self,
         user_id: Optional[int] = None,
         page: int = 1,
@@ -57,22 +57,14 @@ class ShowMyProfile:
         self._uow = uow
         self._user_repo = user_repo
 
-    async def execute(self, user_id: int):
+    async def __call__(self, user_id: int):
         async with self._uow:
             user = await self._user_repo.get_by_id(user_id)
         return user
 
 
-class ShowCourse:
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface
-    ):
-        self._uow = uow
-        self._course_repo = course_repo
-
-    async def execute(self, course_id: int):
+class ShowCourse(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int):
         async with self._uow:
             course = await self._course_repo.get_by_id(course_id)
             if not course:
@@ -87,7 +79,7 @@ class CreateCourse:
     ):
         self._uow = uow
 
-    async def execute(self, user_id: int, dto: CourseCreateDTO):
+    async def __call__(self, user_id: int, dto: CourseCreateDTO):
         async with self._uow as uow:
             course = Course(dto.name, user_id, dto.description,
                             dto.is_private, dto.notify_request_sub)
@@ -99,7 +91,7 @@ class CreateCourse:
             manager.add_tags(default_tags)
 
 
-class RequestSubscribeOnCourse:
+class RequestSubscribeOnCourse(_CourseUserReposRelatedInteractor):
     def __init__(
         self,
         uow: UoWInterface,
@@ -107,12 +99,10 @@ class RequestSubscribeOnCourse:
         user_repo: UserRepositoryInterface,
         email_service: EmailServiceInterface
     ):
-        self._uow = uow
-        self._course_repo = course_repo
-        self._user_repo = user_repo
+        super().__init__(uow, course_repo, user_repo)
         self._email_service = email_service
 
-    async def execute(self, course_id: int, user_id: int):
+    async def __call__(self, course_id: int, user_id: int):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students], [Course._students])
             if not course:
@@ -132,7 +122,7 @@ class RequestSubscribeOnCourse:
                 await self._email_service.send_mail(admin.email, topic, msg)  # type: ignore
 
 
-class SubscribeOnCourse:
+class SubscribeOnCourse(_CourseUserReposRelatedInteractor):
     def __init__(
         self,
         uow: UoWInterface,
@@ -140,12 +130,10 @@ class SubscribeOnCourse:
         user_repo: UserRepositoryInterface,
         email_service: EmailServiceInterface
     ):
-        self._uow = uow
-        self._course_repo = course_repo
-        self._user_repo = user_repo
+        super().__init__(uow, course_repo, user_repo)
         self._email_service = email_service
 
-    async def execute(self, user_id: int, course_id: int):
+    async def __call__(self, user_id: int, course_id: int):
         async with self._uow:
             # only authorized users be able to subscribe on course therefore, don't need to check whether user exists or not.
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
@@ -160,7 +148,7 @@ class SubscribeOnCourse:
         await self._email_service.send_mail(user.email, topic, msg)  # type: ignore
 
 
-class SubscribeOnCourseByLink:
+class SubscribeOnCourseByLink(_CourseUserReposRelatedInteractor):
     def __init__(
         self,
         uow: UoWInterface,
@@ -169,13 +157,11 @@ class SubscribeOnCourseByLink:
         auth_service: AuthenticationServiceInterface,
         email_service: EmailServiceInterface
     ):
-        self._uow = uow
-        self._course_repo = course_repo
-        self._user_repo = user_repo
+        super().__init__(uow, course_repo, user_repo)
         self._token_service = auth_service
         self._email_service = email_service
 
-    async def execute(self, token: str, user_id: int):
+    async def __call__(self, token: str, user_id: int):
         try:
             payload = self._token_service.decode(token)
         except Exception:

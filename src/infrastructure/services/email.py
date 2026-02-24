@@ -4,6 +4,9 @@ import asyncio
 from email.message import EmailMessage
 from src.logger import logger
 from src.application.interfaces.services import EmailServiceInterface
+from src.application.dtos.mail import SendMailDTO
+from src.application.interfaces.message_publisher import MessagePublisherInterface
+from src.application.interfaces.message_tasks import SendMail
 from ..configs import EmailConfig
 
 
@@ -28,3 +31,13 @@ class AsyncEmailService(EmailServiceInterface):
             except Exception as e:
                 logger.error(
                     f"Unable to send email with topic '{msg['Subject']}' to '{msg["To"]}': {e}")
+
+
+class BrokerEmailService(EmailServiceInterface):
+    def __init__(self, publisher: MessagePublisherInterface):
+        self._publisher = publisher
+
+    async def send_mail(self, to: str, topic: str, text: str):
+        await self._publisher.publish(SendMail(
+            SendMailDTO(to=to, topic=topic, message=text).model_dump_json()
+        ))

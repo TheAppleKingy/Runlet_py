@@ -1,11 +1,19 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, APIRouter, Request
+from fastapi import (
+    FastAPI,
+    APIRouter,
+    Request
+)
 from fastapi.responses import JSONResponse
 from ploomby.registry import MessageConsumerRegistry
 from ploomby.rabbit import RabbitConsumerFactory
 from dishka.integrations.fastapi import setup_dishka
-from sqlalchemy.orm import registry, relationship, column_property
+from sqlalchemy.orm import (
+    registry,
+    relationship,
+    column_property
+)
 
 from src.infrastructure.db.tables import (
     problems,
@@ -68,7 +76,7 @@ async def lifespan_handler(app: FastAPI):
     rabbit_conf = await container.get(RabbitMQConfig)
     factory = RabbitConsumerFactory(rabbit_conf.conn_url)
     consumer_registry = MessageConsumerRegistry(reg, factory)
-    await consumer_registry.register(rabbit_conf.incoming_data_queue, "task_name")
+    await consumer_registry.register("results", "task_name")
     publisher = await container.get(MessagePublisherInterface)
     await publisher.connect()
     logger.info("App is ready")

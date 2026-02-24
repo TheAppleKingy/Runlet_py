@@ -1,27 +1,26 @@
 from aio_pika import (
     connect_robust,
     Message,
-    DeliveryMode
+    DeliveryMode,
+    exceptions
 )
 from aio_pika.abc import (
     AbstractRobustChannel,
     AbstractRobustConnection
 )
 from src.application.interfaces.message_publisher import MessagePublisherInterface
+from src.application.interfaces.message_tasks import MessageTask
+from .errors import QueueNotExistsError
 
 
 class RabbitPublisher(MessagePublisherInterface):
     def __init__(
         self,
         conn_url: str,
-        queue_name: str,
-        task_name: str
     ):
         self._conn_url = conn_url
         self._connection: AbstractRobustConnection = None  # type: ignore[assignment]
         self._channel: AbstractRobustChannel = None  # type: ignore[assignment]
-        self._queue_name = queue_name
-        self._task_name = task_name
 
     async def connect(self):
         if not self._connection or self._connection.is_closed:
@@ -45,13 +44,17 @@ class RabbitPublisher(MessagePublisherInterface):
             await self._connection.close()
         self._connection = None
 
-    async def publish(self, data: str):
+    async def publish(self, task: MessageTask):
         chan = await self._get_channel()
+        try:
+            await chan.get_queue(task.resource)
+        except exceptions.ChannelClosed:
+            raise QueueNotExistsError(f"Unable to send message into {task.resource}: queue does not exist")
         await chan.default_exchange.publish(
             Message(
-                data.encode(),
-                headers={"task_name": self._task_name},
+                task.data.encode(),
+                headers={"task_name": task.task_name} if task.task_name else None,
                 delivery_mode=DeliveryMode.PERSISTENT
             ),
-            routing_key=self._queue_name
+            routing_key=task.resource
         )

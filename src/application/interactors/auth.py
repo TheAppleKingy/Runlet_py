@@ -12,10 +12,7 @@ from src.application.dtos.auth import (
     RegisterUserRequestDTO,
     ChangePasswordConfirmDTO,
 )
-from src.application.interfaces.repositories import (
-    UserRepositoryInterface,
-    CourseRepositoryInterface
-)
+from src.application.interfaces.repositories import UserRepositoryInterface
 from .exceptions import (
     UndefinedUserError,
     InvalidUserPasswordError,
@@ -26,9 +23,10 @@ from .exceptions import (
     HasNoAccessError
 )
 from src.domain.entities import User
+from .base import _CourseRepoRelatedInteractor
 
 
-class BaseAuthUseCase:
+class _BaseAuthInteractor:
     def __init__(
         self,
         uow: UoWInterface,
@@ -39,7 +37,7 @@ class BaseAuthUseCase:
         self._auth_service = auth_service
         self._user_repo = user_repo
 
-    async def execute(self, token: str):
+    async def __call__(self, token: str):
         user_id = self._auth_service.get_user_id_from_token(token)
         if not user_id:
             raise UndefinedUserError("User was not identify", status=401)
@@ -52,43 +50,25 @@ class BaseAuthUseCase:
         return user_id
 
 
-class AuthenticateUser(BaseAuthUseCase):
-    def __init__(
-        self,
-        uow: UoWInterface,
-        user_repo: UserRepositoryInterface,
-        auth_service: AuthenticationServiceInterface,
-    ):
-        self._uow = uow
-        self._auth_service = auth_service
-        self._user_repo = user_repo
-
-    async def execute(self, token: str | None) -> int:
+class AuthenticateUser(_BaseAuthInteractor):
+    async def __call__(self, token: str | None) -> int:
         if not token:
             raise UndefinedUserError("Unauthorized", status=401)
-        return await super().execute(token)
+        return await super().__call__(token)
 
 
-class OptionalAuthenticateUser(BaseAuthUseCase):
-    async def execute(self, token: Optional[str] = None):
+class OptionalAuthenticateUser(_BaseAuthInteractor):
+    async def __call__(self, token: Optional[str] = None):
         if not token:
             return None
         try:
-            return await super().execute(token)
+            return await super().__call__(token)
         except Exception:
             return None
 
 
-class AuthenticateUserAsStudent:
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface
-    ):
-        self._course_repo = course_repo
-        self._uow = uow
-
-    async def execute(self, user_id: int, course_id: int) -> int:
+class AuthenticateUserAsStudent(_CourseRepoRelatedInteractor):
+    async def __call__(self, user_id: int, course_id: int) -> int:
         async with self._uow:
             course = await self._course_repo.get_by_id(course_id)
             if not course:
@@ -98,16 +78,8 @@ class AuthenticateUserAsStudent:
         return user_id
 
 
-class AuthenticateUserAsTeacher:
-    def __init__(
-        self,
-        uow: UoWInterface,
-        course_repo: CourseRepositoryInterface
-    ):
-        self._course_repo = course_repo
-        self._uow = uow
-
-    async def execute(self, user_id: int, course_id: int) -> int:
+class AuthenticateUserAsTeacher(_CourseRepoRelatedInteractor):
+    async def __call__(self, user_id: int, course_id: int) -> int:
         async with self._uow:
             course = await self._course_repo.get_by_id(course_id)
         if not course:
@@ -117,7 +89,7 @@ class AuthenticateUserAsTeacher:
         return user_id
 
 
-class LoginUser:
+class _BaseLoginRegRequestInteractor:
     def __init__(
         self,
         uow: UoWInterface,
@@ -134,7 +106,9 @@ class LoginUser:
         self._email_service = email_service
         self._reg_confirm_url = reg_confirm_url
 
-    async def execute(self, dto: LoginUserDTO) -> str:
+
+class LoginUser(_BaseLoginRegRequestInteractor):
+    async def __call__(self, dto: LoginUserDTO) -> str:
         async with self._uow:
             user = await self._user_repo.get_by_email(dto.email)
         if not user:
@@ -149,24 +123,8 @@ class LoginUser:
         return self._auth_service.generate_token(user.id)
 
 
-class RegisterUserRequest:
-    def __init__(
-        self,
-        uow: UoWInterface,
-        user_repo: UserRepositoryInterface,
-        password_service: PasswordServiceInterface,
-        auth_service: AuthenticationServiceInterface,
-        email_service: EmailServiceInterface,
-        reg_confirm_url: str
-    ):
-        self._uow = uow
-        self._user_repo = user_repo
-        self._password_service = password_service
-        self._auth_service = auth_service
-        self._email_service = email_service
-        self._reg_confirm_url = reg_confirm_url
-
-    async def execute(self, dto: RegisterUserRequestDTO):
+class RegisterUserRequest(_BaseLoginRegRequestInteractor):
+    async def __call__(self, dto: RegisterUserRequestDTO):
         if dto.first_password != dto.second_password:
             raise PasswordsMismatchError("Passwords do not match")
         async with self._uow as uow:
@@ -192,7 +150,7 @@ class RegisterUserConfirm:
         self._user_repo = user_repo
         self._auth_service = auth_service
 
-    async def execute(self, token: str):
+    async def __call__(self, token: str):
         user_id = self._auth_service.get_user_id_from_token(token)
         if not user_id:
             raise UndefinedUserError("User was not identify")
@@ -218,7 +176,7 @@ class ChangePasswordRequest:
         self._email_service = email_service
         self._password_change_confirm_url = password_change_confirm_url
 
-    async def execute(self, email: str):
+    async def __call__(self, email: str):
         async with self._uow:
             user = await self._user_repo.get_by_email(email)
             if not user:
@@ -241,7 +199,7 @@ class ChangePasswordConfirm:
         self._token_service = token_service
         self._password_service = password_service
 
-    async def execute(self, token: str, dto: ChangePasswordConfirmDTO):
+    async def __call__(self, token: str, dto: ChangePasswordConfirmDTO):
         async with self._uow:
             user_id = self._token_service.get_user_id_from_token(token)
             if not user_id:

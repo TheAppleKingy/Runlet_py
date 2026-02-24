@@ -14,7 +14,7 @@ from .exceptions import (
 class Attempt:
     user_id: int
     problem_id: int
-    code: str
+    code: str = ""
     problem: Problem = field(default=None, init=False)  # type: ignore
     amount: int = field(default_factory=lambda: 0, init=False)
     tests_passed: bool = field(default=False, init=False)

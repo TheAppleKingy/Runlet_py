@@ -1,6 +1,6 @@
-from .email import AsyncEmailService
+from .email import BrokerEmailService
 
 
 __all__ = [
-    "AsyncEmailService"
+    "BrokerEmailService"
 ]
