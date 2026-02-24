@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query
 from dishka.integrations.fastapi import DishkaRoute, FromDishka
 
-from src.application.use_cases.user import (
+from src.application.interactors import (
     ShowCourse,
     ShowMain,
     CreateCourse,
@@ -27,11 +27,11 @@ user_router = APIRouter(prefix="/me", route_class=DishkaRoute)
 @user_router.get("/main", response_model=MainDTO)
 async def get_main(
     user_id: FromDishka[AuthenticatedNotStrictlyUserId],
-    use_case: FromDishka[ShowMain],
+    interactor: FromDishka[ShowMain],
     page: int = Query(default=1, ge=1),
     size: int = Query(default=10, ge=10)
 ) -> MainDTO:
-    data = await use_case.execute(user_id, page=page, size=size)
+    data = await interactor(user_id, page=page, size=size)
     return {  # type: ignore
         "as_teacher": data[0],
         "as_student": data[1],
@@ -47,51 +47,51 @@ async def get_main(
 @user_router.get("/profile")
 async def get_my_profile(
     user_id: FromDishka[AuthenticatedUserId],
-    use_case: FromDishka[ShowMyProfile],
+    interactor: FromDishka[ShowMyProfile],
 ) -> UserG2:
-    return await use_case.execute(user_id)
+    return await interactor(user_id)
 
 
 @user_router.get("/course/{course_id}")
 async def get_course(
     course_id: int,
     user_id: FromDishka[AuthenticatedNotStrictlyUserId],
-    use_case: FromDishka[ShowCourse]
+    interactor: FromDishka[ShowCourse]
 ) -> CourseG2:
-    return await use_case.execute(course_id)
+    return await interactor(course_id)
 
 
 @user_router.post("/course")
 async def create_course(
     dto: CourseCreateDTO,
     user_id: FromDishka[AuthenticatedUserId],
-    use_case: FromDishka[CreateCourse]
+    interactor: FromDishka[CreateCourse]
 ):
-    return await use_case.execute(user_id, dto)
+    return await interactor(user_id, dto)
 
 
 @user_router.get("/course/{course_id}/subscribe/request")
 async def request_subscribe(
     course_id: int,
     user_id: FromDishka[AuthenticatedUserId],
-    use_case: FromDishka[RequestSubscribeOnCourse]
+    interactor: FromDishka[RequestSubscribeOnCourse]
 ):
-    return await use_case.execute(course_id, user_id)
+    return await interactor(course_id, user_id)
 
 
 @user_router.get("/course/subscribe/{inviting_token}")
 async def subscribe_by_link(
     inviting_token: str,
     user_id: FromDishka[AuthenticatedUserId],
-    use_case: FromDishka[SubscribeOnCourseByLink]
+    interactor: FromDishka[SubscribeOnCourseByLink]
 ):
-    return await use_case.execute(inviting_token, user_id)
+    return await interactor(inviting_token, user_id)
 
 
 @user_router.get("/course/{course_id}/subscribe")
 async def subscribe_on_course(
     course_id: int,
     user_id: FromDishka[AuthenticatedUserId],
-    use_case: FromDishka[SubscribeOnCourse]
+    interactor: FromDishka[SubscribeOnCourse]
 ):
-    return await use_case.execute(user_id, course_id)
+    return await interactor(user_id, course_id)

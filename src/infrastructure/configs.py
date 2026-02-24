@@ -26,8 +26,6 @@ class RabbitMQConfig(BaseSettings):
     rabbitmq_default_user: str
     rabbitmq_default_pass: str
     rabbitmq_host: str
-    incoming_data_queue: str = "results"
-    outcoming_data_queue: str = "test_solutions"
 
     @property
     def conn_url(self):

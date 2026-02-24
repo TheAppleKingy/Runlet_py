@@ -31,7 +31,7 @@ class _ContainsOrderedModulesDTO(BaseModel):
 class CourseG3(_ContainsOrderedModulesDTO):
     id: int
     name: str
-    modules: list[ModuleG1]
+    modules: list[ModuleG1]  # type: ignore[assignment]
 
 
 class CourseG4(BaseModel):
@@ -55,7 +55,7 @@ class CourseG5(BaseModel):
 class CourseG6(_ContainsOrderedModulesDTO):
     id: int
     name: str
-    modules: list[ModuleG2]
+    modules: list[ModuleG2]  # type: ignore[assignment]
 
 
 class CourseG7(BaseModel):

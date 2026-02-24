@@ -63,3 +63,11 @@ class ImpossibleOperationError(DomainError):
 
 class AttributeRequired(DomainError):
     pass
+
+
+class AttemptAlreadyInProcessError(DomainError):
+    pass
+
+
+class AlreadyPassedError(DomainError):
+    pass
