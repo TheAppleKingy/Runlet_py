@@ -1,9 +1,9 @@
 import pytest
 from datetime import datetime
 
-from src.domain.entities import Problem, Attempt
-from src.domain.value_objects import TestCase, TestCases, Examples
-from src.domain.entities.exceptions import (
+from runlet.domain.entities import Problem, Attempt
+from runlet.domain.value_objects import TestCase, TestCases, Examples
+from runlet.domain.entities.exceptions import (
     AttemptAlreadyInProcessError,
     AlreadyPassedError,
 )

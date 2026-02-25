@@ -1,8 +1,8 @@
 import pytest
 
-from src.domain.entities import Course, User, Tag, DefaultTagType
-from src.domain.services.course import CourseStudentsManagerService
-from src.domain.entities.exceptions import RolesError, ImpossibleOperationError, UndefinedTagError
+from runlet.domain.entities import Course, User, Tag, DefaultTagType
+from runlet.domain.services.course import CourseStudentsManagerService
+from runlet.domain.entities.exceptions import RolesError, ImpossibleOperationError, UndefinedTagError
 
 
 @pytest.fixture

@@ -1,15 +1,15 @@
 import pytest
 from enum import Enum
 from dataclasses import field
-from src.domain.entities import Course, Tag, User
-from src.domain.entities.exceptions import (
+from runlet.domain.entities import Course, Tag, User
+from runlet.domain.entities.exceptions import (
     NamesAlreadyExistError,
     ImpossibleOperationError,
     AttributeRequired,
     HasNoDirectAccessError,
     RepeatableNamesError
 )
-from src.domain.services.course import CourseTagManagerService
+from runlet.domain.services.course import CourseTagManagerService
 
 
 class DefautTagType(Enum):

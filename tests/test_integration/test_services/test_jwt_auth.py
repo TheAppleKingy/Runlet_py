@@ -1,5 +1,5 @@
-from src.infrastructure.services.user import JWTAuthenticationService
-from src.infrastructure.services.user.exceptions import JWTUnauthorizedError
+from runlet.infrastructure.services.user import JWTAuthenticationService
+from runlet.infrastructure.services.user.exceptions import JWTUnauthorizedError
 import jwt
 import time
 import pytest

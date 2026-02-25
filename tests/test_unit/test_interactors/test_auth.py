@@ -2,9 +2,9 @@ import pytest
 
 from typing import Optional
 
-from src.domain.entities import Course, User
+from runlet.domain.entities import Course, User
 
-from src.application.interactors.exceptions import (
+from runlet.application.interactors.exceptions import (
     UndefinedUserError,
     InactiveUserError,
     HasNoAccessError,
@@ -13,8 +13,8 @@ from src.application.interactors.exceptions import (
     PasswordsMismatchError,
     EmailExistsError,
 )
-from src.infrastructure.services.user.exceptions import JWTUnauthorizedError
-from src.application.dtos.auth import (
+from runlet.infrastructure.services.user.exceptions import JWTUnauthorizedError
+from runlet.application.dtos.auth import (
     LoginUserDTO,
     RegisterUserRequestDTO,
     ChangePasswordConfirmDTO
