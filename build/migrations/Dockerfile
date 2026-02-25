@@ -12,8 +12,8 @@ ENV PATH="/root/.local/bin:$PATH"
 RUN poetry config virtualenvs.create false && \
     poetry install --no-root --no-interaction --no-ansi
 
-COPY ./src/infrastructure/db/tables ./src/infrastructure/db/tables
-COPY ./src/infrastructure/configs.py ./src/infrastructure/configs.py
-COPY ./build/migrations/alembic ./src/alembic
-COPY ./build/migrations/alembic.ini ./src/alembic.ini
-COPY ./src/domain ./src/domain
+COPY ./runlet/infrastructure/db/tables ./runlet/infrastructure/db/tables
+COPY ./runlet/infrastructure/configs.py ./runlet/infrastructure/configs.py
+COPY ./build/migrations/alembic ./runlet/alembic
+COPY ./build/migrations/alembic.ini ./runlet/alembic.ini
+COPY ./runlet/domain ./runlet/domain
