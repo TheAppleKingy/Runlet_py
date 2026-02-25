@@ -1,3 +1,4 @@
+# mypy: disable-error-code="arg-type"
 from typing import Optional
 
 from sqlalchemy import select, func
@@ -17,17 +18,16 @@ from .base import BaseAlchemyRepository
 
 class AlchemyUserRepository(BaseAlchemyRepository, UserRepositoryInterface):
     async def get_by_id(self, user_id: int) -> Optional[User]:
-        return await self._session.scalar(select(User).where(User.id == user_id))  # type: ignore
+        return await self._session.scalar(select(User).where(User.id == user_id))
 
     async def get_by_ids(self, user_ids: list[int]) -> list[User]:
         res = await self._session.scalars(select(User).where(users.c.id.in_(user_ids)))
         return res.all()  # type: ignore
 
     async def get_by_email(self, email: str) -> Optional[User]:
-        return await self._session.scalar(select(User).where(User.email == email))  # type: ignore
+        return await self._session.scalar(select(User).where(User.email == email))
 
     async def count_by_email(self, email: str) -> int:
-        # type: ignore
         return await self._session.scalar(select(func.count(User.id)).where(User.email == email)) or 0
 
     async def find_by_name(self, course_id: int, namelike: str, tag_id: Optional[int] = None) -> list[User]:

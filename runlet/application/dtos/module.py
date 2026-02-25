@@ -1,7 +1,12 @@
 from typing import Optional
 
-from pydantic import BaseModel
-from .problem import ProblemG1, ProblemG2
+from pydantic import BaseModel, Field
+from .problem import (
+    ProblemG1,
+    ProblemG2,
+    ProblemG5,
+    ProblemWithRateInfoDTO
+)
 
 
 class OrderedModuleDTO(BaseModel):
@@ -19,15 +24,16 @@ class ModuleG2(OrderedModuleDTO):
     problems: list[ProblemG2]
 
 
-class ModuleUpdateDTO(BaseModel):
+class ModuleG3(OrderedModuleDTO):
     id: int
-    name: Optional[str] = None
-    order: Optional[int] = None
+    name: str
+    problems: list[ProblemG5] = Field(default_factory=list)
 
 
-class ModuleCreateDTO(BaseModel):
+class ModuleG4(BaseModel):
     name: str
     order: int
+    problems: list[ProblemWithRateInfoDTO] = Field(default_factory=list)
 
 
 class ModuleCreateUpdateDTO(BaseModel):

@@ -67,11 +67,23 @@ class ShowTeacherCourseTagsToRateStudents(_CourseUserReposRelatedInteractor):
         return course, students_seens  # type: ignore[return-value]
 
 
-class ShowTeacherCourseModulesToRateStudents(_CourseRepoRelatedInteractor):
+class ShowTeacherCourseModulesToRateStudents(_CourseAttemptReposRelatedInteractor):
+    async def __call__(self, course_id: int) -> tuple[Course, list[int]]:  # type: ignore[return]
+        async with self._uow:
+            course = await self._course_repo.get_by_id_with_rels(
+                course_id,
+                [Course._modules, Module._problems]
+            )
+            unseen_problems_ids = await self._attempt_repo.get_problems_ids_with_unseen_attempts(
+                course.id  # type: ignore[union-attr]
+            )
+            return course, unseen_problems_ids  # type: ignore[return-value]
+
+
+class ShowCourseModulesProblemsToUpdate(_CourseRepoRelatedInteractor):
     async def __call__(self, course_id: int):
         async with self._uow:
-            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
-        return course
+            return await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
 
 
 class ShowTeacherCourseData(_CourseRepoRelatedInteractor):
@@ -316,7 +328,8 @@ class ShowStudentProblemInfoToRate(_CourseAttemptReposRelatedInteractor):
         course_id: int,
         module_id: int,
         problem_id: int,
-        student_id: int
+        student_id: int,
+        *args
     ) -> Attempt:
         async with self._uow:
             if not await self._course_repo.check_user_in_course(student_id, course_id):

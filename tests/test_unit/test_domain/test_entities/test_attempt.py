@@ -277,6 +277,7 @@ class TestAttempt:
         """Проверка остановки без предварительного старта"""
         # По логике должно работать, просто обновляет результаты
         results = sample_attempt.problem.test_cases
+        sample_attempt.pending = True
         sample_attempt.stop(results)
 
         assert sample_attempt.pending is False

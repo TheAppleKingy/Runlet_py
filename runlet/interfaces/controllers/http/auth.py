@@ -2,7 +2,7 @@ from fastapi import APIRouter, Cookie
 from fastapi.responses import JSONResponse
 from dishka.integrations.fastapi import FromDishka, DishkaRoute
 
-from runlet.domain.value_objects import AuthenticatedUserId
+from runlet.domain.interfaces.types import AuthenticatedUserId
 from runlet.application.dtos.auth import (
     RegisterUserRequestDTO,
     LoginUserDTO,

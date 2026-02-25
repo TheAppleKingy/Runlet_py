@@ -13,7 +13,11 @@ from runlet.application.dtos.course import (
     CourseG3,
     CourseUpdateDTO,
     CourseG6,
-    CourseG8
+    CourseG8,
+    CourseG4
+)
+from runlet.application.dtos.problem import (
+    ProblemInfoForStudentDTO
 )
 from runlet.application.dtos.teacher import (
     GenLinkDTO,
@@ -22,17 +26,24 @@ from runlet.application.dtos.teacher import (
     UpdateTagStudentsDTO,
     ManageModulesDTO,
     ManageTagsDTO,
-    RateStudentDTO
+    RateStudentDTO,
+    TagsToUpdateDTO,
+)
+from runlet.application.dtos.module import (
+    ModuleG4
 )
 from runlet.application.dtos.user import UserG1
 from runlet.application.dtos.problem import (
     CreateUpdateProblemDTO,
     ProblemG3
 )
-from runlet.application.dtos.tag import TagG3
+from runlet.application.dtos.tag import (
+    TagG3,
+)
 from runlet.application.interactors import (
     ShowTeacherCourseModulesToRateStudents,
     ShowTeacherCourseTagsToRateStudents,
+    ShowCourseModulesProblemsToUpdate,
     UpdateCourseData,
     GenerateInviteLink,
     CreateUpdateProblem,
@@ -47,20 +58,15 @@ from runlet.application.interactors import (
     ShowProblemDataToUpdate,
     SearchStudents,
     ShowStudentProblemInfoToRate,
-    RateStudent
+    RateStudent,
 )
-from runlet.domain.value_objects import AuthenticatedTeacherId
-from runlet.interfaces.presenters.http.dtos import (
-    ModuleWithRateInfoDTO,
-    TagsToUpdateDTO,
-    CourseWithStudentsSeensDTO
-)
+from runlet.domain.interfaces.types import AuthenticatedTeacherId
 from runlet.interfaces.presenters.http import (
     student_problems_info,
     show_tags_students_with_seen_info,
-    show_student_problem_to_rate
+    show_student_problem_to_rate,
+    show_course_modules_problems_with_seen_info
 )
-from runlet.interfaces.presenters.http.dtos import ProblemInfoForStudentDTO
 
 teacher_router = APIRouter(prefix="/teaching", tags=["Manage teaching"], route_class=DishkaRoute)
 
@@ -70,7 +76,7 @@ async def get_tags_and_students_to_rate(
     course_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
     interactor: FromDishka[ShowTeacherCourseTagsToRateStudents],
-) -> CourseWithStudentsSeensDTO:
+) -> CourseG4:
     """
     Endpoint returns data of course with all students, tags and tags students data.
     Need to add additional data for indicators of progress 
@@ -85,7 +91,7 @@ async def get_student_problems_info(
     student_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
     interactor: FromDishka[ShowStudentProblems]
-) -> list[ModuleWithRateInfoDTO]:
+) -> list[ModuleG4]:
     attempts, modules = await interactor(course_id, student_id)
     return student_problems_info(attempts, modules)
 
@@ -95,12 +101,9 @@ async def get_modules_and_problems_to_rate(
     course_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
     interactor: FromDishka[ShowTeacherCourseModulesToRateStudents]
-) -> Optional[CourseG3]:
-    """
-    Endpoint returns data of course with all needed modules and modules problems data.
-    Need to add additional data for indicators of progress 
-    """
-    return await interactor(course_id)
+) -> CourseG3:
+    course, unseen_problems_ids = await interactor(course_id)
+    return show_course_modules_problems_with_seen_info(course, unseen_problems_ids)
 
 
 @teacher_router.get("/course/{course_id}/rate/problems/{problem_id}")
@@ -137,8 +140,8 @@ async def create_invite_link(
 async def get_course_to_update_problems(
     course_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
-    interactor: FromDishka[ShowTeacherCourseModulesToRateStudents]
-) -> Optional[CourseG6]:
+    interactor: FromDishka[ShowCourseModulesProblemsToUpdate]
+) -> CourseG6:
     return await interactor(course_id)
 
 

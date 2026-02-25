@@ -2,16 +2,12 @@ from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 from runlet.domain.value_objects import Examples, TestCases
 
-
-class TestCaseDTO(BaseModel):
-    test_num: int
-    input: str
-    output: str
-
-
-class ExampleCaseDTO(BaseModel):
-    input: str
-    output: str
+from .test_cases import (
+    TestCaseForStudentDTO,
+    TestCaseForTeacherDTO,
+    TestCaseDTO,
+    ExampleCaseDTO
+)
 
 
 class ProblemG1(BaseModel):
@@ -52,12 +48,6 @@ class ProblemG3(_ContainsExample, _ContainsTestCases):
     show_test_cases: bool
 
 
-class ProblemG4(_ContainsExample):
-    id: int
-    name: str
-    description: str
-
-
 class CreateUpdateProblemDTO(BaseModel):
     id: Optional[int] = None
     name: str = Field(max_length=100)
@@ -67,3 +57,32 @@ class CreateUpdateProblemDTO(BaseModel):
     show_test_cases: bool
     test_cases: list[TestCaseDTO] = Field(default_factory=list)
     examples: list[ExampleCaseDTO] = Field(default_factory=list)
+
+
+class ProblemG5(BaseModel):
+    id: int
+    name: str
+    seen_attempt: bool
+
+
+class ProblemInfoForStudentDTO(BaseModel):
+    problem_id: int
+    problem_name: str
+    problem_description: Optional[str] = None
+    code: Optional[str] = None
+    test_cases: list[TestCaseForStudentDTO] = Field(default_factory=list)
+
+
+class ProblemInfoForTeacherDTO(BaseModel):
+    problem_id: int
+    problem_name: str
+    problem_description: Optional[str] = None
+    code: Optional[str] = None
+    test_cases: list[TestCaseForTeacherDTO] = Field(default_factory=list)
+
+
+class ProblemWithRateInfoDTO(BaseModel):
+    id: int
+    name: str
+    tests_passed: bool
+    confirmed_passed: bool

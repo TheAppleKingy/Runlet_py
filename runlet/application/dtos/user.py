@@ -17,3 +17,7 @@ class UserG2(BaseModel):
 
 class UserG3(BaseModel):
     name: str
+
+
+class UserWithSeenDTO(UserG1):
+    seen: bool

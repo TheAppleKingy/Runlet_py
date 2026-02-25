@@ -1,11 +1,19 @@
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_serializer, field_validator
+from pydantic import BaseModel, Field, field_validator
 
-from runlet.domain.entities import DefaultTagType
-from .module import ModuleG1, ModuleG2, OrderedModuleDTO
-from .tag import TagG2
-from .user import UserG1
+from .module import (
+    ModuleG1,
+    ModuleG2,
+    ModuleG3,
+    OrderedModuleDTO
+)
+from .tag import (
+    TagG2
+)
+from .user import (
+    UserWithSeenDTO
+)
 
 
 class CourseG1(BaseModel):
@@ -31,18 +39,14 @@ class _ContainsOrderedModulesDTO(BaseModel):
 class CourseG3(_ContainsOrderedModulesDTO):
     id: int
     name: str
-    modules: list[ModuleG1]  # type: ignore[assignment]
+    modules: list[ModuleG3] = Field(default_factory=list)  # type: ignore[assignment]
 
 
 class CourseG4(BaseModel):
     id: int
     name: str
-    students: list[UserG1]
-    tags: list[TagG2]
-
-    @field_serializer("tags")
-    def serialize_tags(self, tags: list[TagG2]):
-        return [tag_data for tag_data in tags if tag_data.name not in DefaultTagType.names()]
+    tags: list[TagG2] = Field(default_factory=list)
+    students: list[UserWithSeenDTO] = Field(default_factory=list)
 
 
 class CourseG5(BaseModel):

@@ -12,9 +12,9 @@ from runlet.application.dtos.student import SendProblemSolutionDTO
 from runlet.application.dtos.course import (
     CourseG7
 )
-from runlet.domain.value_objects import AuthenticatedStudentId
+from runlet.application.dtos.problem import ProblemInfoForStudentDTO
+from runlet.domain.interfaces.types import AuthenticatedStudentId
 from runlet.interfaces.presenters.http import show_problem_info_for_student_to_solve
-from runlet.interfaces.presenters.http.dtos import ProblemInfoForStudentDTO
 
 student_router = APIRouter(prefix="/study", tags=["Manage studiyng"], route_class=DishkaRoute)
 

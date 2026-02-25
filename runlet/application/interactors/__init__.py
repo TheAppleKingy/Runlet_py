@@ -32,7 +32,8 @@ from .teacher import (
     ShowProblemDataToUpdate,
     SearchStudents,
     ShowStudentProblemInfoToRate,
-    RateStudent
+    RateStudent,
+    ShowCourseModulesProblemsToUpdate
 )
 from .user import (
     ShowCourse,
@@ -84,5 +85,6 @@ __all__ = [
     "ShowStudentProblemInfoToRate",
     "SendProblemSolution",
     "HandleTestResult",
-    "RateStudent"
+    "RateStudent",
+    "ShowCourseModulesProblemsToUpdate"
 ]
