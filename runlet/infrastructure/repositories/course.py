@@ -1,3 +1,4 @@
+# mypy: disable-error-code="arg-type"
 from typing import Optional, Sequence, Any
 
 from sqlalchemy import select, exists, func

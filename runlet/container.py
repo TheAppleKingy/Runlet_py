@@ -32,7 +32,7 @@ from runlet.infrastructure.configs import (
 from runlet.infrastructure.repositories import *  # noqa: F403
 from runlet.infrastructure.uow import AlchemyUoW
 from runlet.infrastructure.broker import RabbitPublisher
-from runlet.domain.value_objects import (
+from runlet.domain.interfaces.types import (
     AuthenticatedUserId,
     AuthenticatedStudentId,
     AuthenticatedTeacherId,
@@ -224,7 +224,8 @@ interactors_provider.provide_all(
     ShowStudentProblemInfoToRate,
     SendProblemSolution,
     HandleTestResult,
-    RateStudent
+    RateStudent,
+    ShowCourseModulesProblemsToUpdate
 )
 
 

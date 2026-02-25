@@ -1,7 +1,10 @@
 from typing import Optional
 
-from pydantic import BaseModel
-from .user import UserG1
+from pydantic import BaseModel, Field
+from .user import (
+    UserG1,
+    UserWithSeenDTO
+)
 
 
 class TagG1(BaseModel):
@@ -15,7 +18,7 @@ class TagG1(BaseModel):
 
 class TagG2(BaseModel):
     name: str
-    students: list[UserG1]
+    students: list[UserWithSeenDTO] = Field(default_factory=list)
 
 
 class TagG3(BaseModel):

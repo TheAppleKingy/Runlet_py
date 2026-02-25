@@ -1,10 +1,17 @@
+# mypy: disable-error-code="arg-type"
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, exists
 from sqlalchemy.orm import selectinload
 
 from runlet.application.interfaces.repositories import AttemptRepositoryInterface
-from runlet.domain.entities import Attempt, Module, Problem, User
+from runlet.domain.entities import (
+    Attempt,
+    Module,
+    Problem,
+    User,
+    Course
+)
 from .base import BaseAlchemyRepository
 
 
@@ -34,3 +41,16 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
             .where(Attempt.user_id == student_id, Module.course_id == course_id, Attempt.problem_id == problem_id)
         )
         return await self._session.scalar(stmt.options(selectinload(Attempt.problem)))
+
+    async def get_problems_ids_with_unseen_attempts(self, course_id: int) -> list[int]:
+        stmt = (
+            select(Problem.id)  # type: ignore[call-overload]
+            .join(Module, Module.id == Problem.module_id)
+            .join(Course, Course.id == Module.course_id)
+            .where(Course.id == course_id)
+            .where(
+                exists().where(Attempt.problem_id == Problem.id, Attempt.seen == False)  # noqa: E712
+            )
+        )
+        res = await self._session.scalars(stmt)
+        return res.unique().all()  # type: ignore[return-value]
