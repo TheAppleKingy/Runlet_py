@@ -1,6 +1,6 @@
 import pytest
-from src.domain.value_objects import TestCase, TestCases
-from src.domain.value_objects.exceptions import DuplicateTestCaseInput, ValidationTestCaseError
+from runlet.domain.value_objects import TestCase, TestCases
+from runlet.domain.value_objects.exceptions import DuplicateTestCaseInput, ValidationTestCaseError
 
 
 class TestTestCases:

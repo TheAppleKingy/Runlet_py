@@ -1,7 +1,7 @@
 import pytest
 
-from src.domain.value_objects import TestCase
-from src.domain.value_objects.exceptions import ValidationTestCaseError
+from runlet.domain.value_objects import TestCase
+from runlet.domain.value_objects.exceptions import ValidationTestCaseError
 
 # ===================== TestCase Tests =====================
 

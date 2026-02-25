@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 
 from sqlalchemy_utils import EmailType
-from src.infrastructure.db.tables.base import TestCaseJSONBType, ExamplesJSONBType
+from runlet.infrastructure.db.tables.base import TestCaseJSONBType, ExamplesJSONBType
 # revision identifiers, used by Alembic.
 revision: str = '425c28a015cb'
 down_revision: Union[str, Sequence[str], None] = None

@@ -7,8 +7,8 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
-from src.infrastructure.db.tables import *
-from src.infrastructure.configs import DBConfig
+from runlet.infrastructure.db.tables import *
+from runlet.infrastructure.configs import DBConfig
 
 conf = DBConfig()
 

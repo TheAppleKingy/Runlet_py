@@ -1,14 +1,14 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from src.domain.entities import (
+from runlet.domain.entities import (
     User,
     Course
 )
-from src.application.interfaces.uow import UoWInterface
-from src.application.interfaces.repositories import *
-from src.application.interfaces.services import *
-from src.application.interactors import *
+from runlet.application.interfaces.uow import UoWInterface
+from runlet.application.interfaces.repositories import *
+from runlet.application.interfaces.services import *
+from runlet.application.interactors import *
 
 
 @pytest.fixture

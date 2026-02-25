@@ -1,0 +1,9 @@
+from typing import Protocol, Optional
+
+from runlet.domain.entities import User, Attempt
+
+
+class AttemptRepositoryInterface(Protocol):
+    async def get_student_attempts(self, course_id: int, student_id: int) -> list[Attempt]: ...
+    async def get_problem_students(self, problem_id: int) -> list[User]: ...
+    async def get_student_attempt(self, course_id: int, student_id: int, problem_id: int) -> Optional[Attempt]: ...

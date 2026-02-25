@@ -1,14 +1,14 @@
 import pytest
 from dataclasses import field
-from src.domain.entities import Course, Module, User, Problem
-from src.domain.entities.exceptions import (
+from runlet.domain.entities import Course, Module, User, Problem
+from runlet.domain.entities.exceptions import (
     NamesAlreadyExistError,
     IncorrectModulesOrdersError,
     UndefinedModuleError,
     HasNoDirectAccessError,
     RepeatableNamesError
 )
-from src.domain.services.course import CourseModulesManagerService
+from runlet.domain.services.course import CourseModulesManagerService
 
 
 @pytest.fixture
