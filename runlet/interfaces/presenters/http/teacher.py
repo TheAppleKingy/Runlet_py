@@ -21,7 +21,8 @@ from runlet.application.dtos.course import (
     CourseG4
 )
 from runlet.application.dtos.user import (
-    UserWithSeenDTO
+    UserWithSeenDTO,
+    UserG4
 )
 from runlet.application.dtos.tag import (
     TagG2
@@ -97,3 +98,15 @@ def show_course_modules_problems_with_seen_info(course: Course, unseen_problems_
         modules_dtos.append(module_dto)
     res = CourseG3(id=course.id, name=course.name, modules=modules_dtos)
     return res
+
+
+def show_problems_students_with_attempt_info(students_attempts: list[tuple[User, Attempt]]):
+    return [
+        UserG4(
+            id=user.id,
+            name=user.name,
+            seen=attempt.seen,
+            tests_passed=attempt.tests_passed,
+            confirmed_passed=attempt.confirmed_passed
+        ) for user, attempt in students_attempts
+    ]

@@ -26,9 +26,9 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
         res = await self._session.scalars(stmt.options(selectinload(Attempt.problem)))
         return res.unique().all()  # type: ignore
 
-    async def get_problem_students(self, problem_id: int) -> list[User]:
-        res = await self._session.scalars(
-            select(User)
+    async def get_problem_students_with_attempts(self, problem_id: int) -> list[tuple[User, Attempt]]:
+        res = await self._session.execute(
+            select(User, Attempt)
             .join(Attempt, Attempt.user_id == User.id).where(Attempt.problem_id == problem_id)
         )
         return res.unique().all()  # type: ignore

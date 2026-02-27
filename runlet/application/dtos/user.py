@@ -21,3 +21,8 @@ class UserG3(BaseModel):
 
 class UserWithSeenDTO(UserG1):
     seen: bool
+
+
+class UserG4(UserWithSeenDTO):
+    tests_passed: bool
+    confirmed_passed: bool
