@@ -6,7 +6,8 @@ from dishka.integrations.fastapi import FromDishka, DishkaRoute
 from runlet.application.interactors import (
     ShowStudentCourse,
     ShowProblemToSolve,
-    SendProblemSolution
+    SendProblemSolution,
+    ShowCurrentAttempts
 )
 from runlet.application.dtos.student import SendProblemSolutionDTO
 from runlet.application.dtos.course import (
@@ -14,7 +15,10 @@ from runlet.application.dtos.course import (
 )
 from runlet.application.dtos.problem import ProblemInfoForStudentDTO
 from runlet.domain.interfaces.types import AuthenticatedStudentId
-from runlet.interfaces.presenters.http import show_problem_info_for_student_to_solve
+from runlet.interfaces.presenters.http import (
+    show_problem_info_for_student_to_solve,
+    show_current_attempts_info
+)
 
 student_router = APIRouter(prefix="/study", tags=["Manage studiyng"], route_class=DishkaRoute)
 
@@ -54,3 +58,12 @@ async def send_problem_solution(
     interactor: FromDishka[SendProblemSolution]
 ):
     return await interactor(course_id, module_id, problem_id, user_id, dto)
+
+
+@student_router.get("/course/{course_id}/attempts")
+async def get_current_attempts(
+    course_id: int,
+    user_id: FromDishka[AuthenticatedStudentId],
+    interactor: FromDishka[ShowCurrentAttempts]
+):
+    return show_current_attempts_info(await interactor(user_id, course_id))

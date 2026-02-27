@@ -10,6 +10,9 @@ from runlet.application.dtos.problem import (
 from runlet.application.dtos.test_cases import (
     TestCaseForStudentDTO
 )
+from runlet.application.dtos.student import (
+    CurrentAttemptInfo
+)
 
 
 def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[Attempt]):
@@ -32,3 +35,14 @@ def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[A
                 ) for num, case in attempt.test_cases
             ], key=lambda tc: tc.test_num)
     return res
+
+
+def show_current_attempts_info(attempts: list[Attempt]) -> list[CurrentAttemptInfo]:
+    return list(reversed(sorted([CurrentAttemptInfo(
+        problem_id=attempt.problem_id,
+        problem_name=attempt.problem.name,
+        tests_passed=attempt.tests_passed,
+        confirmed_passed=attempt.confirmed_passed,
+        seen=attempt.seen,
+        updated_at=attempt.updated_at
+    ) for attempt in attempts], key=lambda a: a.updated_at)))

@@ -1,12 +1,21 @@
 # mypy: disable-error-code="arg-type"
 from typing import Optional, Sequence, Any
 
-from sqlalchemy import select, exists, func
+from sqlalchemy import (
+    select,
+    exists,
+    func,
+    insert
+)
 from sqlalchemy.orm import selectinload
 
 from runlet.application.interfaces.repositories import CourseRepositoryInterface
 from runlet.domain.entities import Course
-from runlet.infrastructure.db.tables import users_courses
+from runlet.infrastructure.db.tables import (
+    users_courses,
+    favourites,
+    courses
+)
 from .base import BaseAlchemyRepository
 
 
@@ -60,3 +69,23 @@ class AlchemyCourseRepository(BaseAlchemyRepository, CourseRepositoryInterface):
                 root_rel = getattr(root_rel, "selectinload")(list_models[i])
             options.append(root_rel)
         return await self._session.scalar(select(Course).where(Course.id == course_id).options(*options))
+
+    async def get_favourites_for(self, user_id: int) -> list[Course]:
+        sub = (
+            select(favourites.c.course_id)
+            .where(favourites.c.user_id == user_id)
+            .subquery()
+        )
+        res = await self._session.scalars(select(Course).where(courses.c.id.in_(sub)))
+        return res.unique().all()  # type: ignore[return-value]
+
+    async def add_to_favourites(self, user_id: int, course_id: int) -> None:
+        exists = await self._session.scalar(select(favourites).where(
+            favourites.c.user_id == user_id,
+            favourites.c.course_id == course_id
+        ))
+        if not exists:
+            await self._session.execute(insert(favourites).values(
+                user_id=user_id,
+                course_id=course_id
+            ))
