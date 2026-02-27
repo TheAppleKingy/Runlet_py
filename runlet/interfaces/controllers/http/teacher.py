@@ -32,7 +32,10 @@ from runlet.application.dtos.teacher import (
 from runlet.application.dtos.module import (
     ModuleG4
 )
-from runlet.application.dtos.user import UserG1
+from runlet.application.dtos.user import (
+    UserG1,
+    UserG4
+)
 from runlet.application.dtos.problem import (
     CreateUpdateProblemDTO,
     ProblemG3
@@ -65,7 +68,8 @@ from runlet.interfaces.presenters.http import (
     student_problems_info,
     show_tags_students_with_seen_info,
     show_student_problem_to_rate,
-    show_course_modules_problems_with_seen_info
+    show_course_modules_problems_with_seen_info,
+    show_problems_students_with_attempt_info
 )
 
 teacher_router = APIRouter(prefix="/teaching", tags=["Manage teaching"], route_class=DishkaRoute)
@@ -77,10 +81,6 @@ async def get_tags_and_students_to_rate(
     user_id: FromDishka[AuthenticatedTeacherId],
     interactor: FromDishka[ShowTeacherCourseTagsToRateStudents],
 ) -> CourseG4:
-    """
-    Endpoint returns data of course with all students, tags and tags students data.
-    Need to add additional data for indicators of progress 
-    """
     course, students_info = await interactor(course_id)
     return show_tags_students_with_seen_info(course, students_info)
 
@@ -112,8 +112,9 @@ async def get_problem_students_info(
     problem_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
     interactor: FromDishka[ShowProblemStudents]
-) -> list[UserG1]:
-    return await interactor(problem_id)
+) -> list[UserG4]:
+    students_attempts = await interactor(problem_id)
+    return show_problems_students_with_attempt_info(students_attempts)
 
 
 @teacher_router.patch("/course/{course_id}")

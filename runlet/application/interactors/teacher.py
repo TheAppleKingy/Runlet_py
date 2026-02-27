@@ -286,8 +286,7 @@ class ShowProblemStudents:
 
     async def __call__(self, problem_id: int):
         async with self._uow:
-            students = await self._attempt_repo.get_problem_students(problem_id)
-        return students
+            return await self._attempt_repo.get_problem_students_with_attempts(problem_id)
 
 
 class ShowTagsToUpdate(_CourseRepoRelatedInteractor):
