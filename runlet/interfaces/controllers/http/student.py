@@ -28,7 +28,7 @@ async def get_student_course(
     course_id: int,
     user_id: FromDishka[AuthenticatedStudentId],
     interactor: FromDishka[ShowStudentCourse]
-) -> Optional[CourseG7]:
+) -> CourseG7:
     return await interactor(course_id)
 
 
