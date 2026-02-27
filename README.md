@@ -17,29 +17,7 @@ It provides an API for solving programming problems by running code on remote se
 ## ⚙️ Install
 
 
-Before running the app, set the following environment variables:
-
-### 🔑 JWT Auth
-
-| Variable                 | Description                        |
-|--------------------------|------------------------------------|
-| `SECRET`             | Secret key to sign JWT tokens      |
-| `TOKEN_EXPIRE_TIME`  | Token expiration time (in seconds) |
-
-### 🗄 PostgreSQL
-
-| Variable            | Description             |
-|---------------------|-------------------------|
-| `POSTGRES_USER`       | Database name           |
-| `POSTGRES_PASSWORD`     | PostgreSQL username     |
-| `POSTGRES_DB` | PostgreSQL password     |
-| `POSTGRES_HOST`                |          Host using to connect to database           |
-
-### 🏃 Runners
-
-| Variable            | Description                             |
-|---------------------|-----------------------------------------|
-| `RUNNERS_CONF_PATH` | Path to runners config (runners.yaml)   |
+Before running the app, set the following environment variables using .env file in build/prod. Examples of variables are in `build/prod/.example.env`.
 
 
 ---
@@ -47,7 +25,7 @@ Before running the app, set the following environment variables:
 To start:
 
 ```bash
-make runlet.build.start
+make runlet.prod.build.start
 ```
 
 ---
@@ -63,13 +41,18 @@ Swagger documentation is available at:
 
 ## 📦 Usage
 
-The API provides basic authentication features:
+Current service provides full API coverage for current functional requirements:
 
-- Registration
-- Login / Logout
+- Authenticate endpoints
+- Common endpoints for all users of platform
+- Endpoints for students
+- Endpoints for course teacher/administrator
 
->Refer to Swagger UI for request details.
+>Refer to Swagger UI for requests and responses details.
+---
+## 📌 Additional
 
+One of the main features of platform is the running students code with specified input data. Code of code runner and gateway you can in  [Runlet_runners_py](https://github.com/TheAppleKingy/Runlet_runners_py).
 
 ---
 
@@ -80,7 +63,16 @@ The API provides basic authentication features:
 - **SQLAlchemy** – ORM  
 - **Alembic** – DB migrations  
 - **Docker** – containerization
-- **RabbitMQ** - messaging
+- **RabbitMQ**, **[ploomby](https://pypi.org/project/ploomby/)** - messaging
+- **[mailgeno](https://hub.docker.com/repository/docker/theapplekingy/mailgeno/tags)** - mail service
 ---
+## 🧪 Testing
+To run tests execute:
+```bash
+make runlet.tests.full
+```
 
-Feel free to contribute or open issues.
+Linting:
+```bash
+make runlet.lint
+```
