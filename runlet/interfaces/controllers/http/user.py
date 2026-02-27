@@ -8,7 +8,9 @@ from runlet.application.interactors import (
     RequestSubscribeOnCourse,
     SubscribeOnCourseByLink,
     SubscribeOnCourse,
-    ShowMyProfile
+    ShowMyProfile,
+    ShowFavourites,
+    AddToFavourites
 )
 from runlet.domain.interfaces.types import (
     AuthenticatedUserId,
@@ -95,3 +97,20 @@ async def subscribe_on_course(
     interactor: FromDishka[SubscribeOnCourse]
 ):
     return await interactor(user_id, course_id)
+
+
+@user_router.get("/courses/favourites")
+async def get_favourites(
+    user_id: FromDishka[AuthenticatedUserId],
+    interactor: FromDishka[ShowFavourites]
+) -> list[CourseG2]:
+    return await interactor(user_id)  # type: ignore[return-value]
+
+
+@user_router.post("/courses/{course_id}/favourites")
+async def add_favourites(
+    course_id: int,
+    user_id: FromDishka[AuthenticatedUserId],
+    interactor: FromDishka[AddToFavourites]
+) -> None:
+    await interactor(user_id, course_id)

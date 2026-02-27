@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 from runlet.domain.interfaces.types import CodeName
@@ -20,3 +22,12 @@ class TestSolutionDTO(BaseModel):
     lang: CodeName
     code: str
     run_data: list[RunDataDTO] = Field(min_length=1)
+
+
+class CurrentAttemptInfo(BaseModel):
+    problem_id: int
+    problem_name: str
+    tests_passed: bool
+    confirmed_passed: bool
+    seen: bool
+    updated_at: datetime

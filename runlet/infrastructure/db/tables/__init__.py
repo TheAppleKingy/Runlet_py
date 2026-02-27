@@ -4,6 +4,7 @@ from .courses import courses
 from .problems import problems, modules
 from .users_courses import users_courses
 from .base import metadata
+from .favourites import favourites
 
 
 __all__ = [
@@ -15,5 +16,6 @@ __all__ = [
     "users",
     "users_tags",
     "tags",
-    "attempts"
+    "attempts",
+    "favourites"
 ]

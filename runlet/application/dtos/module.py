@@ -14,6 +14,7 @@ class OrderedModuleDTO(BaseModel):
 
 
 class ModuleG1(OrderedModuleDTO):
+    id: int
     name: str
     problems: list[ProblemG1]
 

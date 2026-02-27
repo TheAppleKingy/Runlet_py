@@ -23,6 +23,7 @@ from runlet.application.interactors.exceptions import (
     UndefinedCourseError,
     InvalidInvitingLinkError,
     CoursePrivacyError,
+    ImpossibleOperationError
 )
 from runlet.application.dtos.course import CourseCreateDTO
 from .base import (
@@ -138,7 +139,7 @@ class SubscribeOnCourse(_CourseUserReposRelatedInteractor):
             # only authorized users be able to subscribe on course therefore, don't need to check whether user exists or not.
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
             if not course:
-                raise UndefinedCourseError("Course does not exist")
+                raise UndefinedCourseError("Course does not exist", status=404)
             if course.is_private:
                 raise CoursePrivacyError("Course is private")
             user = await self._user_repo.get_by_id(user_id)
@@ -165,24 +166,38 @@ class SubscribeOnCourseByLink(_CourseUserReposRelatedInteractor):
         try:
             payload = self._token_service.decode(token)
         except Exception:
-            raise InvalidInvitingLinkError("Inviting URL is invalid", 404)
+            raise InvalidInvitingLinkError("Inviting URL is invalid", status=404)
         tags_ids = payload.get("tags_ids", [])
         course_id = payload.get("course_id")
         if not course_id:
-            raise InvalidInvitingLinkError("Inviting URL is invalid", 404)
+            raise InvalidInvitingLinkError("Inviting URL is invalid", status=404)
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students], [Course._students])
             if not course:
-                raise InvalidInvitingLinkError("Inviting URL is invalid", 404)
+                raise UndefinedCourseError("Course does not exist", status=404)
             if await self._course_repo.check_user_in_course(user_id, course.id):
                 raise InvalidInvitingLinkError("Already subscribed on course")
             student = await self._user_repo.get_by_id(user_id)
             manager = CourseStudentsManagerService(course)
             if tags_ids:
                 for tag_id in tags_ids:
-                    print(tag_id)
                     manager.add_students_by_tag(tag_id, [student])  # type: ignore
             else:
                 manager.add_students([student])  # type: ignore
         topic, msg = EmailMessageTextTemplate.notify_student_subscribed(course.name)  # type: ignore
         await self._email_service.send_mail(student.email, topic, msg)  # type: ignore
+
+
+class ShowFavourites(_CourseRepoRelatedInteractor):
+    async def __call__(self, user_id: int) -> list[Course]:  # type: ignore[return]
+        async with self._uow:
+            return await self._course_repo.get_favourites_for(user_id)
+
+
+class AddToFavourites(_CourseRepoRelatedInteractor):
+    async def __call__(self, user_id: int, course_id: int):
+        async with self._uow:
+            course = await self._course_repo.get_by_id(course_id)
+            if user_id == course.teacher_id:  # type: ignore[union-attr]
+                raise ImpossibleOperationError("Cannot add course to favorites because you are the teacher")
+            await self._course_repo.add_to_favourites(user_id, course_id)

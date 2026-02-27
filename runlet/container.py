@@ -225,7 +225,10 @@ interactors_provider.provide_all(
     SendProblemSolution,
     HandleTestResult,
     RateStudent,
-    ShowCourseModulesProblemsToUpdate
+    ShowCourseModulesProblemsToUpdate,
+    ShowFavourites,
+    AddToFavourites,
+    ShowCurrentAttempts
 )
 
 
