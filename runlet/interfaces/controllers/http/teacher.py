@@ -17,7 +17,7 @@ from runlet.application.dtos.course import (
     CourseG4
 )
 from runlet.application.dtos.problem import (
-    ProblemInfoForStudentDTO
+    ProblemInfoForTeacherDTO
 )
 from runlet.application.dtos.teacher import (
     GenLinkDTO,
@@ -248,7 +248,7 @@ async def get_student_problem_info_to_rate(
     student_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
     interactor: FromDishka[ShowStudentProblemInfoToRate]
-) -> ProblemInfoForStudentDTO:
+) -> ProblemInfoForTeacherDTO:
     return show_student_problem_to_rate(
         await interactor(course_id, module_id, problem_id, student_id)
     )

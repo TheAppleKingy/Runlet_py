@@ -65,7 +65,7 @@ class ProblemG5(BaseModel):
     seen_attempt: bool
 
 
-class ProblemInfoForStudentDTO(BaseModel):
+class ProblemInfoForStudentDTO(_ContainsExample):
     problem_id: int
     problem_name: str
     problem_description: Optional[str] = None
@@ -73,7 +73,7 @@ class ProblemInfoForStudentDTO(BaseModel):
     test_cases: list[TestCaseForStudentDTO] = Field(default_factory=list)
 
 
-class ProblemInfoForTeacherDTO(BaseModel):
+class ProblemInfoForTeacherDTO(_ContainsExample):
     problem_id: int
     problem_name: str
     problem_description: Optional[str] = None

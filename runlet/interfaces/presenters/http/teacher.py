@@ -81,7 +81,8 @@ def show_student_problem_to_rate(attempt: Attempt):
                 ) for num, case in attempt.test_cases
             ],
             key=lambda tc: tc.test_num
-        )
+        ),
+        examples=attempt.problem.examples  # type: ignore[arg-type]
     )
 
 

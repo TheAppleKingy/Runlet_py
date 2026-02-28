@@ -7,6 +7,9 @@ from .test_case import TestCase
 class Examples:
     _data: list[TestCase] = field(default_factory=list)
 
+    def __iter__(self):
+        return iter(self._data)
+
     def cases(self):
         return self._data
 
