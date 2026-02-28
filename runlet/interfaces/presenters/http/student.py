@@ -8,7 +8,8 @@ from runlet.application.dtos.problem import (
     ProblemInfoForStudentDTO
 )
 from runlet.application.dtos.test_cases import (
-    TestCaseForStudentDTO
+    TestCaseForStudentDTO,
+    ExampleCaseDTO
 )
 from runlet.application.dtos.student import (
     CurrentAttemptInfo
@@ -23,7 +24,7 @@ def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[A
     )
     if attempt:
         res.code = attempt.code
-        res.test_cases = sorted(
+        res.test_cases = sorted(  # type: ignore[assignment]
             [
                 TestCaseForStudentDTO(
                     test_num=num,
@@ -33,7 +34,8 @@ def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[A
                     expected_output=problem.test_cases.get_case(
                         num).output if problem.show_test_cases else None  # type: ignore[union-attr]
                 ) for num, case in attempt.test_cases
-            ], key=lambda tc: tc.test_num)
+            ], key=lambda tc: tc.test_num),
+        res.examples = [ExampleCaseDTO(input=ex.input, output=ex.output) for ex in attempt.problem.examples]
     return res
 
 
