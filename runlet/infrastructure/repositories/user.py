@@ -49,7 +49,7 @@ class AlchemyUserRepository(BaseAlchemyRepository, UserRepositoryInterface):
     async def get_by_id_with_attempts_seen_info(
         self,
         course_id: int,
-    ) -> list[tuple[User, bool]]:
+    ) -> list[tuple[User, Optional[bool]]]:
         stmt = (
             select(User).add_columns(Attempt.seen).join(
                 users_courses, users_courses.c.student_id == User.id
