@@ -3,6 +3,7 @@ from runlet.domain.entities import (
     Module,
     Course,
     User,
+    DefaultTagType
 )
 
 from runlet.application.dtos.problem import (
@@ -52,14 +53,14 @@ def show_tags_students_with_seen_info(
     students_seens: list[tuple[User, bool | None]]
 ):
     students_dtos = [
-        UserWithSeenDTO(id=s.id, name=s.name, seen=bool(seen_info)) for s, seen_info in students_seens
+        UserWithSeenDTO(id=s.id, name=s.name, seen=False if seen_info is False else True) for s, seen_info in students_seens
     ]
     students_dto_map = {dto.id: dto for dto in students_dtos}
     tags_dtos = [
         TagG2(
             name=t.name,
             students=[students_dto_map[s.id] for s in t.students]
-        ) for t in course.tags
+        ) for t in course.tags if t.name not in DefaultTagType.names()
     ]
     return CourseG4(id=course.id, name=course.name, tags=tags_dtos, students=students_dtos)
 
