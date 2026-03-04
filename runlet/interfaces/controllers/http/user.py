@@ -10,7 +10,8 @@ from runlet.application.interactors import (
     SubscribeOnCourse,
     ShowMyProfile,
     ShowFavourites,
-    AddToFavourites
+    AddToFavourites,
+    ShowCurrentAttempts
 )
 from runlet.domain.interfaces.types import (
     AuthenticatedUserId,
@@ -22,6 +23,7 @@ from runlet.application.dtos.course import (
     CourseCreateDTO
 )
 from runlet.application.dtos.user import UserG2
+from runlet.interfaces.presenters.http.student import show_current_attempts_info
 
 user_router = APIRouter(prefix="/me", route_class=DishkaRoute)
 
@@ -114,3 +116,13 @@ async def add_favourites(
     interactor: FromDishka[AddToFavourites]
 ) -> None:
     await interactor(user_id, course_id)
+
+
+@user_router.get("/attempts")
+async def get_current_attempts(
+    user_id: FromDishka[AuthenticatedUserId],
+    interactor: FromDishka[ShowCurrentAttempts],
+    page: int = Query(default=1, gt=0),
+    size: int = Query(default=12, le=12, gt=0)
+):
+    return show_current_attempts_info(await interactor(user_id, ))

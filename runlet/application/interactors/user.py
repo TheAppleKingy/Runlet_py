@@ -12,6 +12,7 @@ from runlet.domain.services import (
 from runlet.application.interfaces.repositories import (
     UserRepositoryInterface,
     CourseRepositoryInterface,
+    AttemptRepositoryInterface
 )
 from runlet.application.interfaces.uow import UoWInterface
 from runlet.application.interfaces.services import (
@@ -201,3 +202,17 @@ class AddToFavourites(_CourseRepoRelatedInteractor):
             if user_id == course.teacher_id:  # type: ignore[union-attr]
                 raise ImpossibleOperationError("Cannot add course to favorites because you are the teacher")
             await self._course_repo.add_to_favourites(user_id, course_id)
+
+
+class ShowCurrentAttempts:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        attempt_repo: AttemptRepositoryInterface
+    ):
+        self._uow = uow
+        self._attempt_repo = attempt_repo
+
+    async def __call__(self, user_id: int, page: int, size: int) -> tuple[list[Attempt], int]:  # type: ignore[return]
+        async with self._uow:
+            attempts, pages = await self._attempt_repo.get_student_attempts_all_courses_paginated(user_id, page, size)

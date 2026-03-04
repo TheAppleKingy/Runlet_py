@@ -93,6 +93,7 @@ class RepoProvider(Provider):
     user_repo = provide(AlchemyUserRepository, provides=UserRepositoryInterface)
     course_repo = provide(AlchemyCourseRepository, provides=CourseRepositoryInterface)
     problem_repo = provide(AlchemyProblemRepository, provides=ProblemRepositoryInterface)
+    tag_repo = provide(AlchemyTagRepository, provides=TagRepositoryInterface)
 
 
 class ApplicationServiceProvider(Provider):
@@ -228,7 +229,8 @@ interactors_provider.provide_all(
     ShowCourseModulesProblemsToUpdate,
     ShowFavourites,
     AddToFavourites,
-    ShowCurrentAttempts
+    ShowCurrentAttempts,
+    SearchStudentsWithSeens
 )
 
 

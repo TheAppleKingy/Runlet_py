@@ -25,7 +25,9 @@ from runlet.application.interfaces.services import AuthenticationServiceInterfac
 from runlet.application.interfaces.repositories import (
     CourseRepositoryInterface,
     ModuleRepositoryInterface,
-    AttemptRepositoryInterface
+    AttemptRepositoryInterface,
+    TagRepositoryInterface,
+    UserRepositoryInterface
 )
 from runlet.application.interactors.exceptions import (
     UndefinedCourseError,
@@ -55,16 +57,33 @@ from runlet.application.dtos.problem import (
 from .base import (
     _CourseRepoRelatedInteractor,
     _CourseUserReposRelatedInteractor,
-    _CourseAttemptReposRelatedInteractor
+    _CourseAttemptReposRelatedInteractor,
+    _CourseAttemptUserRepoRelatedInteractor,
+    _AttemptUserRepoRelatedInteractor
 )
 
 
-class ShowTeacherCourseTagsToRateStudents(_CourseUserReposRelatedInteractor):
-    async def __call__(self, course_id: int) -> tuple[Course, list[tuple[User, Optional[bool]]]]:
+class ShowTeacherCourseTagsToRateStudents(_CourseAttemptUserRepoRelatedInteractor):
+    async def __call__(
+        self,
+        course_id: int,
+        tag_id: Optional[int],
+        page: int = 1,
+        size: int = 12
+    ) -> tuple[Course, list[tuple[User, Optional[Attempt]]], int, Optional[Tag]]:
         async with self._uow:
-            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
-            students_seens = await self._user_repo.get_by_id_with_attempts_seen_info(course_id)
-        return course, students_seens  # type: ignore[return-value]
+            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags])
+            tag: Optional[Tag] = None
+            if tag_id:
+                tag = course.get_tag_by_id(tag_id)
+                if not tag:
+                    raise UndefinedTagError("Tag does not exist or not related to course")
+                students, pages = await self._user_repo.get_paginated_by_tag(course_id, tag_id, page=page, size=size)
+            else:
+                students, pages = await self._user_repo.get_paginated_by_course(course_id, page=page, size=size)
+            attempts = await self._attempt_repo.get_attempts_of_students([s.id for s in students])
+            attempts_map = {a.user_id: a for a in attempts}
+        return course, [(s, attempts_map.get(s.id)) for s in students], pages, tag  # type: ignore[return-value]
 
 
 class ShowTeacherCourseModulesToRateStudents(_CourseAttemptReposRelatedInteractor):
@@ -275,25 +294,53 @@ class ShowStudentProblems(_CourseAttemptReposRelatedInteractor):
         return attempts, modules
 
 
-class ShowProblemStudents:
-    def __init__(
+class ShowProblemStudents(_CourseAttemptReposRelatedInteractor):
+    async def __call__(
         self,
-        uow: UoWInterface,
-        attempt_repo: AttemptRepositoryInterface,
-    ):
-        self._uow = uow
-        self._attempt_repo = attempt_repo
-
-    async def __call__(self, problem_id: int):
+        course_id: int,
+        module_id: int,
+        problem_id: int,
+        page: int = 1,
+        size: int = 7
+    ) -> tuple[list[tuple[User, Attempt]], int]:
         async with self._uow:
-            return await self._attempt_repo.get_problem_students_with_attempts(problem_id)
+            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
+            module = course.get_module_by_id(module_id)
+            if not module:
+                raise UndefinedModuleError("Module does not exist or not related to course")
+            problem = module.get_problem_by_id(problem_id)
+            if not problem:
+                raise UndefinedProblemError("Problem does not exist or not related to module")
+            return await self._attempt_repo.get_problem_paginated_students_with_attempts(problem_id, page=page, size=size)
 
 
-class ShowTagsToUpdate(_CourseRepoRelatedInteractor):
-    async def __call__(self, course_id: int):
+class ShowTagsToUpdate(_CourseUserReposRelatedInteractor):
+    async def __call__(
+        self,
+        course_id: int,
+        tag_id: int,
+        course_students_page: int = 1,
+        course_students_size: int = 7,
+        tag_students_page: int = 1,
+        tag_students_size: int = 7
+    ) -> tuple[list[User], int, list[User], int, Tag]:
         async with self._uow:
-            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._students], [Course._tags, Tag.students])
-        return course.students, course.tags  # type: ignore[union-attr]
+            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags])
+            course_students, course_students_pages = await self._user_repo.get_paginated_by_course(  # TODO: cache
+                course_id,
+                page=course_students_page,
+                size=course_students_size
+            )
+            tag = course.get_tag_by_id(tag_id)
+            if not tag:
+                raise UndefinedTagError("Tag does not exist or not related to course")
+            tag_students, tag_students_pages = await self._user_repo.get_paginated_by_tag(
+                course_id,
+                tag_id,
+                page=tag_students_page,
+                size=tag_students_size
+            )
+        return course_students, course_students_pages, tag_students, tag_students_pages, tag
 
 
 class ShowProblemDataToUpdate(_CourseRepoRelatedInteractor):
@@ -309,16 +356,33 @@ class ShowProblemDataToUpdate(_CourseRepoRelatedInteractor):
             return problem
 
 
-class SearchStudents(_CourseUserReposRelatedInteractor):
+class SearchStudents:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        user_repo: UserRepositoryInterface
+    ):
+        self._uow = uow
+        self._user_repo = user_repo
+
     async def __call__(
         self,
         course_id: int,
         namelike: str,
-        tag_id: Optional[int] = None
-    ) -> list[User]:  # type: ignore[return]
+        tag_id: Optional[int],
+        page: int = 1,
+        size: int = 10
+    ) -> tuple[list[User], int]:  # type: ignore[return]
         async with self._uow:
-            res = await self._user_repo.find_by_name(course_id, namelike, tag_id=tag_id)
-        return res
+            return await self._user_repo.find_by_name(course_id, namelike, tag_id=tag_id, page=page, size=size)
+
+
+class SearchStudentsWithSeens(_AttemptUserRepoRelatedInteractor):
+    async def __call__(self, course_id, namelike, tag_id, page=1, size=10):
+        async with self._uow:
+            students, pages = await self._user_repo.find_by_name(course_id, namelike, tag_id=tag_id, page=page, size=size)
+            attempts = await self._attempt_repo.get_attempts_of_students([s.id for s in students])
+        return students, attempts, pages
 
 
 class ShowStudentProblemInfoToRate(_CourseAttemptReposRelatedInteractor):

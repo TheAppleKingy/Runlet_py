@@ -10,13 +10,14 @@ from .user import (
 class TagG1(BaseModel):
     id: int
     name: str
-    students: list[UserG1]
+    students: list[UserG1] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
 
 
 class TagG2(BaseModel):
+    id: Optional[int] = None
     name: str
     students: list[UserWithSeenDTO] = Field(default_factory=list)
 

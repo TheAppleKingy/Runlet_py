@@ -102,9 +102,3 @@ class SendProblemSolution(_CourseAttemptReposRelatedInteractor):
                 run_data=[RunDataDTO(test_num=num, input=case.input) for num, case in problem.test_cases]
             )
             await self._publisher.publish(SendCodeSolution(message_dto.model_dump_json()))
-
-
-class ShowCurrentAttempts(_CourseAttemptReposRelatedInteractor):
-    async def __call__(self, student_id: int, course_id: int) -> list[Attempt]:  # type: ignore[return]
-        async with self._uow:
-            return await self._attempt_repo.get_student_attempts(course_id, student_id)

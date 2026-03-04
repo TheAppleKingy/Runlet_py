@@ -14,7 +14,6 @@ from .student import (
     ShowStudentCourse,
     ShowProblemToSolve,
     SendProblemSolution,
-    ShowCurrentAttempts,
 )
 from .teacher import (
     ShowTeacherCourseTagsToRateStudents,
@@ -34,7 +33,8 @@ from .teacher import (
     SearchStudents,
     ShowStudentProblemInfoToRate,
     RateStudent,
-    ShowCourseModulesProblemsToUpdate
+    ShowCourseModulesProblemsToUpdate,
+    SearchStudentsWithSeens
 )
 from .user import (
     ShowCourse,
@@ -45,7 +45,8 @@ from .user import (
     SubscribeOnCourseByLink,
     ShowMyProfile,
     ShowFavourites,
-    AddToFavourites
+    AddToFavourites,
+    ShowCurrentAttempts
 )
 from .callback import HandleTestResult
 
@@ -93,4 +94,5 @@ __all__ = [
     "ShowFavourites",
     "AddToFavourites",
     "ShowCurrentAttempts",
+    "SearchStudentsWithSeens"
 ]

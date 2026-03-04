@@ -2,10 +2,15 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 from .module import ModuleCreateUpdateDTO
-from .user import UserG1
+from .user import (
+    UserG1,
+    UserWithSeenDTO,
+    UserG4
+)
 from .tag import (
     TagCreateUpdateDTO,
-    TagG1
+    TagG1,
+    TagG2
 )
 
 
@@ -57,3 +62,37 @@ class RateStudentDTO(BaseModel):
 class TagsToUpdateDTO(BaseModel):
     students: list[UserG1] = Field(default_factory=list)
     tags: list[TagG1] = Field(default_factory=list)
+
+
+class PaginatedCourseTagsStudentsWithSeensDTO(BaseModel):
+    course_id: int
+    course_name: str
+    tags: list[TagG2] = Field(default_factory=list)
+    page: int
+    pages: int
+
+
+class PaginatedProblemStudentsInfoDTO(BaseModel):
+    students: list[UserG4] = Field(default_factory=list)
+    page: int
+    pages: int
+
+
+class PaginatedTagStudentsDTO(BaseModel):
+    id: Optional[int] = None
+    name: str
+    students: list[UserG1] = Field(default_factory=list)
+    page: int
+    pages: int
+
+
+class PaginatedSearchStudentsWithSeensDTO(BaseModel):
+    students: list[UserWithSeenDTO] = Field(default_factory=list)
+    page: int
+    pages: int
+
+
+class PaginatedSearchStudentsDTO(BaseModel):
+    students: list[UserG1] = Field(default_factory=list)
+    page: int
+    pages: int
