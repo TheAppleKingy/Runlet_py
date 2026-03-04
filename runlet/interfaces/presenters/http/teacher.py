@@ -1,9 +1,12 @@
+from typing import Optional
+
 from runlet.domain.entities import (
     Attempt,
     Module,
     Course,
     User,
-    DefaultTagType
+    DefaultTagType,
+    Tag
 )
 
 from runlet.application.dtos.problem import (
@@ -29,6 +32,12 @@ from runlet.application.dtos.tag import (
     TagG2
 )
 from runlet.application.dtos.test_cases import TestCaseForTeacherDTO
+from runlet.application.dtos.teacher import (
+    PaginatedCourseTagsStudentsWithSeensDTO,
+    PaginatedProblemStudentsInfoDTO,
+    PaginatedTagStudentsDTO,
+    PaginatedSearchStudentsWithSeensDTO
+)
 
 
 def student_problems_info(attempts: list[Attempt], modules: list[Module]):
@@ -50,19 +59,39 @@ def student_problems_info(attempts: list[Attempt], modules: list[Module]):
 
 def show_tags_students_with_seen_info(
     course: Course,
-    students_seens: list[tuple[User, bool | None]]
+    students_attempts: list[tuple[User, Optional[Attempt]]],
+    tag: Optional[Tag],
+    page: int,
+    pages: int
 ):
     students_dtos = [
-        UserWithSeenDTO(id=s.id, name=s.name, seen=False if seen_info is False else True) for s, seen_info in students_seens
+        UserWithSeenDTO(
+            id=s.id,
+            name=s.name,
+            seen=False if attempt and attempt.seen is False else True
+        ) for s, attempt in students_attempts
     ]
-    students_dto_map = {dto.id: dto for dto in students_dtos}
     tags_dtos = [
         TagG2(
-            name=t.name,
-            students=[students_dto_map[s.id] for s in t.students]
+            id=t.id,
+            name=t.name
         ) for t in course.tags if t.name not in DefaultTagType.names()
     ]
-    return CourseG4(id=course.id, name=course.name, tags=tags_dtos, students=students_dtos)
+    if tag:
+        for tag_dto in tags_dtos:
+            if tag.id == tag_dto.id:
+                tag_dto.students = students_dtos
+                break
+    else:
+        tags_dtos.append(TagG2(id=None, name="all", students=students_dtos))
+    return PaginatedCourseTagsStudentsWithSeensDTO(
+        course_id=course.id,
+        course_name=course.name,
+        tags=tags_dtos,
+        students=students_dtos if not tag else [],
+        page=page,
+        pages=pages
+    )
 
 
 def show_student_problem_to_rate(attempt: Attempt):
@@ -102,13 +131,59 @@ def show_course_modules_problems_with_seen_info(course: Course, unseen_problems_
     return res
 
 
-def show_problems_students_with_attempt_info(students_attempts: list[tuple[User, Attempt]]):
+def show_problems_students_with_attempt_info(students_attempts: list[tuple[User, Attempt]], page: int, pages: int):
+    return PaginatedProblemStudentsInfoDTO(
+        students=[
+            UserG4(
+                id=user.id,
+                name=user.name,
+                seen=attempt.seen,
+                tests_passed=attempt.tests_passed,
+                confirmed_passed=attempt.confirmed_passed
+            ) for user, attempt in students_attempts
+        ],
+        page=page,
+        pages=pages
+    )
+
+
+def show_tags_paginated_students_to_update(
+    course_students: list[User],
+    course_students_page: int,
+    course_students_pages: int,
+    tag: Tag,
+    tag_students: list[User],
+    tag_students_page: int,
+    tag_students_pages: int,
+):
     return [
-        UserG4(
-            id=user.id,
-            name=user.name,
-            seen=attempt.seen,
-            tests_passed=attempt.tests_passed,
-            confirmed_passed=attempt.confirmed_passed
-        ) for user, attempt in students_attempts
+        PaginatedTagStudentsDTO(
+            name="all",
+            students=course_students,
+            page=course_students_page,
+            pages=course_students_pages
+        ),
+        PaginatedTagStudentsDTO(
+            id=tag.id,
+            name=tag.name,
+            students=tag_students,
+            page=tag_students_page,
+            pages=tag_students_pages
+        )
     ]
+
+
+def show_paginated_searched_students_with_seens(
+    students: list[User],
+    attempts: list[Attempt],
+    page: int,
+    pages: int
+):
+    attempts_map = {a.user_id: a for a in attempts}
+    return PaginatedSearchStudentsWithSeensDTO(
+        students=[
+            UserWithSeenDTO(id=s.id, name=s.name, seen=attempts_map[s.id].seen if attempts_map.get(s.id) else True) for s in students
+        ],
+        page=page,
+        pages=pages
+    )

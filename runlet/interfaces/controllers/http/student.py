@@ -38,10 +38,6 @@ async def get_problem_to_solve(
     user_id: FromDishka[AuthenticatedStudentId],
     interactor: FromDishka[ShowProblemToSolve]
 ) -> ProblemInfoForStudentDTO:
-    """
-    This controller should return data of problem, list of possible programming languages and test info if administrator passed.
-    Especially data of this controller's response need to show client before sending solve.
-    """
     problem, attempt = await interactor(user_id, course_id, module_id, problem_id)
     return show_problem_info_for_student_to_solve(problem, attempt)
 
@@ -56,12 +52,3 @@ async def send_problem_solution(
     interactor: FromDishka[SendProblemSolution]
 ):
     return await interactor(course_id, module_id, problem_id, user_id, dto)
-
-
-@student_router.get("/course/{course_id}/attempts")
-async def get_current_attempts(
-    course_id: int,
-    user_id: FromDishka[AuthenticatedStudentId],
-    interactor: FromDishka[ShowCurrentAttempts]
-):
-    return show_current_attempts_info(await interactor(user_id, course_id))

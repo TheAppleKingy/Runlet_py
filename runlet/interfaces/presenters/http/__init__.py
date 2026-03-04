@@ -3,7 +3,9 @@ from .teacher import (
     show_tags_students_with_seen_info,
     show_student_problem_to_rate,
     show_course_modules_problems_with_seen_info,
-    show_problems_students_with_attempt_info
+    show_problems_students_with_attempt_info,
+    show_tags_paginated_students_to_update,
+    show_paginated_searched_students_with_seens
 )
 from .student import (
     show_problem_info_for_student_to_solve,
@@ -18,5 +20,7 @@ __all__ = [
     "show_student_problem_to_rate",
     "show_course_modules_problems_with_seen_info",
     "show_problems_students_with_attempt_info",
-    "show_current_attempts_info"
+    "show_current_attempts_info",
+    "show_tags_paginated_students_to_update",
+    "show_paginated_searched_students_with_seens"
 ]

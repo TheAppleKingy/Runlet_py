@@ -26,8 +26,10 @@ class TestSolutionDTO(BaseModel):
 
 class CurrentAttemptInfo(BaseModel):
     problem_id: int
+    module_id: int
+    course_id: int
     problem_name: str
+    course_name: str
     tests_passed: bool
     confirmed_passed: bool
     seen: bool
-    updated_at: datetime
