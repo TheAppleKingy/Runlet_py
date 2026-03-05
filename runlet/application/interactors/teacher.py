@@ -26,7 +26,6 @@ from runlet.application.interfaces.repositories import (
     CourseRepositoryInterface,
     ModuleRepositoryInterface,
     AttemptRepositoryInterface,
-    TagRepositoryInterface,
     UserRepositoryInterface
 )
 from runlet.application.interactors.exceptions import (
@@ -75,7 +74,7 @@ class ShowTeacherCourseTagsToRateStudents(_CourseAttemptUserRepoRelatedInteracto
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags])
             tag: Optional[Tag] = None
             if tag_id:
-                tag = course.get_tag_by_id(tag_id)
+                tag = course.get_tag_by_id(tag_id)  # type: ignore[union-attr]
                 if not tag:
                     raise UndefinedTagError("Tag does not exist or not related to course")
                 students, pages = await self._user_repo.get_paginated_by_tag(course_id, tag_id, page=page, size=size)
@@ -295,7 +294,7 @@ class ShowStudentProblems(_CourseAttemptReposRelatedInteractor):
 
 
 class ShowProblemStudents(_CourseAttemptReposRelatedInteractor):
-    async def __call__(
+    async def __call__(  # type: ignore[return]
         self,
         course_id: int,
         module_id: int,
@@ -305,7 +304,7 @@ class ShowProblemStudents(_CourseAttemptReposRelatedInteractor):
     ) -> tuple[list[tuple[User, Attempt]], int]:
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
-            module = course.get_module_by_id(module_id)
+            module = course.get_module_by_id(module_id)  # type: ignore[union-attr]
             if not module:
                 raise UndefinedModuleError("Module does not exist or not related to course")
             problem = module.get_problem_by_id(problem_id)
@@ -315,7 +314,7 @@ class ShowProblemStudents(_CourseAttemptReposRelatedInteractor):
 
 
 class ShowTagsToUpdate(_CourseUserReposRelatedInteractor):
-    async def __call__(
+    async def __call__(  # type: ignore[return]
         self,
         course_id: int,
         tag_id: int,
@@ -331,7 +330,7 @@ class ShowTagsToUpdate(_CourseUserReposRelatedInteractor):
                 page=course_students_page,
                 size=course_students_size
             )
-            tag = course.get_tag_by_id(tag_id)
+            tag = course.get_tag_by_id(tag_id)  # type: ignore[union-attr]
             if not tag:
                 raise UndefinedTagError("Tag does not exist or not related to course")
             tag_students, tag_students_pages = await self._user_repo.get_paginated_by_tag(
@@ -340,7 +339,7 @@ class ShowTagsToUpdate(_CourseUserReposRelatedInteractor):
                 page=tag_students_page,
                 size=tag_students_size
             )
-        return course_students, course_students_pages, tag_students, tag_students_pages, tag
+            return course_students, course_students_pages, tag_students, tag_students_pages, tag
 
 
 class ShowProblemDataToUpdate(_CourseRepoRelatedInteractor):
@@ -365,14 +364,14 @@ class SearchStudents:
         self._uow = uow
         self._user_repo = user_repo
 
-    async def __call__(
+    async def __call__(  # type: ignore[return]
         self,
         course_id: int,
         namelike: str,
         tag_id: Optional[int],
         page: int = 1,
         size: int = 10
-    ) -> tuple[list[User], int]:  # type: ignore[return]
+    ) -> tuple[list[User], int]:
         async with self._uow:
             return await self._user_repo.find_by_name(course_id, namelike, tag_id=tag_id, page=page, size=size)
 

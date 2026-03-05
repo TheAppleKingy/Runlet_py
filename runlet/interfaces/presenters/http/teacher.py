@@ -22,7 +22,6 @@ from runlet.application.dtos.module import (
 )
 from runlet.application.dtos.course import (
     CourseG3,
-    CourseG4
 )
 from runlet.application.dtos.user import (
     UserWithSeenDTO,
@@ -88,7 +87,6 @@ def show_tags_students_with_seen_info(
         course_id=course.id,
         course_name=course.name,
         tags=tags_dtos,
-        students=students_dtos if not tag else [],
         page=page,
         pages=pages
     )
@@ -159,14 +157,14 @@ def show_tags_paginated_students_to_update(
     return [
         PaginatedTagStudentsDTO(
             name="all",
-            students=course_students,
+            students=course_students,  # type: ignore[arg-type]
             page=course_students_page,
             pages=course_students_pages
         ),
         PaginatedTagStudentsDTO(
             id=tag.id,
             name=tag.name,
-            students=tag_students,
+            students=tag_students,  # type: ignore[arg-type]
             page=tag_students_page,
             pages=tag_students_pages
         )

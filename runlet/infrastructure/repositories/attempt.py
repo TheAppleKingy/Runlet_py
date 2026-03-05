@@ -1,7 +1,7 @@
 # mypy: disable-error-code="arg-type"
 from typing import Optional
 
-from sqlalchemy import select, exists, func
+from sqlalchemy import select, exists, func, desc
 from sqlalchemy.orm import selectinload
 
 from runlet.application.interfaces.repositories import AttemptRepositoryInterface
@@ -15,7 +15,6 @@ from runlet.domain.entities import (
 from runlet.infrastructure.db.tables import (
     attempts,
     users,
-    users_courses
 )
 from .base import BaseAlchemyRepository
 
@@ -46,7 +45,7 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
             select(func.count(User.id))
             .where(
                 users.c.id.in_(
-                    select(Attempt.user_id)
+                    select(Attempt.user_id)  # type: ignore[call-overload]
                     .where(Attempt.problem_id == problem_id)
                 )
             )
@@ -77,7 +76,7 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
 
     async def get_attempts_of_students(self, students_ids: list[int]) -> list[Attempt]:
         res = await self._session.scalars(select(Attempt).where(attempts.c.user_id.in_(students_ids)))
-        return res.all()
+        return res.all()  # type: ignore[return-value]
 
     async def get_student_attempts_all_courses_paginated(
         self,
@@ -88,6 +87,6 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
         stmt = (
             select(Attempt).where(attempts.c.user_id == student_id).options(selectinload(Attempt.problem))
         )
-        res = await self._session.scalars(stmt.limit(size).offset((page - 1) * size).order_by(Attempt.updated_at))
+        res = await self._session.scalars(stmt.limit(size).offset((page - 1) * size).order_by(desc(Attempt.updated_at)))
         count = await self._session.scalar(select(func.count()).select_from(stmt)) or 0
-        return res.all(), (count + size - 1) // size
+        return res.all(), (count + size - 1) // size  # type: ignore[return-value]

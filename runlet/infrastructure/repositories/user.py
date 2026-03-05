@@ -6,7 +6,6 @@ from sqlalchemy import select, func
 from runlet.domain.entities import (
     User,
     Attempt,
-    Course,
     Tag
 )
 from runlet.application.interfaces.repositories import UserRepositoryInterface
@@ -89,7 +88,7 @@ class AlchemyUserRepository(BaseAlchemyRepository, UserRepositoryInterface):
         )
         tags_res = await self._session.scalars(stmt)
         count = await self._session.scalar(count_stmt) or 0
-        return tags_res.unique().all(), (count + size - 1) // size
+        return tags_res.unique().all(), (count + size - 1) // size  # type: ignore[return-value]
 
     async def get_paginated_by_course(self, course_id: int, page: int = 1, size: int = 7) -> tuple[list[User], int]:
         stmt = (
@@ -109,4 +108,4 @@ class AlchemyUserRepository(BaseAlchemyRepository, UserRepositoryInterface):
         )
         courses_res = await self._session.scalars(stmt)
         count = await self._session.scalar(count_stmt) or 0
-        return courses_res.unique().all(), (count + size - 1) // size
+        return courses_res.unique().all(), (count + size - 1) // size  # type: ignore[return-value]

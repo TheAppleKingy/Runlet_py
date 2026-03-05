@@ -5,7 +5,6 @@ from runlet.application.interactors import (
     ShowStudentCourse,
     ShowProblemToSolve,
     SendProblemSolution,
-    ShowCurrentAttempts
 )
 from runlet.application.dtos.student import SendProblemSolutionDTO
 from runlet.application.dtos.course import (
@@ -15,7 +14,6 @@ from runlet.application.dtos.problem import ProblemInfoForStudentDTO
 from runlet.domain.interfaces.types import AuthenticatedStudentId
 from runlet.interfaces.presenters.http import (
     show_problem_info_for_student_to_solve,
-    show_current_attempts_info
 )
 
 student_router = APIRouter(prefix="/study", tags=["Manage studiyng"], route_class=DishkaRoute)

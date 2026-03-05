@@ -3,7 +3,6 @@ from .course import CourseRepositoryInterface
 from .problem import ProblemRepositoryInterface
 from .module import ModuleRepositoryInterface
 from .attempt import AttemptRepositoryInterface
-from .tag import TagRepositoryInterface
 
 
 __all__ = [
@@ -12,5 +11,4 @@ __all__ = [
     "ProblemRepositoryInterface",
     "ModuleRepositoryInterface",
     "AttemptRepositoryInterface",
-    "TagRepositoryInterface"
 ]

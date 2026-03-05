@@ -17,7 +17,7 @@ def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[A
         problem_id=problem.id,
         problem_name=problem.name,
         problem_description=problem.description,
-        examples=problem.examples
+        examples=problem.examples  # type: ignore[arg-type]
     )
     if attempt:
         res.code = attempt.code
