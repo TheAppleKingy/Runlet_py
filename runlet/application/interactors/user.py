@@ -3,7 +3,8 @@ from typing import Optional
 from runlet.domain.entities import (
     Course,
     DefaultTagType,
-    Tag
+    Tag,
+    Attempt,
 )
 from runlet.domain.services import (
     CourseStudentsManagerService,
@@ -12,7 +13,6 @@ from runlet.domain.services import (
 from runlet.application.interfaces.repositories import (
     UserRepositoryInterface,
     CourseRepositoryInterface,
-    AttemptRepositoryInterface
 )
 from runlet.application.interfaces.uow import UoWInterface
 from runlet.application.interfaces.services import (
@@ -24,12 +24,14 @@ from runlet.application.interactors.exceptions import (
     UndefinedCourseError,
     InvalidInvitingLinkError,
     CoursePrivacyError,
+    UndefinedModuleError,
     ImpossibleOperationError
 )
 from runlet.application.dtos.course import CourseCreateDTO
 from .base import (
     _CourseRepoRelatedInteractor,
-    _CourseUserReposRelatedInteractor
+    _CourseUserReposRelatedInteractor,
+    _CourseAttemptReposRelatedInteractor
 )
 
 
@@ -204,15 +206,27 @@ class AddToFavourites(_CourseRepoRelatedInteractor):
             await self._course_repo.add_to_favourites(user_id, course_id)
 
 
-class ShowCurrentAttempts:
-    def __init__(
+class ShowCurrentAttempts(_CourseAttemptReposRelatedInteractor):
+    async def __call__(  # type: ignore[return]
         self,
-        uow: UoWInterface,
-        attempt_repo: AttemptRepositoryInterface
-    ):
-        self._uow = uow
-        self._attempt_repo = attempt_repo
-
-    async def __call__(self, user_id: int, page: int, size: int) -> tuple[list[Attempt], int]:  # type: ignore[return]
+        user_id: int,
+        page: int,
+        size: int
+    ) -> tuple[list[tuple[Attempt, Course]], int]:
         async with self._uow:
-            attempts, pages = await self._attempt_repo.get_student_attempts_all_courses_paginated(user_id, page, size)
+            attempts, pages = await self._attempt_repo.get_student_attempts_all_courses_paginated(
+                user_id,
+                page,
+                size
+            )
+            result: list[tuple[Attempt, Course]] = []
+            for a in attempts:
+                course = await self._course_repo.get_course_by_problem(a.problem_id)
+                if not course:
+                    raise UndefinedCourseError(
+                        "Got attempt of unexistant problem related to unexistant module or course", status=500)
+                if not self._course_repo.check_module_related(a.problem.module_id, course.id):
+                    raise UndefinedModuleError(
+                        "Got attempt of problem related to unexistant module or module not related to course", status=500)
+                result.append((a, course))
+            return result, pages

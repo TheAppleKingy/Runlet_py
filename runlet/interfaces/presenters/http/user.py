@@ -1,17 +1,25 @@
 from runlet.domain.entities import (
-    Attempt
+    Attempt,
+    Course
 )
-from runlet.application.dtos.student import (
-    CurrentAttemptInfo
+from runlet.application.dtos.user import (
+    CurrentAttemptInfoDTO,
+    CurrentAttemptsInfoDTO
 )
 
 
-def show_current_attempts_info(attempts: list[Attempt]) -> list[CurrentAttemptInfo]:
-    return list(reversed(sorted([CurrentAttemptInfo(
-        problem_id=attempt.problem_id,
-        problem_name=attempt.problem.name,
-        tests_passed=attempt.tests_passed,
-        confirmed_passed=attempt.confirmed_passed,
-        seen=attempt.seen,
-        updated_at=attempt.updated_at
-    ) for attempt in attempts], key=lambda a: a.updated_at)))
+def show_current_attempts_info(data: list[tuple[Attempt, Course]], page: int, pages: int) -> CurrentAttemptsInfoDTO:
+    attempts_info = [
+        CurrentAttemptInfoDTO(
+            problem_id=a.problem_id,
+            module_id=a.problem.module_id,
+            course_id=c.id,
+            problem_name=a.problem.name,
+            course_name=c.name,
+            tests_passed=a.tests_passed,
+            confirmed_passed=a.confirmed_passed,
+            seen=a.seen,
+            pending=a.pending
+        ) for a, c in data
+    ]
+    return CurrentAttemptsInfoDTO(attempts_info=attempts_info, page=page, pages=pages)

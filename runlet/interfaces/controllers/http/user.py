@@ -22,8 +22,11 @@ from runlet.application.dtos.course import (
     CourseG2,
     CourseCreateDTO
 )
-from runlet.application.dtos.user import UserG2
-from runlet.interfaces.presenters.http.student import show_current_attempts_info
+from runlet.application.dtos.user import (
+    UserG2,
+    CurrentAttemptsInfoDTO
+)
+from runlet.interfaces.presenters.http.user import show_current_attempts_info
 
 user_router = APIRouter(prefix="/me", route_class=DishkaRoute)
 
@@ -124,5 +127,6 @@ async def get_current_attempts(
     interactor: FromDishka[ShowCurrentAttempts],
     page: int = Query(default=1, gt=0),
     size: int = Query(default=12, le=12, gt=0)
-):
-    return show_current_attempts_info(await interactor(user_id, ))
+) -> CurrentAttemptsInfoDTO:
+    data, pages = await interactor(user_id, page, size)
+    return show_current_attempts_info(data, page, pages)

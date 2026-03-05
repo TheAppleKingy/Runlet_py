@@ -14,7 +14,6 @@ from runlet.application.dtos.course import (
     CourseUpdateDTO,
     CourseG6,
     CourseG8,
-    CourseG4
 )
 from runlet.application.dtos.problem import (
     ProblemInfoForTeacherDTO
@@ -27,7 +26,6 @@ from runlet.application.dtos.teacher import (
     ManageModulesDTO,
     ManageTagsDTO,
     RateStudentDTO,
-    TagsToUpdateDTO,
     PaginatedCourseTagsStudentsWithSeensDTO,
     PaginatedProblemStudentsInfoDTO,
     PaginatedTagStudentsDTO,
@@ -36,10 +34,6 @@ from runlet.application.dtos.teacher import (
 )
 from runlet.application.dtos.module import (
     ModuleG4
-)
-from runlet.application.dtos.user import (
-    UserG1,
-    UserG4
 )
 from runlet.application.dtos.problem import (
     CreateUpdateProblemDTO,
@@ -275,7 +269,7 @@ async def search_students(
 ) -> PaginatedSearchStudentsDTO:
     students, pages = await interactor(course_id, q, tag_id=tag_id, page=page, size=size)  # type: ignore[return-value]
     return PaginatedSearchStudentsDTO(
-        students=students,
+        students=students,  # type: ignore[arg-type]
         page=page,
         pages=pages
     )

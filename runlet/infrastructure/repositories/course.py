@@ -10,7 +10,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import selectinload
 
 from runlet.application.interfaces.repositories import CourseRepositoryInterface
-from runlet.domain.entities import Course
+from runlet.domain.entities import (
+    Course,
+    Module,
+    Problem
+)
 from runlet.infrastructure.db.tables import (
     users_courses,
     favourites,
@@ -58,6 +62,15 @@ class AlchemyCourseRepository(BaseAlchemyRepository, CourseRepositoryInterface):
             )
         )
 
+    async def check_module_related(self, module_id: int, course_id: int) -> bool:
+        return await self._session.scalar(  # type: ignore
+            select(
+                exists(
+                    select(1).where(Module.id == module_id, Module.course_id == course_id)
+                )
+            )
+        )
+
     async def get_by_id_with_rels(self, course_id: int, *rels_chains: Sequence[Any]) -> Optional[Course]:
         options = []
         for list_models in rels_chains:
@@ -89,3 +102,16 @@ class AlchemyCourseRepository(BaseAlchemyRepository, CourseRepositoryInterface):
                 user_id=user_id,
                 course_id=course_id
             ))
+
+    async def get_course_by_problem(self, problem_id: int) -> Optional[Course]:
+        stmt = (
+            select(Course)
+            .where(
+                exists(
+                    select(1).select_from(Module)
+                    .join(Problem, Problem.module_id == Module.id)
+                    .where(Problem.id == problem_id, Module.course_id == Course.id)
+                )
+            )
+        )
+        return await self._session.scalar(stmt)
