@@ -1,5 +1,5 @@
 # mypy: disable-error-code=call-arg
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class DBConfig(BaseSettings):
@@ -20,6 +20,22 @@ class AppConfig(BaseSettings):
     invite_expire_time: int
     invite_confirm_url: str
     password_change_confirm_url: str
+    available_langs_codes: list[str]
+
+    @property
+    def available_langs(self):
+        map_ = {
+            "py": "Python",
+            "go": "Golang",
+            "cs": "C#",
+            "js": "Java Script",
+            "cpp": "C++",
+            "java": "Java",
+            "c": "C",
+            "rb": "Ruby"
+        }
+        res = {map_.get(code.lower().strip()) for code in self.available_langs_codes}
+        return [lang for lang in res if lang is not None]
 
 
 class RabbitMQConfig(BaseSettings):

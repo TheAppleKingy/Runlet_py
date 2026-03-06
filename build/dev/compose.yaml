@@ -29,6 +29,8 @@ services:
       - runlet_internal
     env_file:
       - .env
+    environment:
+      - AVAILABLE_LANGS_CODES=["py", "go", "cs", "js", "cpp"]
     command: uvicorn runlet.main:app --host 0.0.0.0 --port 8000 --reload
 
 

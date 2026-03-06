@@ -70,7 +70,9 @@ class ProblemInfoForStudentDTO(_ContainsExample):
     problem_name: str
     problem_description: Optional[str] = None
     code: Optional[str] = None
+    pending: bool = False
     test_cases: list[TestCaseForStudentDTO] = Field(default_factory=list)
+    langs: list[str]
 
 
 class ProblemInfoForTeacherDTO(_ContainsExample):

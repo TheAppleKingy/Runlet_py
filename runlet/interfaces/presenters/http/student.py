@@ -12,14 +12,16 @@ from runlet.application.dtos.test_cases import (
 )
 
 
-def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[Attempt]):
+def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[Attempt], langs: list[str]):
     res = ProblemInfoForStudentDTO(
         problem_id=problem.id,
         problem_name=problem.name,
         problem_description=problem.description,
-        examples=problem.examples  # type: ignore[arg-type]
+        examples=problem.examples,  # type: ignore[arg-type]
+        langs=langs
     )
     if attempt:
+        res.pending = attempt.pending
         res.code = attempt.code
         res.test_cases = sorted(  # type: ignore[assignment]
             [

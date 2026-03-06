@@ -114,7 +114,7 @@ class ApplicationServiceProvider(Provider):
         return JWTAuthenticationService(conf.token_expire_time, conf.secret)
 
 
-class UseCaseProvider(Provider):
+class InteractorProvider(Provider):
     scope = Scope.REQUEST
 
     @provide
@@ -188,8 +188,23 @@ class UseCaseProvider(Provider):
             conf.password_change_confirm_url
         )
 
+    @provide
+    def show_problem_to_solve(
+        self,
+        conf: AppConfig,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        attempt_repo: AttemptRepositoryInterface
+    ) -> ShowProblemToSolve:
+        return ShowProblemToSolve(
+            uow,
+            course_repo,
+            attempt_repo,
+            conf.available_langs
+        )
 
-interactors_provider = UseCaseProvider(scope=Scope.REQUEST)
+
+interactors_provider = InteractorProvider(scope=Scope.REQUEST)
 interactors_provider.provide_all(
     AuthenticateUser,
     OptionalAuthenticateUser,
@@ -220,7 +235,6 @@ interactors_provider.provide_all(
     ShowProblemDataToUpdate,
     SearchStudents,
     ShowMyProfile,
-    ShowProblemToSolve,
     ShowStudentProblemInfoToRate,
     SendProblemSolution,
     HandleTestResult,
