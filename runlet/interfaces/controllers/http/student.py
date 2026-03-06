@@ -36,8 +36,8 @@ async def get_problem_to_solve(
     user_id: FromDishka[AuthenticatedStudentId],
     interactor: FromDishka[ShowProblemToSolve]
 ) -> ProblemInfoForStudentDTO:
-    problem, attempt = await interactor(user_id, course_id, module_id, problem_id)
-    return show_problem_info_for_student_to_solve(problem, attempt)
+    problem, attempt, langs = await interactor(user_id, course_id, module_id, problem_id)
+    return show_problem_info_for_student_to_solve(problem, attempt, langs)
 
 
 @student_router.post("/course/{course_id}/modules/{module_id}/problems/{problem_id}")
