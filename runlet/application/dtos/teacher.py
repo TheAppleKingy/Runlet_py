@@ -10,7 +10,8 @@ from .user import (
 from .tag import (
     TagCreateUpdateDTO,
     TagG1,
-    TagG2
+    TagG2,
+    TagG3
 )
 
 
@@ -84,6 +85,11 @@ class PaginatedTagStudentsDTO(BaseModel):
     students: list[UserG1] = Field(default_factory=list)
     page: int
     pages: int
+
+
+class PaginatedTagsStudentsDTO(BaseModel):
+    tags_students: list[PaginatedTagStudentsDTO] = Field(default_factory=list)
+    tags: list[TagG3] = Field(default_factory=list)
 
 
 class PaginatedSearchStudentsWithSeensDTO(BaseModel):
