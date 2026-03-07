@@ -317,12 +317,12 @@ class ShowTagsToUpdate(_CourseUserReposRelatedInteractor):
     async def __call__(  # type: ignore[return]
         self,
         course_id: int,
-        tag_id: int,
+        tag_id: Optional[int],
         course_students_page: int = 1,
         course_students_size: int = 7,
         tag_students_page: int = 1,
         tag_students_size: int = 7
-    ) -> tuple[list[User], int, list[User], int, Tag]:
+    ) -> tuple[list[User], int, list[User], int, Tag, list[Tag]]:
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags])
             course_students, course_students_pages = await self._user_repo.get_paginated_by_course(  # TODO: cache
@@ -330,16 +330,19 @@ class ShowTagsToUpdate(_CourseUserReposRelatedInteractor):
                 page=course_students_page,
                 size=course_students_size
             )
-            tag = course.get_tag_by_id(tag_id)  # type: ignore[union-attr]
-            if not tag:
-                raise UndefinedTagError("Tag does not exist or not related to course")
+            if tag_id:
+                tag = course.get_tag_by_id(tag_id)  # type: ignore[union-attr]
+                if not tag:
+                    raise UndefinedTagError("Tag does not exist or not related to course")
+            else:
+                tag = course.get_tag(DefaultTagType.WAITING_FOR_SUBSCRIBE.value)
             tag_students, tag_students_pages = await self._user_repo.get_paginated_by_tag(
                 course_id,
-                tag_id,
+                tag.id,
                 page=tag_students_page,
                 size=tag_students_size
             )
-            return course_students, course_students_pages, tag_students, tag_students_pages, tag
+            return course_students, course_students_pages, tag_students, tag_students_pages, tag, course.tags
 
 
 class ShowProblemDataToUpdate(_CourseRepoRelatedInteractor):

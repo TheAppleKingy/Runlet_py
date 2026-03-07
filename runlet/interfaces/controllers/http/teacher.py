@@ -29,6 +29,7 @@ from runlet.application.dtos.teacher import (
     PaginatedCourseTagsStudentsWithSeensDTO,
     PaginatedProblemStudentsInfoDTO,
     PaginatedTagStudentsDTO,
+    PaginatedTagsStudentsDTO,
     PaginatedSearchStudentsDTO,
     PaginatedSearchStudentsWithSeensDTO
 )
@@ -227,18 +228,18 @@ async def get_course_data_to_update(
     return await interactor(course_id)
 
 
-@teacher_router.get("/course/{course_id}/update/tags/{tag_id}")
+@teacher_router.get("/course/{course_id}/update/tags")
 async def get_tags_students_to_update(
     course_id: int,
-    tag_id: int,
     user_id: FromDishka[AuthenticatedTeacherId],
     interactor: FromDishka[ShowTagsToUpdate],
+    tag_id: Optional[int] = Query(default=None, gt=0),
     course_page: int = Query(default=1, gt=0),
     course_size: int = Query(default=7, gt=0, le=7),
     tag_page: int = Query(default=1, gt=0),
     tag_size: int = Query(default=1, gt=0, le=7),
-) -> list[PaginatedTagStudentsDTO]:
-    course_students, course_pages, tag_students, tag_pages, tag = await interactor(
+) -> PaginatedTagsStudentsDTO:
+    course_students, course_pages, tag_students, tag_pages, tag, tags = await interactor(
         course_id,
         tag_id=tag_id,
         course_students_page=course_page,
@@ -253,7 +254,8 @@ async def get_tags_students_to_update(
         tag,
         tag_students,
         tag_page,
-        tag_pages
+        tag_pages,
+        tags
     )
 
 
