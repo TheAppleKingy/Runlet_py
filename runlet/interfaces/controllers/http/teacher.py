@@ -85,7 +85,7 @@ async def get_tags_and_students_to_rate(
     interactor: FromDishka[ShowTeacherCourseTagsToRateStudents],
     tag_id: Optional[int] = Query(default=None, gt=0),
     page: int = Query(default=1, gt=0),
-    size: int = Query(default=12, gt=0, le=12)
+    size: int = Query(default=12, gt=0, le=20)
 ) -> PaginatedCourseTagsStudentsWithSeensDTO:
     course, users_attempts, pages, tag = await interactor(course_id, tag_id=tag_id, page=page, size=size)
     return show_tags_students_with_seen_info(course, users_attempts, tag, page, pages)
@@ -235,9 +235,9 @@ async def get_tags_students_to_update(
     interactor: FromDishka[ShowTagsToUpdate],
     tag_id: Optional[int] = Query(default=None, gt=0),
     course_page: int = Query(default=1, gt=0),
-    course_size: int = Query(default=7, gt=0, le=7),
+    course_size: int = Query(default=7, gt=0, le=20),
     tag_page: int = Query(default=1, gt=0),
-    tag_size: int = Query(default=1, gt=0, le=7),
+    tag_size: int = Query(default=1, gt=0, le=20),
 ) -> PaginatedTagsStudentsDTO:
     course_students, course_pages, tag_students, tag_pages, tag, tags = await interactor(
         course_id,
