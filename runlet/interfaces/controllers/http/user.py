@@ -11,7 +11,9 @@ from runlet.application.interactors import (
     ShowMyProfile,
     ShowFavourites,
     AddToFavourites,
-    ShowCurrentAttempts
+    ShowCurrentAttempts,
+    DeleteFavourites,
+    ChangeUsername
 )
 from runlet.domain.interfaces.types import (
     AuthenticatedUserId,
@@ -24,9 +26,13 @@ from runlet.application.dtos.course import (
 )
 from runlet.application.dtos.user import (
     UserG2,
-    CurrentAttemptsInfoDTO
+    CurrentAttemptsInfoDTO,
+    UserG3
 )
-from runlet.interfaces.presenters.http.user import show_current_attempts_info
+from runlet.interfaces.presenters.http.user import (
+    show_current_attempts_info,
+    show_main
+)
 
 user_router = APIRouter(prefix="/me", route_class=DishkaRoute)
 
@@ -35,20 +41,33 @@ user_router = APIRouter(prefix="/me", route_class=DishkaRoute)
 async def get_main(
     user_id: FromDishka[AuthenticatedNotStrictlyUserId],
     interactor: FromDishka[ShowMain],
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=10, ge=10)
+    all_page: int = Query(default=1, gt=0),
+    all_size: int = Query(default=20, le=20),
+    as_teacher_page: int = Query(default=1, gt=0),
+    as_teacher_size: int = Query(default=6, le=6),
+    as_student_page: int = Query(default=1, gt=0),
+    as_student_size: int = Query(default=6, le=6)
 ) -> MainDTO:
-    data = await interactor(user_id, page=page, size=size)
-    return {  # type: ignore
-        "as_teacher": data[0],
-        "as_student": data[1],
-        "paginated": {
-            "courses": data[2][0] if data[2] else [],
-            "page": data[2][1] if data[2] else 0,
-            "size": data[2][2] if data[2] else 0,
-            "total": data[2][3] if data[2] else 0
-        }
-    }
+    all_courses, all_pages, as_teacher, as_teacher_pages, as_student, as_student_pages = await interactor(
+        user_id,
+        all_page,
+        all_size,
+        as_teacher_page,
+        as_teacher_size,
+        as_student_page,
+        as_student_size
+    )
+    return show_main(
+        all_courses,
+        all_page,
+        all_pages,
+        as_teacher,
+        as_teacher_page,
+        as_teacher_pages,
+        as_student,
+        as_student_page,
+        as_student_pages
+    )
 
 
 @user_router.get("/profile")
@@ -57,6 +76,15 @@ async def get_my_profile(
     interactor: FromDishka[ShowMyProfile],
 ) -> UserG2:
     return await interactor(user_id)
+
+
+@user_router.put("/profile")
+async def change_username(
+    user_id: FromDishka[AuthenticatedUserId],
+    dto: UserG3,
+    interactor: FromDishka[ChangeUsername]
+):
+    await interactor(user_id, dto)
 
 
 @user_router.get("/course/{course_id}")
@@ -118,6 +146,15 @@ async def add_favourites(
     user_id: FromDishka[AuthenticatedUserId],
     interactor: FromDishka[AddToFavourites]
 ) -> None:
+    await interactor(user_id, course_id)
+
+
+@user_router.delete("/courses/{course_id}/favourites")
+async def delete_favourites(
+    course_id: int,
+    user_id: FromDishka[AuthenticatedUserId],
+    interactor: FromDishka[DeleteFavourites]
+):
     await interactor(user_id, course_id)
 
 

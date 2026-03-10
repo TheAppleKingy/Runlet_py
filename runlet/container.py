@@ -203,6 +203,79 @@ class InteractorProvider(Provider):
             conf.available_langs
         )
 
+    @provide
+    def request_subscribe(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        user_repo: UserRepositoryInterface,
+        email_service: EmailServiceInterface,
+        conf: AppConfig
+    ) -> RequestSubscribeOnCourse:
+        return RequestSubscribeOnCourse(
+            uow,
+            course_repo,
+            user_repo,
+            email_service,
+            conf.main_url,
+            conf.accept_or_reject_url
+        )
+
+    @provide
+    def subscribe_by_link(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        user_repo: UserRepositoryInterface,
+        auth_service: AuthenticationServiceInterface,
+        email_service: EmailServiceInterface,
+        conf: AppConfig
+    ) -> SubscribeOnCourseByLink:
+        return SubscribeOnCourseByLink(
+            uow,
+            course_repo,
+            user_repo,
+            auth_service,
+            email_service,
+            conf.student_course_url
+        )
+
+    @provide
+    def subscribe_on_course(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        user_repo: UserRepositoryInterface,
+        email_service: EmailServiceInterface,
+        conf: AppConfig
+    ) -> SubscribeOnCourse:
+        return SubscribeOnCourse(
+            uow,
+            course_repo,
+            user_repo,
+            email_service,
+            conf.student_course_url
+        )
+
+    @provide
+    def rate_student(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        attempt_repo: AttemptRepositoryInterface,
+        user_repo: UserRepositoryInterface,
+        email_service: EmailServiceInterface,
+        conf: AppConfig
+    ) -> RateStudent:
+        return RateStudent(
+            uow,
+            course_repo,
+            attempt_repo,
+            email_service,
+            user_repo,
+            conf.student_problem_url
+        )
+
 
 interactors_provider = InteractorProvider(scope=Scope.REQUEST)
 interactors_provider.provide_all(
@@ -218,15 +291,11 @@ interactors_provider.provide_all(
     ManageStudents,
     ManageTags,
     ManageModules,
-    ShowStudentCourses,
     ShowStudentCourse,
     ShowCourse,
     ShowMain,
     AuthenticateUserAsTeacher,
     AuthenticateUserAsStudent,
-    RequestSubscribeOnCourse,
-    SubscribeOnCourseByLink,
-    SubscribeOnCourse,
     ShowTeacherCourseData,
     ChangePasswordConfirm,
     ShowStudentProblems,
@@ -238,12 +307,14 @@ interactors_provider.provide_all(
     ShowStudentProblemInfoToRate,
     SendProblemSolution,
     HandleTestResult,
-    RateStudent,
     ShowCourseModulesProblemsToUpdate,
     ShowFavourites,
     AddToFavourites,
     ShowCurrentAttempts,
-    SearchStudentsWithSeens
+    SearchStudentsWithSeens,
+    DeleteFavourites,
+    DeleteCourse,
+    ChangeUsername
 )
 
 

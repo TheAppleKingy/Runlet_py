@@ -33,23 +33,31 @@ from .base import (
     _CourseUserReposRelatedInteractor,
     _CourseAttemptReposRelatedInteractor
 )
+from runlet.application.dtos.user import UserG3
 
 
 class ShowMain(_CourseRepoRelatedInteractor):
     async def __call__(
         self,
-        user_id: Optional[int] = None,
-        page: int = 1,
-        size: int = 10
-    ) -> tuple[list, list, tuple[list[Course], int, int, int]]:
-        as_student = []
-        as_teacher = []
+        user_id: Optional[int],
+        all_page: int,
+        all_size: int,
+        as_teacher_page: Optional[int],
+        as_teacher_size: Optional[int],
+        as_student_page: Optional[int],
+        as_student_size: Optional[int]
+    ) -> tuple[list[Course], int, list[Course], int, list[Course], int]:
+        as_student, as_student_pages = [], 0
+        as_teacher, as_teacher_pages = [], 0
         async with self._uow:
-            paginated = await self._course_repo.get_all_paginated(page=page, size=size)
+            all_courses, all_pages = await self._course_repo.get_all_paginated(page=all_page, size=all_size)
             if user_id:
-                as_student = await self._course_repo.get_student_courses(user_id)
-                as_teacher = await self._course_repo.get_teacher_courses(user_id)
-        return as_teacher, as_student, paginated
+                if not (as_teacher_page and as_teacher_size and as_student_page and as_student_size):
+                    raise ImpossibleOperationError(
+                        "User authenticated but parameters for getting his courses was not provide")
+                as_student, as_student_pages = await self._course_repo.get_student_courses_paginated(user_id, as_student_page, as_student_size)
+                as_teacher, as_teacher_pages = await self._course_repo.get_teacher_courses_paginated(user_id, as_teacher_page, as_teacher_size)
+            return all_courses, all_pages, as_teacher, as_teacher_pages, as_student, as_student_pages
 
 
 class ShowMyProfile:
@@ -101,10 +109,14 @@ class RequestSubscribeOnCourse(_CourseUserReposRelatedInteractor):
         uow: UoWInterface,
         course_repo: CourseRepositoryInterface,
         user_repo: UserRepositoryInterface,
-        email_service: EmailServiceInterface
+        email_service: EmailServiceInterface,
+        main_url: str,
+        accept_or_reject_url: str
     ):
         super().__init__(uow, course_repo, user_repo)
         self._email_service = email_service
+        self._main_url = main_url
+        self._accept_or_reject_url = accept_or_reject_url
 
     async def __call__(self, course_id: int, user_id: int):
         async with self._uow:
@@ -116,13 +128,17 @@ class RequestSubscribeOnCourse(_CourseUserReposRelatedInteractor):
             user = await self._user_repo.get_by_id(user_id)  # type: ignore
             manager = CourseStudentsManagerService(course)
             manager.request_subscribe([user])  # type: ignore
-        topic, msg = EmailMessageTextTemplate.notify_student_requested_subscribe(course.name)  # type: ignore
+        topic, msg = EmailMessageTextTemplate.notify_student_requested_subscribe(
+            course.name, self._main_url)  # type: ignore
         await self._email_service.send_mail(user.email, topic, msg)  # type: ignore
         if course.notify_request_sub:  # type: ignore
             async with self._uow:
                 admin = await self._user_repo.get_by_id(course.teacher_id)  # type: ignore
                 topic, msg = EmailMessageTextTemplate.notify_teacher_requested_subscribe(
-                    user.email, course.name)  # type: ignore
+                    user.email,
+                    course.name,
+                    self._accept_or_reject_url.format(course.id)
+                )  # type: ignore
                 await self._email_service.send_mail(admin.email, topic, msg)  # type: ignore
 
 
@@ -132,10 +148,12 @@ class SubscribeOnCourse(_CourseUserReposRelatedInteractor):
         uow: UoWInterface,
         course_repo: CourseRepositoryInterface,
         user_repo: UserRepositoryInterface,
-        email_service: EmailServiceInterface
+        email_service: EmailServiceInterface,
+        course_url: str
     ):
         super().__init__(uow, course_repo, user_repo)
         self._email_service = email_service
+        self._course_url = course_url
 
     async def __call__(self, user_id: int, course_id: int):
         async with self._uow:
@@ -147,8 +165,9 @@ class SubscribeOnCourse(_CourseUserReposRelatedInteractor):
                 raise CoursePrivacyError("Course is private")
             user = await self._user_repo.get_by_id(user_id)
             manager = CourseStudentsManagerService(course)
-            manager.add_students([user])  # type: ignore
-        topic, msg = EmailMessageTextTemplate.notify_student_subscribed(course.name)  # type: ignore
+            manager.add_students([user])  # type: ignore # TODO: raise if already in course
+        topic, msg = EmailMessageTextTemplate.notify_student_subscribed(
+            course.name, self._course_url.format(course.id))  # type: ignore
         await self._email_service.send_mail(user.email, topic, msg)  # type: ignore
 
 
@@ -159,11 +178,13 @@ class SubscribeOnCourseByLink(_CourseUserReposRelatedInteractor):
         course_repo: CourseRepositoryInterface,
         user_repo: UserRepositoryInterface,
         auth_service: AuthenticationServiceInterface,
-        email_service: EmailServiceInterface
+        email_service: EmailServiceInterface,
+        course_url: str
     ):
         super().__init__(uow, course_repo, user_repo)
         self._token_service = auth_service
         self._email_service = email_service
+        self._course_url = course_url
 
     async def __call__(self, token: str, user_id: int):
         try:
@@ -187,7 +208,8 @@ class SubscribeOnCourseByLink(_CourseUserReposRelatedInteractor):
                     manager.add_students_by_tag(tag_id, [student])  # type: ignore
             else:
                 manager.add_students([student])  # type: ignore
-        topic, msg = EmailMessageTextTemplate.notify_student_subscribed(course.name)  # type: ignore
+        topic, msg = EmailMessageTextTemplate.notify_student_subscribed(
+            course.name, self._course_url.format(course.id))  # type: ignore
         await self._email_service.send_mail(student.email, topic, msg)  # type: ignore
 
 
@@ -204,6 +226,12 @@ class AddToFavourites(_CourseRepoRelatedInteractor):
             if user_id == course.teacher_id:  # type: ignore[union-attr]
                 raise ImpossibleOperationError("Cannot add course to favorites because you are the teacher")
             await self._course_repo.add_to_favourites(user_id, course_id)
+
+
+class DeleteFavourites(_CourseRepoRelatedInteractor):
+    async def __call__(self, user_id: int, course_id: int):
+        async with self._uow:
+            await self._course_repo.delete_favourites(user_id, course_id)
 
 
 class ShowCurrentAttempts(_CourseAttemptReposRelatedInteractor):
@@ -230,3 +258,18 @@ class ShowCurrentAttempts(_CourseAttemptReposRelatedInteractor):
                         "Got attempt of problem related to unexistant module or module not related to course", status=500)
                 result.append((a, course))
             return result, pages
+
+
+class ChangeUsername:
+    def __init__(
+        self,
+        uow: UoWInterface,
+        user_repo: UserRepositoryInterface
+    ):
+        self._uow = uow
+        self._user_repo = user_repo
+
+    async def __call__(self, user_id: int, dto: UserG3):
+        async with self._uow:
+            user = await self._user_repo.get_by_id(user_id)
+            user.name = dto.name

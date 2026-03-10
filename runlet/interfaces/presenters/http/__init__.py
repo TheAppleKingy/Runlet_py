@@ -11,7 +11,8 @@ from .student import (
     show_problem_info_for_student_to_solve,
 )
 from .user import (
-    show_current_attempts_info
+    show_current_attempts_info,
+    show_main
 )
 
 
@@ -24,5 +25,6 @@ __all__ = [
     "show_problems_students_with_attempt_info",
     "show_current_attempts_info",
     "show_tags_paginated_students_to_update",
-    "show_paginated_searched_students_with_seens"
+    "show_paginated_searched_students_with_seens",
+    "show_main"
 ]

@@ -21,7 +21,11 @@ from runlet.domain.services.course import (
     CourseProblemManagerService
 )
 from runlet.application.interfaces.uow import UoWInterface
-from runlet.application.interfaces.services import AuthenticationServiceInterface
+from runlet.application.interfaces.services import (
+    AuthenticationServiceInterface,
+    EmailServiceInterface,
+    EmailMessageTextTemplate
+)
 from runlet.application.interfaces.repositories import (
     CourseRepositoryInterface,
     ModuleRepositoryInterface,
@@ -406,11 +410,27 @@ class ShowStudentProblemInfoToRate(_CourseAttemptReposRelatedInteractor):
             attempt = await self._attempt_repo.get_student_attempt(course_id, student_id, problem_id)
             if not attempt:
                 raise UndefinedAttemptError("Problem does not exist or student did not try to solve", status=404)
+            if attempt.user_id != student_id:
+                raise ImpossibleOperationError(f"User not related to problem '{attempt.problem.name}'")
             attempt.watch()
             return attempt
 
 
 class RateStudent(ShowStudentProblemInfoToRate):
+    def __init__(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        attempt_repo: AttemptRepositoryInterface,
+        mail_service: EmailServiceInterface,
+        user_repo: UserRepositoryInterface,
+        problem_url: str
+    ):
+        super().__init__(uow, course_repo, attempt_repo)
+        self._email_service = mail_service
+        self._user_repo = user_repo
+        self._problem_url = problem_url
+
     async def __call__(
         self,
         course_id: int,
@@ -422,3 +442,13 @@ class RateStudent(ShowStudentProblemInfoToRate):
         attempt = await super().__call__(course_id, module_id, problem_id, student_id)
         async with self._uow:
             attempt.teacher_confirm(ok)
+        topic, message = EmailMessageTextTemplate.rate_student(
+            attempt.problem.name, self._problem_url.format(course_id, module_id, problem_id))
+        user = await self._user_repo.get_by_id(attempt.user_id)
+        await self._email_service.send_mail(user.email, topic, message)
+
+
+class DeleteCourse(_CourseRepoRelatedInteractor):
+    async def __call__(self, course_id: int):
+        async with self._uow:
+            await self._course_repo.delete_course(course_id)

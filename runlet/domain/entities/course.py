@@ -1,5 +1,6 @@
 from typing import Optional
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
 from .user import User
 from .problem import Module
@@ -18,6 +19,7 @@ class Course:
     _modules: list[Module] = field(default_factory=list, init=False)
     is_private: bool = False
     notify_request_sub: bool = False
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), init=False)
 
     @property
     def teacher_id(self):

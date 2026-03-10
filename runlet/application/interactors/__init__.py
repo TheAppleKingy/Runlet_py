@@ -10,7 +10,6 @@ from .auth import (
     ChangePasswordConfirm
 )
 from .student import (
-    ShowStudentCourses,
     ShowStudentCourse,
     ShowProblemToSolve,
     SendProblemSolution,
@@ -34,7 +33,8 @@ from .teacher import (
     ShowStudentProblemInfoToRate,
     RateStudent,
     ShowCourseModulesProblemsToUpdate,
-    SearchStudentsWithSeens
+    SearchStudentsWithSeens,
+    DeleteCourse
 )
 from .user import (
     ShowCourse,
@@ -46,7 +46,9 @@ from .user import (
     ShowMyProfile,
     ShowFavourites,
     AddToFavourites,
-    ShowCurrentAttempts
+    DeleteFavourites,
+    ShowCurrentAttempts,
+    ChangeUsername
 )
 from .callback import HandleTestResult
 
@@ -61,7 +63,6 @@ __all__ = [
     "OptionalAuthenticateUser",
     "ChangePasswordRequest",
     "ChangePasswordConfirm",
-    "ShowStudentCourses",
     "ShowStudentCourse",
     "ShowTeacherCourseTagsToRateStudents",
     "ShowTeacherCourseModulesToRateStudents",
@@ -94,5 +95,8 @@ __all__ = [
     "ShowFavourites",
     "AddToFavourites",
     "ShowCurrentAttempts",
-    "SearchStudentsWithSeens"
+    "SearchStudentsWithSeens",
+    "DeleteFavourites",
+    "DeleteCourse",
+    "ChangeUsername"
 ]

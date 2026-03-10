@@ -1,9 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from .course import CourseG1, CourseG5
+from .course import CourseG1
+
+
+class PaginatedCoursesDTO(BaseModel):
+    courses: list[CourseG1] = Field(default_factory=list)
+    page: int
+    pages: int
 
 
 class MainDTO(BaseModel):
-    as_teacher: list[CourseG1]
-    as_student: list[CourseG1]
-    paginated: CourseG5
+    as_teacher: PaginatedCoursesDTO
+    as_student: PaginatedCoursesDTO
+    all_courses: PaginatedCoursesDTO

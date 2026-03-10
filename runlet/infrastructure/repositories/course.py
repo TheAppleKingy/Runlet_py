@@ -5,7 +5,9 @@ from sqlalchemy import (
     select,
     exists,
     func,
-    insert
+    insert,
+    desc,
+    delete
 )
 from sqlalchemy.orm import selectinload
 
@@ -27,30 +29,27 @@ class AlchemyCourseRepository(BaseAlchemyRepository, CourseRepositoryInterface):
     async def get_by_id(self, course_id: int) -> Optional[Course]:
         return await self._session.scalar(select(Course).where(Course.id == course_id))
 
-    async def get_all_paginated(self, page: int = 1, size: int = 10):
-        page = max(1, page)
-        size = min(100, max(1, size))
-        count_stmt = select(func.count()).select_from(
-            select(Course).order_by(Course.id).subquery())
-        total = await self._session.scalar(count_stmt)
-        offset = (page - 1) * size
-        if offset >= total:  # type: ignore
-            return []
-        res = await self._session.scalars(select(Course).offset(offset).limit(size))
-        return res.all(), page, size, total
+    async def get_all_paginated(self, page: int, size: int):
+        stmt = select(Course)
+        res = await self._session.scalars(stmt.offset((page - 1) * size).limit(size).order_by(Course.created_at))
+        count = await self._session.scalar(select(func.count()).select_from(stmt)) or 0
+        return res.all(), (count + size - 1) // size
 
-    async def get_student_courses(self, student_id: int) -> list[Course]:
+    async def get_student_courses_paginated(self, student_id: int, page: int, size: int) -> tuple[list[Course], int]:
         stmt = select(Course).join(
             users_courses, Course.id == users_courses.c.course_id,
         ).where(
             users_courses.c.student_id == student_id
         )
-        res = await self._session.scalars(stmt)
-        return res.unique().all()  # type: ignore
+        res = await self._session.scalars(stmt.limit(size).order_by(desc(users_courses.c.created_at)).offset((page - 1) * size))
+        count = await self._session.scalar(select(func.count()).select_from(stmt)) or 0
+        return res.unique().all(), (count + size - 1) // size  # type: ignore
 
-    async def get_teacher_courses(self, teacher_id: int) -> list[Course]:
-        res = await self._session.scalars(select(Course).where(Course._teacher_id == teacher_id))
-        return res.all()  # type: ignore
+    async def get_teacher_courses_paginated(self, teacher_id: int, page: int, size: int) -> tuple[list[Course], int]:
+        stmt = select(Course).where(Course._teacher_id == teacher_id)
+        res = await self._session.scalars(stmt.limit(size).order_by(desc(Course.created_at)).offset((page - 1) * size))
+        count = await self._session.scalar(select(func.count()).select_from(stmt)) or 0
+        return res.all(), (count + size - 1) // size  # type: ignore
 
     async def check_user_in_course(self, user_id: int, course_id: int) -> bool:
         return await self._session.scalar(  # type: ignore
@@ -115,3 +114,9 @@ class AlchemyCourseRepository(BaseAlchemyRepository, CourseRepositoryInterface):
             )
         )
         return await self._session.scalar(stmt)
+
+    async def delete_favourites(self, user_id: int, course_id: int) -> None:
+        await self._session.execute(delete(favourites).where(favourites.c.user_id == user_id, favourites.c.course_id == course_id))
+
+    async def delete_course(self, course_id: int) -> None:
+        await self._session.execute(delete(Course).where(Course.id == course_id))

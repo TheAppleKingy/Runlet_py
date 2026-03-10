@@ -12,7 +12,7 @@ from runlet.application.dtos.test_cases import (
 )
 
 
-def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[Attempt], langs: list[str]):
+def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[Attempt], langs: dict[str, str]):
     res = ProblemInfoForStudentDTO(
         problem_id=problem.id,
         problem_name=problem.name,

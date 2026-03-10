@@ -29,12 +29,6 @@ from .base import (
 from runlet.application.interfaces.message_tasks import SendCodeSolution
 
 
-class ShowStudentCourses(_CourseRepoRelatedInteractor):
-    async def __call__(self, user_id: int):
-        async with self._uow:
-            return await self._course_repo.get_student_courses(user_id)
-
-
 class ShowStudentCourse(_CourseRepoRelatedInteractor):
     async def __call__(self, course_id: int):
         async with self._uow:
@@ -42,7 +36,7 @@ class ShowStudentCourse(_CourseRepoRelatedInteractor):
 
 
 class ShowProblemToSolve(_CourseAttemptReposRelatedInteractor):
-    def __init__(self, uow, course_repo, attempt_repo, langs: list[str]):
+    def __init__(self, uow, course_repo, attempt_repo, langs: dict[str, str]):
         super().__init__(uow, course_repo, attempt_repo)
         self._langs = langs
 
@@ -52,7 +46,7 @@ class ShowProblemToSolve(_CourseAttemptReposRelatedInteractor):
         course_id: int,
         module_id: int,
         problem_id: int
-    ) -> tuple[Problem, Optional[Attempt], list[str]]:
+    ) -> tuple[Problem, Optional[Attempt], dict[str, str]]:
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
             module = course.get_module_by_id(module_id)  # type: ignore[union-attr]

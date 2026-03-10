@@ -62,7 +62,8 @@ from runlet.application.interactors import (
     SearchStudents,
     ShowStudentProblemInfoToRate,
     RateStudent,
-    SearchStudentsWithSeens
+    SearchStudentsWithSeens,
+    DeleteCourse
 )
 from runlet.domain.interfaces.types import AuthenticatedTeacherId
 from runlet.interfaces.presenters.http import (
@@ -316,3 +317,12 @@ async def rate_student(
     dto: RateStudentDTO
 ):
     await interactor(course_id, module_id, problem_id, student_id, dto.ok)
+
+
+@teacher_router.delete("/course/{course_id}")
+async def delete_course(
+    course_id: int,
+    user_id: FromDishka[AuthenticatedTeacherId],
+    interactor: FromDishka[DeleteCourse]
+):
+    await interactor(course_id)
