@@ -26,7 +26,10 @@ from runlet.infrastructure.db.tables import (
     users_courses
 )
 from runlet.domain.exc import HandlingError
-from runlet.infrastructure.configs import RabbitMQConfig
+from runlet.infrastructure.configs import (
+    RabbitMQConfig,
+    AppConfig
+)
 from runlet.interfaces.controllers.http import (
     user_router,
     student_router,
@@ -71,6 +74,7 @@ def map_tables():
 
 @asynccontextmanager
 async def lifespan_handler(app: FastAPI):
+    await container.get(AppConfig)
     map_tables()
     setup_routers(app)
     rabbit_conf = await container.get(RabbitMQConfig)

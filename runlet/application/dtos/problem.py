@@ -72,7 +72,7 @@ class ProblemInfoForStudentDTO(_ContainsExample):
     code: Optional[str] = None
     pending: bool = False
     test_cases: list[TestCaseForStudentDTO] = Field(default_factory=list)
-    langs: list[str]
+    langs: dict[str, str]
 
 
 class ProblemInfoForTeacherDTO(_ContainsExample):
