@@ -39,7 +39,7 @@ class AppConfig(BaseSettings):
             "rb": "Ruby"
         }
         res: dict[str, str] = {}
-        for code in self.available_langs:
+        for code in self.available_langs_codes:
             lang_name = map_.get(code.lower().strip())
             if lang_name:
                 res[code.lower().strip()] = lang_name
