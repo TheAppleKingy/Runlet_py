@@ -52,7 +52,8 @@ def student_problems_info(attempts: list[Attempt], modules: list[Module]):
                 id=attempt.problem_id,
                 name=attempt.problem.name,
                 tests_passed=attempt.tests_passed,
-                confirmed_passed=attempt.confirmed_passed
+                confirmed_passed=attempt.confirmed_passed,
+                seen_attempt=attempt.seen
             )
         )
     return sorted(list(module_map.values()), key=lambda m: m.order)

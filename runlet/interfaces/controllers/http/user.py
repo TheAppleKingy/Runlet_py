@@ -163,7 +163,7 @@ async def get_current_attempts(
     user_id: FromDishka[AuthenticatedUserId],
     interactor: FromDishka[ShowCurrentAttempts],
     page: int = Query(default=1, gt=0),
-    size: int = Query(default=12, le=12, gt=0)
+    size: int = Query(default=20, le=20, gt=0)
 ) -> CurrentAttemptsInfoDTO:
     data, pages = await interactor(user_id, page, size)
     return show_current_attempts_info(data, page, pages)

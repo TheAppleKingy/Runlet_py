@@ -5,6 +5,7 @@ from runlet.domain.entities import (
     DefaultTagType,
     Tag,
     Attempt,
+    User
 )
 from runlet.domain.services import (
     CourseStudentsManagerService,
@@ -37,7 +38,7 @@ from runlet.application.dtos.user import UserG3
 
 
 class ShowMain(_CourseRepoRelatedInteractor):
-    async def __call__(
+    async def __call__(  # type: ignore[return]
         self,
         user_id: Optional[int],
         all_page: int,
@@ -47,8 +48,10 @@ class ShowMain(_CourseRepoRelatedInteractor):
         as_student_page: Optional[int],
         as_student_size: Optional[int]
     ) -> tuple[list[Course], int, list[Course], int, list[Course], int]:
-        as_student, as_student_pages = [], 0
-        as_teacher, as_teacher_pages = [], 0
+        as_student: list[Course] = []
+        as_student_pages = 0
+        as_teacher: list[Course] = []
+        as_teacher_pages = 0
         async with self._uow:
             all_courses, all_pages = await self._course_repo.get_all_paginated(page=all_page, size=all_size)
             if user_id:
@@ -120,12 +123,16 @@ class RequestSubscribeOnCourse(_CourseUserReposRelatedInteractor):
 
     async def __call__(self, course_id: int, user_id: int):
         async with self._uow:
-            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students], [Course._students])
+            course: Course = await self._course_repo.get_by_id_with_rels(  # type: ignore[assignment]
+                course_id,
+                [Course._tags, Tag.students],
+                [Course._students]
+            )
             if not course:
                 raise UndefinedCourseError("Course does not exist")
             if not course.is_private:
                 raise CoursePrivacyError("Course is not private")
-            user = await self._user_repo.get_by_id(user_id)  # type: ignore
+            user: User = await self._user_repo.get_by_id(user_id)  # type: ignore
             manager = CourseStudentsManagerService(course)
             manager.request_subscribe([user])  # type: ignore
         topic, msg = EmailMessageTextTemplate.notify_student_requested_subscribe(
@@ -271,5 +278,5 @@ class ChangeUsername:
 
     async def __call__(self, user_id: int, dto: UserG3):
         async with self._uow:
-            user = await self._user_repo.get_by_id(user_id)
+            user: User = await self._user_repo.get_by_id(user_id)  # type: ignore[assignment]
             user.name = dto.name

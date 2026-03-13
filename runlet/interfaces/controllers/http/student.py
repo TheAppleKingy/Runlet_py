@@ -14,6 +14,7 @@ from runlet.application.dtos.problem import ProblemInfoForStudentDTO
 from runlet.domain.interfaces.types import AuthenticatedStudentId
 from runlet.interfaces.presenters.http import (
     show_problem_info_for_student_to_solve,
+    show_student_course_problems_with_attempts_info
 )
 
 student_router = APIRouter(prefix="/study", tags=["Manage studiyng"], route_class=DishkaRoute)
@@ -25,7 +26,8 @@ async def get_student_course(
     user_id: FromDishka[AuthenticatedStudentId],
     interactor: FromDishka[ShowStudentCourse]
 ) -> CourseG7:
-    return await interactor(course_id)
+    course, attempts = await interactor(course_id, user_id)
+    return show_student_course_problems_with_attempts_info(course, attempts)
 
 
 @student_router.get("/course/{course_id}/modules/{module_id}/problems/{problem_id}")

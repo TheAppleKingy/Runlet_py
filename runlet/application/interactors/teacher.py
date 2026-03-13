@@ -339,15 +339,14 @@ class ShowTagsToUpdate(_CourseUserReposRelatedInteractor):
                 if not tag:
                     raise UndefinedTagError("Tag does not exist or not related to course")
             else:
-                tag = course.get_tag(DefaultTagType.WAITING_FOR_SUBSCRIBE.value)
+                tag = course.get_tag(DefaultTagType.WAITING_FOR_SUBSCRIBE.value)  # type: ignore[union-attr]
             tag_students, tag_students_pages = await self._user_repo.get_paginated_by_tag(
                 course_id,
                 tag.id,
                 page=tag_students_page,
                 size=tag_students_size
             )
-            return course_students, course_students_pages, tag_students, tag_students_pages, tag, course.tags
-
+            return course_students, course_students_pages, tag_students, tag_students_pages, tag, course.tags # type: ignore[union-attr]
 
 class ShowProblemDataToUpdate(_CourseRepoRelatedInteractor):
     async def __call__(self, course_id: int, module_id: int, problem_id: int) -> Problem:  # type: ignore[return]
@@ -442,7 +441,9 @@ class RateStudent(ShowStudentProblemInfoToRate):
         attempt = await super().__call__(course_id, module_id, problem_id, student_id)
         async with self._uow:
             attempt.teacher_confirm(ok)
-            user = await self._user_repo.get_by_id(attempt.user_id)
+            user: User = await self._user_repo.get_by_id(attempt.user_id)  # type: ignore[assignment]
+            if not user:
+                raise undefinedStudentError("User does not exist")
         topic, message = EmailMessageTextTemplate.rate_student(
             attempt.problem.name, self._problem_url.format(course_id, module_id, problem_id))
         await self._email_service.send_mail(user.email, topic, message)

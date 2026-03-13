@@ -9,6 +9,7 @@ from .teacher import (
 )
 from .student import (
     show_problem_info_for_student_to_solve,
+    show_student_course_problems_with_attempts_info
 )
 from .user import (
     show_current_attempts_info,
@@ -26,5 +27,6 @@ __all__ = [
     "show_current_attempts_info",
     "show_tags_paginated_students_to_update",
     "show_paginated_searched_students_with_seens",
-    "show_main"
+    "show_main",
+    "show_student_course_problems_with_attempts_info"
 ]

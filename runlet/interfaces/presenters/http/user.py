@@ -43,17 +43,17 @@ def show_main(
 ) -> MainDTO:
     return MainDTO(
         as_teacher=PaginatedCoursesDTO(
-            courses=as_teacher,
+            courses=as_teacher,  # type: ignore[arg-type]
             page=as_teacher_page,
             pages=as_teacher_pages
         ),
         as_student=PaginatedCoursesDTO(
-            courses=as_student,
+            courses=as_student,  # type: ignore[arg-type]
             page=as_student_page,
             pages=as_student_pages
         ),
         all_courses=PaginatedCoursesDTO(
-            courses=all_courses,
+            courses=all_courses,  # type: ignore[arg-type]
             page=all_page,
             pages=all_pages
         )
