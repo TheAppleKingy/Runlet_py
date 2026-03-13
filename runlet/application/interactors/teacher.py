@@ -442,9 +442,9 @@ class RateStudent(ShowStudentProblemInfoToRate):
         attempt = await super().__call__(course_id, module_id, problem_id, student_id)
         async with self._uow:
             attempt.teacher_confirm(ok)
+            user = await self._user_repo.get_by_id(attempt.user_id)
         topic, message = EmailMessageTextTemplate.rate_student(
             attempt.problem.name, self._problem_url.format(course_id, module_id, problem_id))
-        user = await self._user_repo.get_by_id(attempt.user_id)
         await self._email_service.send_mail(user.email, topic, message)
 
 
