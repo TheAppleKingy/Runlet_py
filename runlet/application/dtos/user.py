@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -25,7 +27,7 @@ class UserWithSeenDTO(UserG1):
 
 class UserG4(UserWithSeenDTO):
     tests_passed: bool
-    confirmed_passed: bool
+    confirmed_passed: Optional[bool]
 
 
 class CurrentAttemptInfoDTO(BaseModel):
@@ -35,7 +37,7 @@ class CurrentAttemptInfoDTO(BaseModel):
     problem_name: str
     course_name: str
     tests_passed: bool
-    confirmed_passed: bool
+    confirmed_passed: Optional[bool]
     seen: bool
     pending: bool
 

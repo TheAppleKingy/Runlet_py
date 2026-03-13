@@ -20,7 +20,7 @@ attempts = Table(
     Column('test_cases', TestCaseJSONBType(), nullable=True),
     Column("updated_at", DateTime(timezone=True), nullable=False,
            default=lambda: datetime.now(timezone.utc)),
-    Column("confirmed_passed", Boolean, nullable=False, default=False),
+    Column("confirmed_passed", Boolean, nullable=True, default=None),
     Column("seen", Boolean, default=False, nullable=False),
     Column("pending", Boolean, default=False, nullable=False),
     Column("code", Text, nullable=False, unique=False),

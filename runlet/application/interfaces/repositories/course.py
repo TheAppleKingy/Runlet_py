@@ -10,7 +10,7 @@ class CourseRepositoryInterface(Protocol):
         self,
         page: int,
         size: int
-    ) -> tuple[list[Course], int, list[Course], int, list[Course], int]: ...
+    ) -> tuple[list[Course], int]: ...
 
     async def get_student_courses_paginated(
         self,

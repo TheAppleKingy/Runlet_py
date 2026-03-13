@@ -16,7 +16,7 @@ class OrderedModuleDTO(BaseModel):
 class ModuleG1(OrderedModuleDTO):
     id: int
     name: str
-    problems: list[ProblemG1]
+    problems: list[ProblemG1] = Field(default_factory=list)
 
 
 class ModuleG2(OrderedModuleDTO):

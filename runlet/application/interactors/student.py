@@ -22,17 +22,18 @@ from runlet.application.dtos.student import (
     TestSolutionDTO
 )
 from .base import (
-    _CourseRepoRelatedInteractor,
     _CourseAttemptReposRelatedInteractor
 )
 
 from runlet.application.interfaces.message_tasks import SendCodeSolution
 
 
-class ShowStudentCourse(_CourseRepoRelatedInteractor):
-    async def __call__(self, course_id: int):
+class ShowStudentCourse(_CourseAttemptReposRelatedInteractor):
+    async def __call__(self, course_id: int, student_id: int) -> tuple[Course, list[Attempt]]:  # type: ignore[return]
         async with self._uow:
-            return await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
+            course = await self._course_repo.get_by_id_with_rels(course_id, [Course._modules, Module._problems])
+            attempts = await self._attempt_repo.get_student_attempts(course_id, student_id)
+            return course, attempts  # type: ignore[return-value]
 
 
 class ShowProblemToSolve(_CourseAttemptReposRelatedInteractor):

@@ -13,6 +13,8 @@ from .test_cases import (
 class ProblemG1(BaseModel):
     id: int
     name: str
+    confirmed_passed: Optional[bool] = None
+    tests_passed: Optional[bool] = None
 
 
 class _ContainsExample(BaseModel):
@@ -87,4 +89,5 @@ class ProblemWithRateInfoDTO(BaseModel):
     id: int
     name: str
     tests_passed: bool
-    confirmed_passed: bool
+    confirmed_passed: Optional[bool]
+    seen_attempt: bool

@@ -1,3 +1,4 @@
+from typing import Optional
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -21,7 +22,7 @@ class Attempt:
     tests_passed: bool = field(default=False, init=False)
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc), init=False)
     test_cases: TestCases = field(default_factory=TestCases)
-    confirmed_passed: bool = field(default=False, init=False)
+    confirmed_passed: Optional[bool] = field(default=None, init=False)
     seen: bool = field(default=False, init=False)
     pending: bool = field(default=False, init=False)
 

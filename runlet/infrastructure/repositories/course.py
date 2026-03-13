@@ -29,11 +29,11 @@ class AlchemyCourseRepository(BaseAlchemyRepository, CourseRepositoryInterface):
     async def get_by_id(self, course_id: int) -> Optional[Course]:
         return await self._session.scalar(select(Course).where(Course.id == course_id))
 
-    async def get_all_paginated(self, page: int, size: int):
+    async def get_all_paginated(self, page: int, size: int) -> tuple[list[Course], int]:
         stmt = select(Course)
         res = await self._session.scalars(stmt.offset((page - 1) * size).limit(size).order_by(Course.created_at))
         count = await self._session.scalar(select(func.count()).select_from(stmt)) or 0
-        return res.all(), (count + size - 1) // size
+        return res.all(), (count + size - 1) // size  # type: ignore[return-value]
 
     async def get_student_courses_paginated(self, student_id: int, page: int, size: int) -> tuple[list[Course], int]:
         stmt = select(Course).join(

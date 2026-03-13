@@ -68,14 +68,14 @@ class CourseG6(_ContainsOrderedModulesDTO):
 class CourseG7(BaseModel):
     id: int
     name: str
-    description: str
-    modules: list[ModuleG1]
+    description: Optional[str]
+    modules: list[ModuleG1] = Field(default_factory=list)
 
 
 class CourseG8(BaseModel):
     id: int
     name: str
-    description: Optional[str] = None
+    description: Optional[str]
     is_private: bool
     notify_request_sub: bool
 

@@ -28,7 +28,6 @@ from runlet.application.dtos.teacher import (
     RateStudentDTO,
     PaginatedCourseTagsStudentsWithSeensDTO,
     PaginatedProblemStudentsInfoDTO,
-    PaginatedTagStudentsDTO,
     PaginatedTagsStudentsDTO,
     PaginatedSearchStudentsDTO,
     PaginatedSearchStudentsWithSeensDTO

@@ -2,13 +2,21 @@ from typing import Optional
 
 from runlet.domain.entities import (
     Attempt,
-    Problem
+    Problem,
+    Course
 )
 from runlet.application.dtos.problem import (
-    ProblemInfoForStudentDTO
+    ProblemInfoForStudentDTO,
+    ProblemG1
 )
 from runlet.application.dtos.test_cases import (
     TestCaseForStudentDTO,
+)
+from runlet.application.dtos.course import (
+    CourseG7
+)
+from runlet.application.dtos.module import (
+    ModuleG1
 )
 
 
@@ -34,4 +42,23 @@ def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[A
                         num).output if problem.show_test_cases else None  # type: ignore[union-attr]
                 ) for num, case in attempt.test_cases
             ], key=lambda tc: tc.test_num),
+    return res
+
+
+def show_student_course_problems_with_attempts_info(course: Course, attempts: list[Attempt]):
+    res = CourseG7(id=course.id, name=course.name, description=course.description)
+    attempts_map: dict[int, Attempt] = {a.problem_id: a for a in attempts}
+    for m in course.modules:
+        dto = ModuleG1(id=m.id, order=m.order, name=m.name)
+        for p in m.problems:
+            attempt = attempts_map.get(p.id)
+            dto.problems.append(
+                ProblemG1(
+                    id=p.id,
+                    name=p.name,
+                    tests_passed=attempt.tests_passed if attempt else None,
+                    confirmed_passed=attempt.confirmed_passed if attempt else None
+                )
+            )
+        res.modules.append(dto)
     return res
