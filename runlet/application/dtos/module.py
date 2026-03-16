@@ -32,6 +32,7 @@ class ModuleG3(OrderedModuleDTO):
 
 
 class ModuleG4(BaseModel):
+    id: int
     name: str
     order: int
     problems: list[ProblemWithRateInfoDTO] = Field(default_factory=list)

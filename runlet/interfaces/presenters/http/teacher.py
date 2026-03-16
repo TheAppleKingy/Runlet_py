@@ -43,7 +43,7 @@ from runlet.application.dtos.teacher import (
 
 def student_problems_info(attempts: list[Attempt], modules: list[Module]):
     module_map = {
-        module.id: ModuleG4(name=module.name, order=module.order) for module in modules
+        module.id: ModuleG4(id=module.id, name=module.name, order=module.order) for module in modules
     }
     for attempt in attempts:
         presented = module_map[attempt.problem.module_id]
