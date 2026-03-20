@@ -13,7 +13,7 @@ services:
   runlet:
     build:
       context: ../../
-      dockerfile: build/dev/Dockerfile
+      dockerfile: build/prod/Dockerfile
     ports:
       - "8000:8000"
     depends_on:
