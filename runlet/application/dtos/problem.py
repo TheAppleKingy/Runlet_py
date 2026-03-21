@@ -75,11 +75,13 @@ class ProblemInfoForStudentDTO(_ContainsExample):
     pending: bool = False
     test_cases: list[TestCaseForStudentDTO] = Field(default_factory=list)
     langs: dict[str, str]
+    confirmed_passed: Optional[bool]
 
 
 class ProblemInfoForTeacherDTO(_ContainsExample):
     problem_id: int
     problem_name: str
+    confirmed_passed: Optional[bool]
     problem_description: Optional[str] = None
     code: Optional[str] = None
     test_cases: list[TestCaseForTeacherDTO] = Field(default_factory=list)

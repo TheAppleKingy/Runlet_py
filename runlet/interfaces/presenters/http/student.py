@@ -31,6 +31,7 @@ def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[A
     if attempt:
         res.pending = attempt.pending
         res.code = attempt.code
+        res.confirmed_passed = attempt.confirmed_passed
         res.test_cases = sorted(  # type: ignore[assignment]
             [
                 TestCaseForStudentDTO(
