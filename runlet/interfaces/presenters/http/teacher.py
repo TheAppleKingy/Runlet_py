@@ -100,6 +100,7 @@ def show_student_problem_to_rate(attempt: Attempt):
         problem_id=attempt.problem.id,
         problem_description=attempt.problem.description,
         problem_name=attempt.problem.name,
+        confirmed_passed=attempt.confirmed_passed,
         code=attempt.code,
         test_cases=sorted(
             [
