@@ -5,6 +5,7 @@ from runlet.application.interactors import (
     ShowStudentCourse,
     ShowProblemToSolve,
     SendProblemSolution,
+    UnsubscribeFromCourse
 )
 from runlet.application.dtos.student import SendProblemSolutionDTO
 from runlet.application.dtos.course import (
@@ -52,3 +53,12 @@ async def send_problem_solution(
     interactor: FromDishka[SendProblemSolution]
 ):
     return await interactor(course_id, module_id, problem_id, user_id, dto)
+
+
+@student_router.get("/course/{course_id}/unsubscribe")
+async def unsubscribe_from_course(
+    course_id: int,
+    user_id: FromDishka[AuthenticatedStudentId],
+    interactor: FromDishka[UnsubscribeFromCourse]
+) -> None:
+    await interactor(user_id, course_id)

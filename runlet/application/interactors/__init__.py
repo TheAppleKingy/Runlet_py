@@ -13,6 +13,7 @@ from .student import (
     ShowStudentCourse,
     ShowProblemToSolve,
     SendProblemSolution,
+    UnsubscribeFromCourse
 )
 from .teacher import (
     ShowTeacherCourseTagsToRateStudents,
@@ -98,5 +99,6 @@ __all__ = [
     "SearchStudentsWithSeens",
     "DeleteFavourites",
     "DeleteCourse",
-    "ChangeUsername"
+    "ChangeUsername",
+    "UnsubscribeFromCourse"
 ]

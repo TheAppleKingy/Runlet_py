@@ -276,6 +276,23 @@ class InteractorProvider(Provider):
             conf.student_problem_url
         )
 
+    @provide
+    def unsubscribe_from_course(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        user_repo: UserRepositoryInterface,
+        email_service: EmailServiceInterface,
+        conf: AppConfig
+    ) -> UnsubscribeFromCourse:
+        return UnsubscribeFromCourse(
+            uow,
+            course_repo,
+            user_repo,
+            email_service,
+            conf.main_url
+        )
+
 
 interactors_provider = InteractorProvider(scope=Scope.REQUEST)
 interactors_provider.provide_all(
@@ -314,7 +331,7 @@ interactors_provider.provide_all(
     SearchStudentsWithSeens,
     DeleteFavourites,
     DeleteCourse,
-    ChangeUsername
+    ChangeUsername,
 )
 
 

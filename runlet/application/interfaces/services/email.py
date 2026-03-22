@@ -29,6 +29,10 @@ class EmailMessageTextTemplate:
     def rate_student(self, problem_name: str, url: str):
         return "Attempt rated", f"Attempt for problem '{problem_name}' was rated. See result on Runlet\n{url}"
 
+    @classmethod
+    def notify_student_unsubscribed(self, course_name: str, url: str):
+        return "Unsubscribed from course!", f"You unsubscribed from course '{course_name}'. Start learning right now on other courses on Runlet\n{url}"
+
 
 class EmailServiceInterface(Protocol):
     async def send_mail(self, to: str, topic: str, text: str): ...
