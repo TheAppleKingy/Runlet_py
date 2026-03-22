@@ -26,7 +26,8 @@ def show_problem_info_for_student_to_solve(problem: Problem, attempt: Optional[A
         problem_name=problem.name,
         problem_description=problem.description,
         examples=problem.examples,  # type: ignore[arg-type]
-        langs=langs
+        langs=langs,
+        confirmed_passed=None
     )
     if attempt:
         res.pending = attempt.pending
