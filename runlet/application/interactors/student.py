@@ -10,7 +10,8 @@ from runlet.domain.entities import (
 from runlet.domain.services import CourseStudentsManagerService
 from runlet.application.interfaces.repositories import (
     CourseRepositoryInterface,
-    AttemptRepositoryInterface
+    AttemptRepositoryInterface,
+    UserRepositoryInterface
 )
 from runlet.application.interfaces.message_publisher import MessagePublisherInterface
 from runlet.application.interfaces.uow import UoWInterface
@@ -25,7 +26,7 @@ from runlet.application.dtos.student import (
 )
 from .base import (
     _CourseAttemptReposRelatedInteractor,
-    _CourseUserReposRelatedInteractor
+    _CourseAttemptUserRepoRelatedInteractor
 )
 from runlet.application.interfaces.services import (
     EmailMessageTextTemplate,
@@ -109,9 +110,17 @@ class SendProblemSolution(_CourseAttemptReposRelatedInteractor):
             await self._publisher.publish(SendCodeSolution(message_dto.model_dump_json()))
 
 
-class UnsubscribeFromCourse(_CourseUserReposRelatedInteractor):
-    def __init__(self, uow, course_repo, user_repo, email_service: EmailServiceInterface, main_url: str):
-        super().__init__(uow, course_repo, user_repo)
+class UnsubscribeFromCourse(_CourseAttemptUserRepoRelatedInteractor):
+    def __init__(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        attempt_repo: AttemptRepositoryInterface,
+        user_repo: UserRepositoryInterface,
+        email_service: EmailServiceInterface,
+        main_url: str
+    ):
+        super().__init__(uow, course_repo, attempt_repo, user_repo)
         self._email_service = email_service
         self._main_url = main_url
 
@@ -121,5 +130,6 @@ class UnsubscribeFromCourse(_CourseUserReposRelatedInteractor):
             manager = CourseStudentsManagerService(course)
             manager.delete_students([student_id])
             student = await self._user_repo.get_by_id(student_id)
+            await self._attempt_repo.delete_attempts(course.id, student.id)
         topic, message = EmailMessageTextTemplate.notify_student_unsubscribed(course.name, self._main_url)
         await self._email_service.send_mail(student.email, topic, message)
