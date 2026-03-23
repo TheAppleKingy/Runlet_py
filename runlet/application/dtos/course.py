@@ -28,6 +28,7 @@ class CourseG2(BaseModel):
     id: int
     name: str
     description: str
+    is_private: bool
 
 
 class _ContainsOrderedModulesDTO(BaseModel):
