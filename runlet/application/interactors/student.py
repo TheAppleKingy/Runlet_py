@@ -130,6 +130,6 @@ class UnsubscribeFromCourse(_CourseAttemptUserRepoRelatedInteractor):
             manager = CourseStudentsManagerService(course)
             manager.delete_students([student_id])
             student = await self._user_repo.get_by_id(student_id)
-            await self._attempt_repo.delete_attempts(course.id, student.id)
+            await self._attempt_repo.delete_attempts(course.id, [student.id])
         topic, message = EmailMessageTextTemplate.notify_student_unsubscribed(course.name, self._main_url)
         await self._email_service.send_mail(student.email, topic, message)

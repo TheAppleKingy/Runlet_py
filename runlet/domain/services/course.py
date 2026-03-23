@@ -40,16 +40,19 @@ class CourseStudentsManagerService(BaseCourseManagerService):
         if self._course._teacher_id in [s.id for s in students]:
             raise RolesError("User is the teacher of this course")
 
-    def add_students(self, students: list[User]):
+    def add_students(self, students: list[User]) -> list[int]:
         self._validate_teacher_is_student(students)
         waiting_tag = self._course.get_tag(DefaultTagType.WAITING_FOR_SUBSCRIBE.value)
+        from_waiting = []
         for s in students:
             if s not in self._course._students:
                 self._course._students.append(s)
             if s in waiting_tag.students:
                 waiting_tag.students.remove(s)
+            from_waiting.append(s.id)
+        return from_waiting
 
-    def add_students_by_tag(self, tag_id: int, students: list[User]):
+    def add_students_to_tag(self, tag_id: int, students: list[User]):
         target_tag = self._course.get_tag_by_id(tag_id)
         if not target_tag:
             raise UndefinedTagError("Unable to add students to tag: tag not related with course")
@@ -74,10 +77,11 @@ class CourseStudentsManagerService(BaseCourseManagerService):
         self._course._students = [s for s in self._course._students if s.id not in to_delete]
         return to_delete
 
-    def delete_students(self, ids: list[int]):
+    def delete_students(self, ids: list[int]) -> list[int]:
         deleted = self._delete_students_common(ids)
         for tag in self._course.tags:
             tag.students = [s for s in tag.students if s.id not in deleted]
+        return deleted
 
     def delete_students_from_tag(self, tag_id: int, students_ids: list[int]):
         tag = self._course.get_tag_by_id(tag_id)

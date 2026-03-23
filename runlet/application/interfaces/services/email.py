@@ -33,6 +33,10 @@ class EmailMessageTextTemplate:
     def notify_student_unsubscribed(self, course_name: str, url: str):
         return "Unsubscribed from course!", f"You unsubscribed from course '{course_name}'. Start learning right now on other courses on Runlet\n{url}"
 
+    @classmethod
+    def notify_student_was_expelled(self, course_name: str, url: str):
+        return "Expelled from course", f"You were expelled from course '{course_name}'. See on Runlet\n{url}"
+
 
 class EmailServiceInterface(Protocol):
     async def send_mail(self, to: str, topic: str, text: str): ...

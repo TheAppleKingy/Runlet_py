@@ -37,5 +37,5 @@ class AlchemyUoW(UoWInterface):
     def save(self, *ents: DomainEnt):
         return self._session.add_all(ents)
 
-    def in_transaction(self) -> bool:
-        return self._session.in_transaction()
+    def merge(self, ent: DomainEnt) -> DomainEnt:
+        return self._session.merge(ent)

@@ -69,14 +69,14 @@ class TestAddStudents:
 class TestAddStudentsByTag:
     def test_raises_tag_not_found(self, manager, user):
         with pytest.raises(UndefinedTagError):
-            manager.add_students_by_tag(999, [user])
+            manager.add_students_to_tag(999, [user])
 
     def test_raises_default_tag(self, manager_with_tags, user):
         with pytest.raises(ImpossibleOperationError, match="Unable to add student to default tag"):
-            manager_with_tags.add_students_by_tag(1, [user])
+            manager_with_tags.add_students_to_tag(1, [user])
 
     def test_adds_to_course_and_tag(self, manager_with_tags, user):
-        manager_with_tags.add_students_by_tag(2, [user])
+        manager_with_tags.add_students_to_tag(2, [user])
         assert user in manager_with_tags._course._students
         assert user in manager_with_tags._course._tags[1].students  # custom_tag
 
@@ -84,7 +84,7 @@ class TestAddStudentsByTag:
         manager_with_tags._course._students.append(user)
         manager_with_tags._course._tags[1].students.append(user)  # custom_tag
 
-        manager_with_tags.add_students_by_tag(2, [user])
+        manager_with_tags.add_students_to_tag(2, [user])
 
         assert len(manager_with_tags._course._students) == 1
         assert len(manager_with_tags._course._tags[1].students) == 1
