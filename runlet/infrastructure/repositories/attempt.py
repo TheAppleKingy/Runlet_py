@@ -1,7 +1,13 @@
 # mypy: disable-error-code="arg-type"
 from typing import Optional
 
-from sqlalchemy import select, exists, func, desc
+from sqlalchemy import (
+    select,
+    exists,
+    func,
+    desc,
+    delete
+)
 from sqlalchemy.orm import selectinload
 
 from runlet.application.interfaces.repositories import AttemptRepositoryInterface
@@ -15,6 +21,7 @@ from runlet.domain.entities import (
 from runlet.infrastructure.db.tables import (
     attempts,
     users,
+    users_courses
 )
 from .base import BaseAlchemyRepository
 
@@ -90,3 +97,12 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
         res = await self._session.scalars(stmt.limit(size).offset((page - 1) * size).order_by(desc(Attempt.updated_at)))
         count = await self._session.scalar(select(func.count()).select_from(stmt)) or 0
         return res.all(), (count + size - 1) // size  # type: ignore[return-value]
+
+    async def delete_attempts(self, course_id: int, student_id: int) -> None:
+        stmt = (
+            select(Attempt.user_id).join(users_courses, users_courses.c.student_id == Attempt.user_id).where(
+                users_courses.c.course_id == course_id,
+                users_courses.c.student_id == student_id
+            )
+        )
+        await self._session.execute(delete(Attempt).where(attempts.c.user_id.in_(stmt)))

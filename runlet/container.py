@@ -282,12 +282,14 @@ class InteractorProvider(Provider):
         uow: UoWInterface,
         course_repo: CourseRepositoryInterface,
         user_repo: UserRepositoryInterface,
+        attempt_repo: AttemptRepositoryInterface,
         email_service: EmailServiceInterface,
         conf: AppConfig
     ) -> UnsubscribeFromCourse:
         return UnsubscribeFromCourse(
             uow,
             course_repo,
+            attempt_repo,
             user_repo,
             email_service,
             conf.main_url
