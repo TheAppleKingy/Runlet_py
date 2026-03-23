@@ -84,7 +84,8 @@ class ShowTeacherCourseTagsToRateStudents(_CourseAttemptUserRepoRelatedInteracto
                 students, pages = await self._user_repo.get_paginated_by_tag(course_id, tag_id, page=page, size=size)
             else:
                 students, pages = await self._user_repo.get_paginated_by_course(course_id, page=page, size=size)
-            attempts = await self._attempt_repo.get_attempts_of_students([s.id for s in students])
+            attempts = await self._attempt_repo.get_attempts_of_students(
+                course.id, [s.id for s in students])  # type: ignore[union-attr]
             attempts_map = {a.user_id: a for a in attempts}
         return course, [(s, attempts_map.get(s.id)) for s in students], pages, tag  # type: ignore[return-value]
 
@@ -427,7 +428,7 @@ class SearchStudentsWithSeens(_AttemptUserRepoRelatedInteractor):
     async def __call__(self, course_id, namelike, tag_id, page=1, size=10):
         async with self._uow:
             students, pages = await self._user_repo.find_by_name(course_id, namelike, tag_id=tag_id, page=page, size=size)
-            attempts = await self._attempt_repo.get_attempts_of_students([s.id for s in students])
+            attempts = await self._attempt_repo.get_attempts_of_students(course_id, [s.id for s in students])
         return students, attempts, pages
 
 

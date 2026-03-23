@@ -81,9 +81,22 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
         res = await self._session.scalars(stmt)
         return res.unique().all()  # type: ignore[return-value]
 
-    async def get_attempts_of_students(self, students_ids: list[int]) -> list[Attempt]:
-        res = await self._session.scalars(select(Attempt).where(attempts.c.user_id.in_(students_ids)))
-        return res.all()  # type: ignore[return-value]
+    async def get_attempts_of_students(self, course_id: int, students_ids: list[int]) -> list[Attempt]:
+        course_problems = (
+            select(Problem.id)  # type: ignore
+            .join(Module, Module.id == Problem.module_id)
+            .where(Module.course_id == course_id)
+        )
+        stmt = (
+            select(Attempt)
+            .join(users_courses, users_courses.c.student_id == Attempt.user_id)
+            .where(
+                attempts.c.user_id.in_(students_ids),
+                attempts.c.problem_id.in_(course_problems),
+            )
+        )
+        res = await self._session.scalars(stmt)
+        return res.unique().all()  # type: ignore[return-value]
 
     async def get_student_attempts_all_courses_paginated(
         self,

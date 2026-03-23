@@ -20,7 +20,7 @@ class AttemptRepositoryInterface(Protocol):
         Returns ids of problems within course with provided course_id that have unseen attempts
         """
 
-    async def get_attempts_of_students(self, students_ids: list[int]) -> list[Attempt]: ...
+    async def get_attempts_of_students(self, course_id: int, students_ids: list[int]) -> list[Attempt]: ...
 
     async def get_student_attempts_all_courses_paginated(
         self,
