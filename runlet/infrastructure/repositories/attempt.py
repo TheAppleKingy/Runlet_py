@@ -100,7 +100,10 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
 
     async def delete_attempts(self, course_id: int, students_ids: list[int]) -> None:
         stmt = (
-            select(Attempt.user_id).join(users_courses, users_courses.c.student_id == Attempt.user_id).where(
+            select(Attempt.user_id).join(  # type: ignore[call-overload]
+                users_courses,
+                users_courses.c.student_id == Attempt.user_id
+            ).where(
                 users_courses.c.course_id == course_id,
                 users_courses.c.student_id.in_(students_ids)
             )

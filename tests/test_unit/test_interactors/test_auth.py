@@ -1878,8 +1878,8 @@ class TestRegisterUserRequest:
         mock_password_service.hash_password.assert_called_once_with("SecurePass123!")
 
         # Verify user was created and saved
-        mock_uow.save.assert_called_once()
-        saved_user = mock_uow.save.call_args[0][0]
+        mock_uow.add.assert_called_once()
+        saved_user = mock_uow.add.call_args[0][0]
         assert isinstance(saved_user, User)
         assert saved_user.email == "newuser@example.com"
         assert saved_user.password == hashed_password
@@ -1927,7 +1927,7 @@ class TestRegisterUserRequest:
         # Verify no interactions with other services
         mock_user_repo.count_by_email.assert_not_called()
         mock_password_service.hash_password.assert_not_called()
-        mock_uow.save.assert_not_called()
+        mock_uow.add.assert_not_called()
         mock_uow.flush.assert_not_called()
         mock_auth_service.generate_token.assert_not_called()
         mock_email_service.send_mail.assert_not_called()
@@ -1962,7 +1962,7 @@ class TestRegisterUserRequest:
 
         mock_user_repo.count_by_email.assert_called_once_with("existing@example.com")
         mock_password_service.hash_password.assert_not_called()
-        mock_uow.save.assert_not_called()
+        mock_uow.add.assert_not_called()
         mock_uow.flush.assert_not_called()
         mock_auth_service.generate_token.assert_not_called()
         mock_email_service.send_mail.assert_not_called()
@@ -2010,7 +2010,7 @@ class TestRegisterUserRequest:
         mock_user_repo.count_by_email.assert_called_once_with("user@example.com")
         mock_password_service.hash_password.assert_called_once_with(first_password)
 
-        saved_user = mock_uow.save.call_args[0][0]
+        saved_user = mock_uow.add.call_args[0][0]
         assert saved_user.password == hashed_password
 
     async def test_registration_with_special_characters_in_name(
@@ -2042,7 +2042,7 @@ class TestRegisterUserRequest:
         await register_user_request(dto)
 
         # Assert
-        saved_user = mock_uow.save.call_args[0][0]
+        saved_user = mock_uow.add.call_args[0][0]
         assert saved_user.name == "John @#$% Doe! &"
 
     async def test_registration_with_empty_name(
@@ -2074,7 +2074,7 @@ class TestRegisterUserRequest:
         await register_user_request(dto)
 
         # Assert
-        saved_user = mock_uow.save.call_args[0][0]
+        saved_user = mock_uow.add.call_args[0][0]
         assert saved_user.name == "name"
 
     async def test_registration_email_send_failure(
@@ -2112,7 +2112,7 @@ class TestRegisterUserRequest:
         # Verify user was still created and saved before email failure
         mock_user_repo.count_by_email.assert_called_once()
         mock_password_service.hash_password.assert_called_once()
-        mock_uow.save.assert_called_once()
+        mock_uow.add.assert_called_once()
         mock_uow.flush.assert_called_once()
         mock_auth_service.generate_token.assert_called_once()
         mock_email_service.send_mail.assert_called_once()
@@ -2148,7 +2148,7 @@ class TestRegisterUserRequest:
         await register_user_request(dto)
 
         # Assert
-        saved_user = mock_uow.save.call_args[0][0]
+        saved_user = mock_uow.add.call_args[0][0]
         assert saved_user.is_active is False
 
     async def test_registration_generates_token_with_correct_expiry(
@@ -2178,7 +2178,7 @@ class TestRegisterUserRequest:
         await register_user_request(dto)
 
         # Assert
-        saved_user = mock_uow.save.call_args[0][0]
+        saved_user = mock_uow.add.call_args[0][0]
         mock_auth_service.generate_token.assert_called_once_with(saved_user.id, 300)
 
     async def test_registration_uow_context_manager_usage(
@@ -2272,7 +2272,7 @@ class TestRegisterUserRequest:
 
         # Assert
         mock_user_repo.count_by_email.assert_called_once_with("üser@exämple.com")
-        saved_user = mock_uow.save.call_args[0][0]
+        saved_user = mock_uow.add.call_args[0][0]
         assert saved_user.email == "üser@exämple.com"
         assert saved_user.name == "Jöhn Døe 日本"
 
@@ -2305,7 +2305,7 @@ class TestRegisterUserRequest:
         await register_user_request(dto)
 
         # Assert
-        saved_user = mock_uow.save.call_args[0][0]
+        saved_user = mock_uow.add.call_args[0][0]
         assert saved_user.name == "  John   Doe  "  # Should preserve whitespace as is
 
 

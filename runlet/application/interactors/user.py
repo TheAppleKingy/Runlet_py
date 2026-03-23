@@ -98,10 +98,10 @@ class CreateCourse:
         async with self._uow as uow:
             course = Course(dto.name, user_id, dto.description,
                             dto.is_private, dto.notify_request_sub)
-            uow.save(course)
+            uow.add(course)
             await uow.flush()
             default_tags = [Tag(type_.value, course.id) for type_ in DefaultTagType]
-            uow.save(*default_tags)
+            uow.add(*default_tags)
             manager = CourseTagManagerService(course)
             manager.add_tags(default_tags)
 

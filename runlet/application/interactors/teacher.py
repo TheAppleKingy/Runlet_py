@@ -257,17 +257,17 @@ class ManageStudents(_CourseAttemptUserRepoRelatedInteractor):
                         manager.delete_students_from_tag(tag_id, ids)
                     else:
                         deleted_from_course.extend(manager.delete_students(ids))
-                        await self._attempt_repo.delete_attempts(course.id, ids)
+                        await self._attempt_repo.delete_attempts(course.id, ids)  # type: ignore[union-attr]
             if deleted_from_course:
                 async with self._uow:
                     students = await self._user_repo.get_by_ids(deleted_from_course)
                 topic, message = EmailMessageTextTemplate.notify_student_was_expelled(
-                    course.name, self._course_url.format(course.id))
+                    course.name, self._course_url.format(course.id))  # type: ignore[union-attr]
                 for email in [student.email for student in students]:
                     await self._email_service.send_mail(email, topic, message)
         if to_add:
             added_to_course = []
-            async with self._uow as uow:
+            async with self._uow:
                 for ids, tag_id in to_add:
                     students = await self._user_repo.get_by_ids(ids)
                     if not students:
@@ -280,7 +280,7 @@ class ManageStudents(_CourseAttemptUserRepoRelatedInteractor):
                 async with self._uow:
                     students = await self._user_repo.get_by_ids(added_to_course)
                 topic, message = EmailMessageTextTemplate.notify_student_subscribed(
-                    course.name, self._course_url.format(course.id))
+                    course.name, self._course_url.format(course.id))  # type: ignore[union-attr]
                 for email in [student.email for student in students]:
                     await self._email_service.send_mail(email, topic, message)
 
@@ -386,8 +386,7 @@ class ShowTagsToUpdate(_CourseUserReposRelatedInteractor):
                 page=tag_students_page,
                 size=tag_students_size
             )
-            # type: ignore[union-attr]
-            return course_students, course_students_pages, tag_students, tag_students_pages, tag, course.tags
+            return course_students, course_students_pages, tag_students, tag_students_pages, tag, course.tags # type: ignore[union-attr]
 
 
 class ShowProblemDataToUpdate(_CourseRepoRelatedInteractor):
