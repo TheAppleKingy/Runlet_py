@@ -295,6 +295,25 @@ class InteractorProvider(Provider):
             conf.main_url
         )
 
+    @provide
+    def manage_students(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        user_repo: UserRepositoryInterface,
+        attempt_repo: AttemptRepositoryInterface,
+        email_service: EmailServiceInterface,
+        conf: AppConfig
+    ) -> ManageStudents:
+        return ManageStudents(
+            uow,
+            course_repo,
+            attempt_repo,
+            user_repo,
+            email_service,
+            conf.student_course_url
+        )
+
 
 interactors_provider = InteractorProvider(scope=Scope.REQUEST)
 interactors_provider.provide_all(
@@ -307,7 +326,6 @@ interactors_provider.provide_all(
     ShowTeacherCourseTagsToRateStudents,
     CreateUpdateProblem,
     DeleteProblems,
-    ManageStudents,
     ManageTags,
     ManageModules,
     ShowStudentCourse,

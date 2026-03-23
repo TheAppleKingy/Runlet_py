@@ -98,11 +98,14 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
         count = await self._session.scalar(select(func.count()).select_from(stmt)) or 0
         return res.all(), (count + size - 1) // size  # type: ignore[return-value]
 
-    async def delete_attempts(self, course_id: int, student_id: int) -> None:
+    async def delete_attempts(self, course_id: int, students_ids: list[int]) -> None:
         stmt = (
-            select(Attempt.user_id).join(users_courses, users_courses.c.student_id == Attempt.user_id).where(
+            select(Attempt.user_id).join(  # type: ignore[call-overload]
+                users_courses,
+                users_courses.c.student_id == Attempt.user_id
+            ).where(
                 users_courses.c.course_id == course_id,
-                users_courses.c.student_id == student_id
+                users_courses.c.student_id.in_(students_ids)
             )
         )
-        await self._session.execute(delete(Attempt).where(attempts.c.user_id.in_(stmt)))
+        await self._session.scalars(delete(Attempt).where(attempts.c.user_id.in_(stmt)))

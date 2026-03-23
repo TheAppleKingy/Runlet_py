@@ -132,7 +132,7 @@ class RegisterUserRequest(_BaseLoginRegRequestInteractor):
                 raise EmailExistsError(f"User with email {dto.email} already exists")
             registered = User(dto.email, self._password_service.hash_password(
                 dto.first_password), dto.name)
-            uow.save(registered)
+            uow.add(registered)
             await uow.flush()
             token = self._auth_service.generate_token(registered.id, 300)
             topic, message = EmailMessageTextTemplate.registration(f"{self._reg_confirm_url}/{token}")

@@ -97,7 +97,7 @@ class SendProblemSolution(_CourseAttemptReposRelatedInteractor):
             attempt = await self._attempt_repo.get_student_attempt(course_id, student_id, problem_id)
             if not attempt:
                 attempt = Attempt(student_id, problem.id, dto.code)
-                uow.save(attempt)  # type: ignore[union-attr]
+                uow.add(attempt)  # type: ignore[union-attr]
             attempt.start()
             message_dto = TestSolutionDTO(
                 student_id=student_id,
@@ -127,9 +127,10 @@ class UnsubscribeFromCourse(_CourseAttemptUserRepoRelatedInteractor):
     async def __call__(self, student_id: int, course_id: int):
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students], [Course._students])
-            manager = CourseStudentsManagerService(course)
+            manager = CourseStudentsManagerService(course)  # type: ignore[arg-type]
             manager.delete_students([student_id])
             student = await self._user_repo.get_by_id(student_id)
-            await self._attempt_repo.delete_attempts(course.id, student.id)
-        topic, message = EmailMessageTextTemplate.notify_student_unsubscribed(course.name, self._main_url)
-        await self._email_service.send_mail(student.email, topic, message)
+            await self._attempt_repo.delete_attempts(course.id, [student.id])  # type: ignore[union-attr]
+        topic, message = EmailMessageTextTemplate.notify_student_unsubscribed(
+            course.name, self._main_url)  # type: ignore[union-attr]
+        await self._email_service.send_mail(student.email, topic, message)  # type: ignore[union-attr]

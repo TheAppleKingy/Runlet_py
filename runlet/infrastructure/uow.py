@@ -34,8 +34,5 @@ class AlchemyUoW(UoWInterface):
     async def flush(self) -> None:
         return await self._session.flush()
 
-    def save(self, *ents: DomainEnt):
+    def add(self, *ents: DomainEnt):
         return self._session.add_all(ents)
-
-    def in_transaction(self) -> bool:
-        return self._session.in_transaction()

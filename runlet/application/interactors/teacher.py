@@ -224,25 +224,65 @@ class DeleteTags(_CourseRepoRelatedInteractor):
             manager.delete_tags(tags_ids)
 
 
-class ManageStudents(_CourseUserReposRelatedInteractor):
+class ManageStudents(_CourseAttemptUserRepoRelatedInteractor):
+    def __init__(
+        self,
+        uow: UoWInterface,
+        course_repo: CourseRepositoryInterface,
+        attempt_repo: AttemptRepositoryInterface,
+        user_repo: UserRepositoryInterface,
+        email_service: EmailServiceInterface,
+        course_url: str
+    ):
+        super().__init__(uow, course_repo, attempt_repo, user_repo)
+        self._email_service = email_service
+        self._course_url = course_url
+
     async def __call__(self, course_id: int, data: list[UpdateTagStudentsDTO]):
+        to_delete: list[tuple[list[int], Optional[int]]] = []
+        to_add: list[tuple[list[int], Optional[int]]] = []
+        for manage_data in data:
+            if manage_data.to_delete:
+                to_delete.append((manage_data.to_delete, manage_data.tag_id))
+            if manage_data.to_add:
+                to_add.append((manage_data.to_add, manage_data.tag_id))
         async with self._uow:
             course = await self._course_repo.get_by_id_with_rels(course_id, [Course._tags, Tag.students], [Course._students])
             manager = CourseStudentsManagerService(course)  # type: ignore
-            for add_data in data:
-                if add_data.to_delete:
-                    if add_data.tag_id:
-                        manager.delete_students_from_tag(add_data.tag_id, add_data.to_delete)
+        if to_delete:
+            deleted_from_course = []
+            async with self._uow:
+                for ids, tag_id in to_delete:
+                    if tag_id:
+                        manager.delete_students_from_tag(tag_id, ids)
                     else:
-                        manager.delete_students(add_data.to_delete)
-                if add_data.to_add:
-                    students = await self._user_repo.get_by_ids(add_data.to_add)
+                        deleted_from_course.extend(manager.delete_students(ids))
+                        await self._attempt_repo.delete_attempts(course.id, ids)  # type: ignore[union-attr]
+            if deleted_from_course:
+                async with self._uow:
+                    students = await self._user_repo.get_by_ids(deleted_from_course)
+                topic, message = EmailMessageTextTemplate.notify_student_was_expelled(
+                    course.name, self._course_url.format(course.id))  # type: ignore[union-attr]
+                for email in [student.email for student in students]:
+                    await self._email_service.send_mail(email, topic, message)
+        if to_add:
+            added_to_course = []
+            async with self._uow:
+                for ids, tag_id in to_add:
+                    students = await self._user_repo.get_by_ids(ids)
                     if not students:
                         raise undefinedStudentError("Students does not exist for adding to tag")
-                    if add_data.tag_id:
-                        manager.add_students_by_tag(add_data.tag_id, students)
+                    if tag_id:
+                        manager.add_students_to_tag(tag_id, students)
                     else:
-                        manager.add_students(students)
+                        added_to_course.extend(manager.add_students(students))
+            if added_to_course:
+                async with self._uow:
+                    students = await self._user_repo.get_by_ids(added_to_course)
+                topic, message = EmailMessageTextTemplate.notify_student_subscribed(
+                    course.name, self._course_url.format(course.id))  # type: ignore[union-attr]
+                for email in [student.email for student in students]:
+                    await self._email_service.send_mail(email, topic, message)
 
 
 class GenerateInviteLink(_CourseRepoRelatedInteractor):
@@ -347,6 +387,7 @@ class ShowTagsToUpdate(_CourseUserReposRelatedInteractor):
                 size=tag_students_size
             )
             return course_students, course_students_pages, tag_students, tag_students_pages, tag, course.tags # type: ignore[union-attr]
+
 
 class ShowProblemDataToUpdate(_CourseRepoRelatedInteractor):
     async def __call__(self, course_id: int, module_id: int, problem_id: int) -> Problem:  # type: ignore[return]
