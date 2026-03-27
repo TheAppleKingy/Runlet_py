@@ -85,7 +85,7 @@ async def get_tags_and_students_to_rate(
     interactor: FromDishka[ShowTeacherCourseTagsToRateStudents],
     tag_id: Optional[int] = Query(default=None, gt=0),
     page: int = Query(default=1, gt=0),
-    size: int = Query(default=12, gt=0, le=20)
+    size: int = Query(default=30, gt=0, le=30)
 ) -> PaginatedCourseTagsStudentsWithSeensDTO:
     course, users_attempts, pages, tag = await interactor(course_id, tag_id=tag_id, page=page, size=size)
     return show_tags_students_with_seen_info(course, users_attempts, tag, page, pages)

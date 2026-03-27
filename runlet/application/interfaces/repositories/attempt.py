@@ -29,7 +29,4 @@ class AttemptRepositoryInterface(Protocol):
         size: int
     ) -> tuple[list[Attempt], int]: ...
 
-    async def delete_attempts(self, course_id: int, students_ids: list[int]) -> None:
-        """
-        Returns ids of students that had attempts within provided course
-        """
+    async def delete_attempts(self, course_id: int, students_ids: list[int]) -> None: ...
