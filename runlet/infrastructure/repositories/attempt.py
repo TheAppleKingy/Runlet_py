@@ -6,7 +6,7 @@ from sqlalchemy import (
     exists,
     func,
     desc,
-    delete
+    delete,
 )
 from sqlalchemy.orm import selectinload
 
@@ -32,7 +32,7 @@ class AlchemyAttemptRepository(BaseAlchemyRepository, AttemptRepositoryInterface
             select(Attempt)
             .join(Problem, Problem.id == Attempt.problem_id)
             .join(Module, Module.id == Problem.module_id)
-            .where(Attempt.user_id == student_id, Module.course_id == course_id)
+            .where(Attempt.user_id == student_id, Module.course_id == course_id).order_by(Attempt.updated_at)
         )
         res = await self._session.scalars(stmt.options(selectinload(Attempt.problem)))
         return res.unique().all()  # type: ignore
