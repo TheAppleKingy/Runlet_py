@@ -120,7 +120,7 @@ async def get_problem_students_info(
     user_id: FromDishka[AuthenticatedTeacherId],
     interactor: FromDishka[ShowProblemStudents],
     page: int = Query(default=1, gt=0),
-    size: int = Query(default=7, gt=0, le=7)
+    size: int = Query(default=15, gt=0, le=15)
 ) -> PaginatedProblemStudentsInfoDTO:
     students_attempts, pages = await interactor(course_id, module_id, problem_id, page=page, size=size)
     return show_problems_students_with_attempt_info(students_attempts, page, pages)
