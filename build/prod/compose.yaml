@@ -47,6 +47,8 @@ services:
     image: rabbitmq:management-alpine
     env_file:
       - .env
+    ports:
+      - "15672:15672"
     volumes:
       - runlet_rabbitmq_data:/var/lib/rabbitmq
     networks:
