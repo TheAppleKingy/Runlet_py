@@ -36,8 +36,8 @@ def upgrade() -> None:
                     postgresql_using='gin', postgresql_ops={'name': 'gin_trgm_ops'})
     op.create_table('courses',
                     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-                    sa.Column('name', sa.String(length=100), nullable=False),
-                    sa.Column('description', sa.String(length=512), nullable=True),
+                    sa.Column('name', sa.String(), nullable=False),
+                    sa.Column('description', sa.String(), nullable=True),
                     sa.Column('teacher_id', sa.Integer(), nullable=True),
                     sa.Column('is_private', sa.Boolean(), nullable=False),
                     sa.Column('notify_request_sub', sa.Boolean(), nullable=False),

@@ -82,14 +82,14 @@ class CourseG8(BaseModel):
 
 
 class CourseCreateDTO(BaseModel):
-    name: str = Field(max_length=100)
-    description: Optional[str] = Field(max_length=512, default=None)
+    name: str
+    description: Optional[str] = None
     is_private: bool = False
     notify_request_sub: bool = False
 
 
 class CourseUpdateDTO(BaseModel):
-    name: Optional[str] = Field(max_length=100, default=None)
-    description: Optional[str] = Field(max_length=512, default=None)
+    name: Optional[str] = None
+    description: Optional[str] = Field(default=None)
     is_private: Optional[bool] = None
     notify_request_sub: Optional[bool] = None
