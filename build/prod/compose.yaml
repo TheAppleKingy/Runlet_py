@@ -9,6 +9,8 @@ services:
     networks:
       - runlet_internal
       - runlet_migrations_network
+    ports:
+      - "5432:5432"
 
   runlet:
     build:
